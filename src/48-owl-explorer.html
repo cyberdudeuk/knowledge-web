@@ -192,7 +192,7 @@ function owlTree(){
     box.innerHTML = '<ul class="owl-tree">' + PROPS.filter(p => match(p.id) || match(p.label)).map(p => {
       const n = DECLARED.filter(e => e.prop === p.id).length;
       return `<li><button class="owl-node${owlSel===p.id?' on':''}" data-e="${p.id}">
-        <span style="font-family:'JetBrains Mono',monospace;font-size:11px">${esc(p.id)}</span>
+        <span style="font-family:var(--mono);font-size:11px">${esc(p.id)}</span>
         <span class="n">${n}</span></button></li>`;
     }).join('') + '</ul>';
   }

@@ -6,7 +6,7 @@ source of truth. **Trace** cites the source that demands the item.
 | ID | Item | Pri | Phase | Trace |
 |---|---|---|---|---|
 | **BL-WEB-01** | Degraded-mode render. Emit a static, semantic HTML rendering of every collection — headings, lists, tables, relation triples — that displays with JavaScript disabled. The interactive web becomes progressive enhancement over it. | P1 | 1 | T-03, SELF |
-| **BL-WEB-02** | Remove the external font dependency. Ship a system-font stack with an optional embedded subset, so the artefact renders correctly on an air-gapped or egress-restricted desktop. | P1 | 1 | T-03, SELF |
+| **BL-WEB-02** | Remove the external font dependency. Ship a system-font stack with an optional embedded subset, so the artefact renders correctly on an air-gapped or egress-restricted desktop. | DONE | 1 | T-03, SELF |
 | **BL-WEB-03** | Collection authoring pipeline. Generate a collection from a source file — xlsx, csv, JSON-LD, a register export — through a declared mapping, with a reviewable mapping report. The single item that turns a demonstrator into a platform. | P1 | 1 | IA-06, GDS, STD |
 | **BL-WEB-04** | Assisted-usability testing with five participants, at least one screen-reader user and one keyboard-only user. UCD means tested, not designed-to. | P1 | 1 | MG-NFR-002 |
 | **BL-WEB-05** | Version control the code line. The prototype exists only as build-session output. Establish a repository and tagged releases. | DONE | 0 | R-02 |
@@ -69,10 +69,12 @@ source of truth. **Trace** cites the source that demands the item.
    VoiceOver and keyboard-only now; Stage 1 informal cold readers; Stage 2 the
    formal five-participant protocol, which is the gate for internal adoption and
    the only stage that closes the item.
-2. **BL-WEB-01 / 02** degraded-mode render and removing the font CDN — the two
-   doctrine failures the Authority records openly.
+2. **BL-WEB-01** degraded-mode render — the remaining doctrine failure the
+   Authority records openly. BL-WEB-02 (font CDN) closed in v2.1.
 
 ## Closed
+
+- **BL-WEB-02** external font dependency removed — system serif/sans/mono stacks, nothing fetched at runtime (v2.1, 2026-08-01)
 
 - **BL-WEB-05** version control — repository initialised at v2.0, first commit 3470350, tagged v2.0 (2026-08-01)
 - **BL-WEB-06** shareable state — collection, page, selection, mode and stratification in the URL

@@ -182,7 +182,7 @@ closeManual = () => {};
           `<i style="width:${v/tot*100}%;background:${['var(--ok)','var(--amber)','var(--rust)'][i]}"></i>`).join('')}</div>
           <div class="barkey">${Object.entries(m.bar).map(([k,v],i) =>
           `<span><em style="background:${['var(--ok)','var(--amber)','var(--rust)'][i]}"></em>${k} ${v}</span>`).join('')}</div>`;})() : ''}
-        <p style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--faint);letter-spacing:.04em">${esc(m.src)}</p>
+        <p style="font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:.04em">${esc(m.src)}</p>
       </div>
       <footer><button class="cta" data-load="${c.id}">Load into the web</button>
         <button class="cta ghost" data-torn="${c.id}">What is torn</button></footer>
