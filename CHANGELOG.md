@@ -4,6 +4,28 @@ All notable changes to the artefact. Mirrors Section 13 (Release history) of
 `docs/programme-authority.html`, which remains the source of truth. Defects
 found during verification are named, never quietly fixed.
 
+## v2.4 — 2026-08-01
+
+Owner ruling applied: one layer, one data model.
+
+- **KIL underpins KISIL; KISL and KSL are abbreviations of KISIL.** The
+  three-way collision dissolves into one layer with three spellings.
+- The inferred five-band ladder formerly carried as KSL is **retired** —
+  stratification dimension, reference-page section, OWL axiom, tour stop and
+  manual text removed; dormant per-node `kisil` keys kept for history.
+- Naming register rewritten with the ruling and a record of the resolution.
+- Closes BL-WEB-36 and BL-WEB-37; retires risk I-01.
+- Defect found and fixed: none. Verified: 8 pages × 6 collections × 2 themes.
+
+## v2.3 — 2026-08-01
+
+Vocabulary defect fixed (corpus survey C5).
+
+- `const KISIL` (holding the KSL bands) renamed `KSL`; glossary corrected so
+  KISIL is the layer, never a ladder; audit addendum added to docs/NAMING.md.
+- KIL/KISIL Body of Work Index and vocabulary reconciliation published to
+  Confluence; labelled Jira epic XDMH-195 with seven issues.
+
 ## v2.2 — 2026-08-01
 
 Design system step 3: the node grammar.

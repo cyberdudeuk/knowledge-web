@@ -140,9 +140,9 @@ const TOURS = [
     { s:'The governance roadmap needs something only your team has: your sector regulator, your existing enterprise architecture body, your records-management schedules. Everything else in that thread is finished.', run:() => selectNode('gov', 4) },
     { s:'And this one is a decision, not a task. Apps and websites was three questions asked and never answered. It shares no idea with anything else on the web, so nothing reaches it. Answer it or cut it.', run:() => selectNode('apps', 1) }
   ]},
-  { id:'class', name:'Reading by classification', blurb:'Four stops across taxonomy, KSL and the thesaurus.', stops:[
+  { id:'class', name:'Reading by classification', blurb:'Four stops across taxonomy, the KIL chain and the thesaurus.', stops:[
     { s:'The taxonomy asks what a piece of work is for, not what it is. Govern, describe, measure, deliver. A portal and a manual can sit in the same branch.', run:() => { const hits = NODEREFS.filter(r => ((ENRICH[key(r)]||{}).tax||'').startsWith('govern')); selectSet(hits, 'Taxonomy', 'Govern', 'Everything whose purpose is to set or enforce the rules.'); } },
-    { s:'Two ladders run alongside each other. KIL is canonical, from your specification: workstream, artefact, insight, signal, decision. KSL is a local scheme this prototype inferred, kept under a name that does not collide.', run:() => { selectSet(NODEREFS.filter(r => kilOf(key(r)) === 'I'), 'KIL chain \u00b7 canonical', 'Insight', 'Synthesised understanding derived from artefacts. Carries impact and confidence, 1 to 5.'); } },
+    { s:'One ladder, canonical: KIL \u2014 workstream, artefact, insight, signal, decision \u2014 the data model underpinning KISIL. A local scheme this prototype once inferred under the KSL name is retired: KSL, like KISL, was only an abbreviation of the layer itself.', run:() => { selectSet(NODEREFS.filter(r => kilOf(key(r)) === 'I'), 'KIL chain \u00b7 canonical', 'Insight', 'Synthesised understanding derived from artefacts. Carries impact and confidence, 1 to 5.'); } },
     { s:'The thesaurus means you can search the way you actually talk. Type C D A and it finds Critical Data Asset. Type D A M and it finds the asset management policy.', run:() => { document.getElementById('q').value = 'CDA'; runQuery('CDA'); } },
     { s:'And the glossary and data dictionary sit behind the same tab: every term defined, every field in the registers described with its type and its source.', run:() => { document.getElementById('tabRef').click(); renderRef('dict'); } }
   ]}
@@ -228,7 +228,7 @@ document.getElementById('manBody').innerHTML = `
   <li><b>Data dictionary</b> — the actual fields in your registers, with type, source and meaning.</li>
 </ul>
 
-<div class="callout"><p><b>Two ladders, deliberately distinct.</b> <b>KIL</b> — Workstream, Artefact, Insight, Signal, Decision — is canonical, taken from your Knowledge Integration &amp; Semantic Interoperability Layer specification, and is the default stratification. <b>KSL</b> — Knowledge, Information, Skills, Insight, Learning — is a local scheme this prototype inferred before that specification was supplied. It is retained under a non-colliding name and is marked unratified wherever it appears. <b>KISIL</b> itself is the layer, never a ladder.</p></div>
+<div class="callout"><p><b>One layer, one data model.</b> Owner-ratified, August 2026: <b>KISIL</b> is the Knowledge Integration &amp; Semantic Interoperability Layer; <b>KISL</b> and <b>KSL</b> are abbreviations of the same layer. <b>KIL</b> — Workstream, Artefact, Insight, Signal, Decision — is the data model that underpins it, and is the default stratification. The five-band ladder this prototype once carried under the KSL name is retired.</p></div>
 
 <h3>Accessibility</h3>
 <p>Built to WCAG 2.1 AA intent, and tested by keyboard alone.</p>

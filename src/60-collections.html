@@ -1,13 +1,14 @@
 <script>
 /* ============================================================
-   1. KISIL / KIL / KSL — resolving a three-way name collision
+   1. KISIL / KIL / KISL / KSL — one layer, one data model
    ------------------------------------------------------------
-   Canonical, from the uploaded specification:
+   Owner-ratified, August 2026:
      KISIL = Knowledge Integration & Semantic Interoperability Layer
-     KIL   = Knowledge Integration Layer, the data architecture inside it
+     KISL, KSL = abbreviations of the same layer
+     KIL   = the data model underpinning KISIL
              (Workstreams > Artefacts > Insights > Signals > Decisions)
-   A third KIL exists in Whitehall Connect ("Keystone Up the Chain").
-   The ladder this prototype invented is renamed KSL so nothing clashes.
+   The five-band ladder this prototype once invented under the KSL
+   name is retired. Closes BL-WEB-36 and BL-WEB-37.
    ============================================================ */
 const KIL = {
   canonical:true,
@@ -21,9 +22,6 @@ const KIL = {
     { id:'D', label:'Decision',   def:'A formal or informal decision, with rationale, owner and status. Traceable back to artefacts.' }
   ]
 };
-KSL.formerlyMisnamedAs = 'KISIL \u2014 the layer\u2019s name, wrongly applied to this ladder before the rename';
-KSL.name = 'KSL \u2014 Knowledge State Ladder';
-KSL.note = 'This five-band ladder was inferred before the specification was supplied. It is retained under the name KSL so it no longer collides with the canonical KISIL.';
 
 /* map each bead onto the canonical KIL chain */
 const KIL_BY_CLASS = {

@@ -33,7 +33,7 @@ TOURS.push(
   ]},
   { id:'strata', name:'Tilt it into layers', blurb:'Five stops through the stratified view and the eagle lens.', stops:[
     { s:'Knowledge is rarely flat. Press T, or the Strata button, and the web tilts. Every bead lifts onto the layer it belongs to.', run:() => { toggleStrata(true); } },
-    { s:'This is stratified by KSL band. Information sits low, insight sits higher, learning higher still. The dashed risers are every relation that crosses a level.', run:() => { document.getElementById('stBy').value = 'kisil'; STRATA.by = 'kisil'; relayout(); syncStrandLines(); } },
+    { s:'This is stratified by the KIL synthesis chain \u2014 workstreams sit low, artefacts and insights climb, decisions sit highest. The dashed risers are every relation that crosses a level.', run:() => { document.getElementById('stBy').value = 'kil'; STRATA.by = 'kil'; relayout(); syncStrandLines(); } },
     { s:'Change the dimension and the same content restacks. By purpose, by ontology depth, by distance from the hub, or by thread. The web does not change, only the axis you read it against.', run:() => { document.getElementById('stBy').value = 'tax'; STRATA.by = 'tax'; relayout(); syncStrandLines(); } },
     { s:'Now the eagle. Press L for the lens: three times magnification following your pointer without giving up the wide view. Hold shift and scroll to change the power.', run:() => { toggleStrata(false); toggleLens(true); } },
     { s:'And the stoop. In owl view, opening a bead dives onto it the way a falcon drops. Press S at any time to stoop onto wherever you last were.', run:() => { toggleLens(false); toggleOwl(true); selectNode('cda', 5); } }
@@ -59,7 +59,7 @@ document.getElementById('manBody').insertAdjacentHTML('beforeend', `
 <p>The reasoner reports honestly when it finds nothing. Transitivity currently adds no assertions, because no part chain in this ontology runs more than one step — that is a fact about your estate, not a broken feature.</p>
 
 <h3>Strata — the tilted web</h3>
-<p>Press <kbd>T</kbd>. The web tilts and every bead lifts onto its layer. Stratify by KSL band, purpose, ontology depth, ring, or thread; adjust tilt, turn and layer spacing. Threads become polylines climbing through the levels, and <b>risers</b> mark every relation that crosses one. Set tilt to zero and it flattens back to the plan view without leaving the mode.</p>
+<p>Press <kbd>T</kbd>. The web tilts and every bead lifts onto its layer. Stratify by the KIL chain, purpose, ontology depth, ring, or thread; adjust tilt, turn and layer spacing. Threads become polylines climbing through the levels, and <b>risers</b> mark every relation that crosses one. Set tilt to zero and it flattens back to the plan view without leaving the mode.</p>
 
 <h3>The eagle</h3>
 <p><b>Lens</b> (<kbd>L</kbd>) magnifies around your pointer without giving up the wide view — shift-scroll changes the power. <b>Stoop</b> (<kbd>S</kbd>) dives from wherever you are onto your last target, and happens automatically when you open a bead in owl view.</p>

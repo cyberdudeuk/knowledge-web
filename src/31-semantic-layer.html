@@ -63,24 +63,14 @@ const TAXONOMY = [
     { id:'del/method',     label:'Build method' } ]}
 ];
 
-/* --- KSL, the local Knowledge State Ladder. Inferred before the KISIL
-       specification was supplied; unratified (BL-WEB-36, risk I-01).
-       KISIL itself is the layer, never a ladder — see docs/NAMING.md.
-       The identifier was renamed from KISIL to KSL to match the register.
-       The data key `kisil` is retained for URL-state compatibility. --- */
-const KSL = {
-  unconfirmed:true,
-  note:'Inferred expansion \u2014 confirm or correct and the whole dimension re-reads.',
-  levels:[
-    { id:'K', label:'Knowledge',   def:'Established understanding, written down and owned by someone.' },
-    { id:'I', label:'Information', def:'Structured facts in a register, catalogue or record.' },
-    { id:'S', label:'Skills',      def:'Capability held by people \u2014 training, guides, onboarding.' },
-    { id:'I2',label:'Insight',     def:'Interpretation: what the information means and what to do next.' },
-    { id:'L', label:'Learning',    def:'What gets fed back so the next cycle starts further forward.' }
-  ]
-};
+/* --- The five-band "Knowledge State Ladder" this build once carried under
+       the name KSL is RETIRED (owner ruling, 2026-08-01): KSL and KISL were
+       only ever abbreviations of KISIL, the layer. The ladder rested on a
+       misreading of that abbreviation. Closes BL-WEB-36; see docs/NAMING.md.
+       The per-node `kisil` keys below are dormant data, kept for history. --- */
 
-/* --- per-node enrichment: class, taxonomy, KSL band (key `kisil`), typed relations --- */
+/* --- per-node enrichment: class, taxonomy, typed relations (plus dormant
+       `kisil` band keys from the retired ladder) --- */
 const ENRICH = {
   'gov:0':{ cls:'ProcessModel', tax:'govern/process', kisil:'K', rel:[['governs','gov:4'],['derivedFrom','cat:3']] },
   'gov:1':{ cls:'RoleModel',    tax:'govern/roles',   kisil:'K', rel:[['derivedFrom','cat:3'],['governs','gov:4']] },
@@ -151,7 +141,8 @@ const GLOSSARY = [
   { t:'GEMINI / ISO 19115', d:'The UK profile and international standard for geospatial metadata.' },
   { t:'Governance handback', d:'The point where a programme hands an asset into business-as-usual governance. The most commonly skipped step.' },
   { t:'KISIL', d:'Knowledge Integration & Semantic Interoperability Layer \u2014 the layer itself, never a ladder. See the manual and docs/NAMING.md.' },
-  { t:'KSL', d:'Knowledge State Ladder \u2014 the local five-band scheme this build inferred before the specification was supplied. Unratified.' },
+  { t:'KSL', d:'An abbreviation of KISIL \u2014 the layer. This build once misapplied the name to a local five-band ladder, retired 2026-08-01.' },
+  { t:'KISL', d:'An abbreviation of KISIL \u2014 the layer, as used in Whitehall Connect.' },
   { t:'NDL', d:'National Data Library. The programme context behind valuation and readiness scoring in the CDA work.' },
   { t:'OFFICIAL', d:'The baseline UK government security classification. Applied as a banner across the playbook family.' },
   { t:'Ontology', d:'A formal description of the kinds of things in a domain and the relationships allowed between them. Here: fifteen classes and sixteen properties.' },

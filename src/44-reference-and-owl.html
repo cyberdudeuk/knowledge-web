@@ -140,7 +140,7 @@ function renderRef(which){
   }
 
   else if (which === 'kisil'){
-    h = `<div class="callout"><p><b>Name collision, now resolved.</b> <b>KISIL</b> is the Knowledge Integration &amp; Semantic Interoperability Layer, per your specification. <b>KIL</b> is the Knowledge Integration Layer inside it \u2014 Workstream, Artefact, Insight, Signal, Decision. A third KIL exists in Whitehall Connect, "Keystone Up the Chain". The five-band ladder this prototype invented is renamed <b>KSL</b> so nothing clashes.</p></div>
+    h = `<div class="callout"><p><b>Name collision, dissolved.</b> Owner-ratified, August 2026: <b>KISIL</b> is the Knowledge Integration &amp; Semantic Interoperability Layer, and <b>KISL</b> and <b>KSL</b> are abbreviations of the same layer. <b>KIL</b> is the data model that underpins it \u2014 Workstream, Artefact, Insight, Signal, Decision. The five-band ladder this prototype once invented under the KSL name rested on a misreading of that abbreviation and is retired.</p></div>
       <h2>KIL synthesis chain \u00b7 canonical</h2>
       <p style="font-size:11.5px;color:var(--faint);margin:-4px 0 9px;line-height:1.5">${esc(KIL.note)}</p>`;
     h += KIL.levels.map((l,i) => {
@@ -151,14 +151,6 @@ function renderRef(which){
     }).join('');
     if (!NODEREFS.filter(r => kilOf(key(r)) === 'D').length)
       h += `<div class="ax obs" style="margin-top:10px">No <b>Decision</b> entities exist in this collection. The estate captures artefacts and insights but not the decisions they informed \u2014 precisely the gap the Memory Grid Decision Traceability Layer is specified to close.</div>`;
-    h += `<h2 style="margin-top:20px">KSL knowledge state ladder \u00b7 local</h2>
-      <p style="font-size:11.5px;color:var(--faint);margin:-4px 0 9px;line-height:1.5">${esc(KSL.note)}</p>`;
-    h += KSL.levels.map((l,i) => {
-      const n = NODEREFS.filter(r => (ENRICH[key(r)]||{}).kisil === l.id).length;
-      return `<button class="onto-row" data-kisil="${l.id}"><span class="onto-ct">${i+1}</span>
-        <span class="onto-name"><b style="color:var(--silk)">${esc(l.label)}</b><br><span style="font-size:11.5px;color:var(--faint)">${esc(l.def)}</span></span>
-        <span class="onto-ct">${n}</span></button>`;
-    }).join('');
   }
 
   else if (which === 'thes'){
@@ -206,10 +198,6 @@ function renderRef(which){
   refBody.querySelectorAll('[data-kil]').forEach(b => b.addEventListener('click', () => {
     const k = b.dataset.kil, lv = KIL.levels.find(l => l.id === k);
     selectSet(NODEREFS.filter(r => kilOf(key(r)) === k), 'KIL chain \u00b7 canonical', lv.label, esc(lv.def));
-  }));
-  refBody.querySelectorAll('[data-kisil]').forEach(b => b.addEventListener('click', () => {
-    const k = b.dataset.kisil, lv = KSL.levels.find(l => l.id === k);
-    selectSet(NODEREFS.filter(r => (ENRICH[key(r)]||{}).kisil === k), 'KSL band \u00b7 local scheme', lv.label, esc(lv.def));
   }));
   refBody.querySelectorAll('[data-node]').forEach(b => b.addEventListener('click', () => {
     const r = byKey[b.dataset.node]; selectNode(r.s.id, r.j);

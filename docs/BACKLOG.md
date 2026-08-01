@@ -40,8 +40,8 @@ source of truth. **Trace** cites the source that demands the item.
 | **BL-WEB-33** | Quantified metadata drives the visual. impact and confidence (1–5) and severity should set bead weight and route prominence, so high-impact low-confidence findings surface automatically. | P1 | 2 | KISIL §2 |
 | **BL-WEB-34** | Impact-analysis propagation. When an artefact is superseded or redacted, flag every downstream insight and decision that relied on it. | P2 | 3 | KISIL §3 |
 | **BL-WEB-35** | Signal promotion. Allow an insight to be promoted to a signal with severity, and render signals distinctly. | P2 | 3 | KISIL §2 |
-| **BL-WEB-36** | Confirm or correct the KSL ladder with its owner, or retire it now that the canonical KISIL is known. | P2 | 1 | ADR-W06 |
-| **BL-WEB-37** | Resolve the three-way KIL collision across DSIT/GDS artefacts: Knowledge Integration Layer, Keystone Up the Chain, and the Observatory view. One wins; the others are renamed. | P1 | 0 | IA-11 |
+| **BL-WEB-36** | Confirm or correct the KSL ladder with its owner, or retire it now that the canonical KISIL is known. | DONE | 1 | ADR-W06 |
+| **BL-WEB-37** | Resolve the three-way KIL collision across DSIT/GDS artefacts: Knowledge Integration Layer, Keystone Up the Chain, and the Observatory view. One wins; the others are renamed. | DONE | 0 | IA-11 |
 | **BL-WEB-40** | Separate discovery metadata from access decisions. A bead should be discoverable while its content is not, with an access route rather than the content. | P1 | 2 | MG-FR-006 |
 | **BL-WEB-41** | Provenance record per node — source URI, created-by role, version, lineage, review status. | P1 | 2 | MG-NFR-004 |
 | **BL-WEB-42** | Quality assessment — clarity, evidence and reuse scores with reviewer role, rendered as a visible state on each bead. | P2 | 3 | MG-FR-008 |
@@ -73,6 +73,9 @@ source of truth. **Trace** cites the source that demands the item.
    Authority records openly. BL-WEB-02 (font CDN) closed in v2.1.
 
 ## Closed
+
+- **BL-WEB-36** KSL ladder retired — owner ruled KSL/KISL are abbreviations of KISIL; the inferred ladder rested on a misreading (v2.4, 2026-08-01)
+- **BL-WEB-37** KIL collision dissolved — one layer with three spellings (KISIL/KISL/KSL) over one underpinning KIL data model, per owner ruling (v2.4, 2026-08-01)
 
 - **BL-WEB-02** external font dependency removed — system serif/sans/mono stacks, nothing fetched at runtime (v2.1, 2026-08-01)
 
