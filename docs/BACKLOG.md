@@ -64,9 +64,11 @@ source of truth. **Trace** cites the source that demands the item.
 
 ## Do these first
 
-1. **BL-WEB-04** five-participant usability testing, at least one screen-reader user.
-   Open since v1.0. No amount of building substitutes for it. Recruitment brief and
-   test script drafted in `docs/USER-TESTING-PLAN.md`; sessions not yet scheduled.
+1. **BL-WEB-04** usability testing. Open since v1.0. Staged in
+   `docs/USER-TESTING-PLAN.md` for a personal project: Stage 0 self-audit with
+   VoiceOver and keyboard-only now; Stage 1 informal cold readers; Stage 2 the
+   formal five-participant protocol, which is the gate for internal adoption and
+   the only stage that closes the item.
 2. **BL-WEB-01 / 02** degraded-mode render and removing the font CDN — the two
    doctrine failures the Authority records openly.
 
