@@ -279,7 +279,7 @@ function owlDetail(){
       ${ax(`<b>web:thread</b> "${esc(ind.s.label)}"`)}
       ${ax(`<b>web:kilStage</b> "${esc((KIL.levels.find(l=>l.id===kilOf(id))||{}).label)}" <span class="tag">KIL \u00b7 canonical</span>`)}
       ${e2.tax ? ax(`<b>web:purpose</b> "${esc(flatTax()[e2.tax])}"`) : ''}
-      ${e2.kisil ? ax(`<b>web:kslBand</b> "${esc((KISIL.levels.find(l=>l.id===e2.kisil)||{}).label)}" <span class="tag">KSL \u00b7 unratified</span>`) : ''}
+      ${e2.kisil ? ax(`<b>web:kslBand</b> "${esc((KSL.levels.find(l=>l.id===e2.kisil)||{}).label)}" <span class="tag">KSL \u00b7 unratified</span>`) : ''}
       ${(ind.nd.themes||[]).map(t => ax(`<b>web:crossing</b> "${esc((THEMES.find(x=>x.id===t)||{}).label)}"`)).join('')}
       <h4>Property assertions</h4>`;
     const asserts = assertionsOf(id);

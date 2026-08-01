@@ -40,3 +40,24 @@ proceed.
 
 Where a scheme is unconfirmed it must say so at every point it appears — in the
 interface, in the tours, in the manual and here.
+
+---
+
+## Audit addendum — 2026-08-01 (findings, not decisions)
+
+A corpus survey across local workspaces and Confluence found, **pending owner
+confirmation** (tracked as XDMH-198 and on the Confluence page "KIL vocabulary
+reconciliation"):
+
+1. Whitehall Connect's KIL expands in the artefact as "Knowledge & semantic
+   Interoperability Layer" (also abbreviated **KISL**); "Keystone · Up the
+   Chain" is a view name, not an expansion. This register's entry records it
+   otherwise.
+2. The Observatory "KIL view" referent could not be evidenced in any current
+   Observatory artefact.
+3. The Confluence WC Production Roadmap records an owner-confirmed expansion
+   of KIL as "Knowledge (and Semantic) Interoperability Layer" — materially
+   the same layer as KISIL/KISL, suggesting one layer with three spellings
+   rather than three distinct KILs.
+4. C5 (this repo's `const KISIL` holding the KSL bands) was fixed in v2.3;
+   the data key `kisil` is retained for URL-state compatibility.

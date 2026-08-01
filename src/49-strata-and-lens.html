@@ -10,8 +10,8 @@ const STRATA = { on:false, by:'kil', tilt:40, yaw:0, gap:150, twist:6 };
 const STRAT_BY = {
   kil:    { label:'KIL synthesis chain', of:r => Math.max(0, KIL.levels.findIndex(l => l.id === kilOf(key(r)))),
             name:i => (KIL.levels[i]||{}).label || '', n:() => KIL.levels.length },
-  kisil:  { label:'KSL knowledge state', of:r => Math.max(0, KISIL.levels.findIndex(l => l.id === (ENRICH[key(r)]||{}).kisil)),
-            name:i => (KISIL.levels[i]||{}).label || '' , n:() => KISIL.levels.length },
+  kisil:  { label:'KSL knowledge state', of:r => Math.max(0, KSL.levels.findIndex(l => l.id === (ENRICH[key(r)]||{}).kisil)),
+            name:i => (KSL.levels[i]||{}).label || '' , n:() => KSL.levels.length },
   cls:    { label:'Ontology depth',           of:r => ancestorsOf(CLSOF(key(r))).length - 1,
             name:i => ['Thing','top classes','mid classes','leaf classes','deep leaves'][i] || ('depth ' + i), n:() => 5 },
   tax:    { label:'Purpose (taxonomy)',       of:r => Math.max(0, TAXONOMY.findIndex(g => ((ENRICH[key(r)]||{}).tax||'').startsWith(g.id))),

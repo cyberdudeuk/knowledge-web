@@ -171,7 +171,7 @@ STRANDS.forEach((s, si) => {
     NODEREFS.push(ref);
 
     const meta = () => {
-      const e2 = ENRICH[nid] || {}, tx = flatTax()[e2.tax], kb = (KISIL.levels.find(l => l.id === e2.kisil)||{}).label;
+      const e2 = ENRICH[nid] || {}, tx = flatTax()[e2.tax], kb = (KSL.levels.find(l => l.id === e2.kisil)||{}).label;
       return [s.label, e2.cls, tx, kb].filter(Boolean).join(' \u00b7 ');
     };
     const show = e => tip(e, nd.t, meta());

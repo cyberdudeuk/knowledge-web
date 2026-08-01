@@ -63,11 +63,12 @@ const TAXONOMY = [
     { id:'del/method',     label:'Build method' } ]}
 ];
 
-/* --- KISIL. NOTE: this expansion is inferred, not confirmed.
-       Your Observatory carries a KIL view; this reads KISIL as the
-       ladder that runs through it. Correct the labels and every
-       reading in the interface follows. --- */
-const KISIL = {
+/* --- KSL, the local Knowledge State Ladder. Inferred before the KISIL
+       specification was supplied; unratified (BL-WEB-36, risk I-01).
+       KISIL itself is the layer, never a ladder — see docs/NAMING.md.
+       The identifier was renamed from KISIL to KSL to match the register.
+       The data key `kisil` is retained for URL-state compatibility. --- */
+const KSL = {
   unconfirmed:true,
   note:'Inferred expansion \u2014 confirm or correct and the whole dimension re-reads.',
   levels:[
@@ -79,7 +80,7 @@ const KISIL = {
   ]
 };
 
-/* --- per-node enrichment: class, taxonomy, KISIL band, typed relations --- */
+/* --- per-node enrichment: class, taxonomy, KSL band (key `kisil`), typed relations --- */
 const ENRICH = {
   'gov:0':{ cls:'ProcessModel', tax:'govern/process', kisil:'K', rel:[['governs','gov:4'],['derivedFrom','cat:3']] },
   'gov:1':{ cls:'RoleModel',    tax:'govern/roles',   kisil:'K', rel:[['derivedFrom','cat:3'],['governs','gov:4']] },
@@ -149,7 +150,8 @@ const GLOSSARY = [
   { t:'Data Steward', d:'The day-to-day role maintaining quality, metadata and access requests for one or more assets.' },
   { t:'GEMINI / ISO 19115', d:'The UK profile and international standard for geospatial metadata.' },
   { t:'Governance handback', d:'The point where a programme hands an asset into business-as-usual governance. The most commonly skipped step.' },
-  { t:'KISIL', d:'A five-level knowledge ladder used as a dimension here. The expansion in this build is inferred and needs confirming \u2014 see the manual.' },
+  { t:'KISIL', d:'Knowledge Integration & Semantic Interoperability Layer \u2014 the layer itself, never a ladder. See the manual and docs/NAMING.md.' },
+  { t:'KSL', d:'Knowledge State Ladder \u2014 the local five-band scheme this build inferred before the specification was supplied. Unratified.' },
   { t:'NDL', d:'National Data Library. The programme context behind valuation and readiness scoring in the CDA work.' },
   { t:'OFFICIAL', d:'The baseline UK government security classification. Applied as a banner across the playbook family.' },
   { t:'Ontology', d:'A formal description of the kinds of things in a domain and the relationships allowed between them. Here: fifteen classes and sixteen properties.' },

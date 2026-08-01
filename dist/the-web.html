@@ -1411,11 +1411,12 @@ const TAXONOMY = [
     { id:'del/method',     label:'Build method' } ]}
 ];
 
-/* --- KISIL. NOTE: this expansion is inferred, not confirmed.
-       Your Observatory carries a KIL view; this reads KISIL as the
-       ladder that runs through it. Correct the labels and every
-       reading in the interface follows. --- */
-const KISIL = {
+/* --- KSL, the local Knowledge State Ladder. Inferred before the KISIL
+       specification was supplied; unratified (BL-WEB-36, risk I-01).
+       KISIL itself is the layer, never a ladder — see docs/NAMING.md.
+       The identifier was renamed from KISIL to KSL to match the register.
+       The data key `kisil` is retained for URL-state compatibility. --- */
+const KSL = {
   unconfirmed:true,
   note:'Inferred expansion \u2014 confirm or correct and the whole dimension re-reads.',
   levels:[
@@ -1427,7 +1428,7 @@ const KISIL = {
   ]
 };
 
-/* --- per-node enrichment: class, taxonomy, KISIL band, typed relations --- */
+/* --- per-node enrichment: class, taxonomy, KSL band (key `kisil`), typed relations --- */
 const ENRICH = {
   'gov:0':{ cls:'ProcessModel', tax:'govern/process', kisil:'K', rel:[['governs','gov:4'],['derivedFrom','cat:3']] },
   'gov:1':{ cls:'RoleModel',    tax:'govern/roles',   kisil:'K', rel:[['derivedFrom','cat:3'],['governs','gov:4']] },
@@ -1497,7 +1498,8 @@ const GLOSSARY = [
   { t:'Data Steward', d:'The day-to-day role maintaining quality, metadata and access requests for one or more assets.' },
   { t:'GEMINI / ISO 19115', d:'The UK profile and international standard for geospatial metadata.' },
   { t:'Governance handback', d:'The point where a programme hands an asset into business-as-usual governance. The most commonly skipped step.' },
-  { t:'KISIL', d:'A five-level knowledge ladder used as a dimension here. The expansion in this build is inferred and needs confirming \u2014 see the manual.' },
+  { t:'KISIL', d:'Knowledge Integration & Semantic Interoperability Layer \u2014 the layer itself, never a ladder. See the manual and docs/NAMING.md.' },
+  { t:'KSL', d:'Knowledge State Ladder \u2014 the local five-band scheme this build inferred before the specification was supplied. Unratified.' },
   { t:'NDL', d:'National Data Library. The programme context behind valuation and readiness scoring in the CDA work.' },
   { t:'OFFICIAL', d:'The baseline UK government security classification. Applied as a banner across the playbook family.' },
   { t:'Ontology', d:'A formal description of the kinds of things in a domain and the relationships allowed between them. Here: fifteen classes and sixteen properties.' },
@@ -1703,7 +1705,7 @@ STRANDS.forEach((s, si) => {
     NODEREFS.push(ref);
 
     const meta = () => {
-      const e2 = ENRICH[nid] || {}, tx = flatTax()[e2.tax], kb = (KISIL.levels.find(l => l.id === e2.kisil)||{}).label;
+      const e2 = ENRICH[nid] || {}, tx = flatTax()[e2.tax], kb = (KSL.levels.find(l => l.id === e2.kisil)||{}).label;
       return [s.label, e2.cls, tx, kb].filter(Boolean).join(' \u00b7 ');
     };
     const show = e => tip(e, nd.t, meta());
@@ -2635,8 +2637,8 @@ function renderRef(which){
     if (!NODEREFS.filter(r => kilOf(key(r)) === 'D').length)
       h += `<div class="ax obs" style="margin-top:10px">No <b>Decision</b> entities exist in this collection. The estate captures artefacts and insights but not the decisions they informed \u2014 precisely the gap the Memory Grid Decision Traceability Layer is specified to close.</div>`;
     h += `<h2 style="margin-top:20px">KSL knowledge state ladder \u00b7 local</h2>
-      <p style="font-size:11.5px;color:var(--faint);margin:-4px 0 9px;line-height:1.5">${esc(KISIL.note)}</p>`;
-    h += KISIL.levels.map((l,i) => {
+      <p style="font-size:11.5px;color:var(--faint);margin:-4px 0 9px;line-height:1.5">${esc(KSL.note)}</p>`;
+    h += KSL.levels.map((l,i) => {
       const n = NODEREFS.filter(r => (ENRICH[key(r)]||{}).kisil === l.id).length;
       return `<button class="onto-row" data-kisil="${l.id}"><span class="onto-ct">${i+1}</span>
         <span class="onto-name"><b style="color:var(--silk)">${esc(l.label)}</b><br><span style="font-size:11.5px;color:var(--faint)">${esc(l.def)}</span></span>
@@ -2691,7 +2693,7 @@ function renderRef(which){
     selectSet(NODEREFS.filter(r => kilOf(key(r)) === k), 'KIL chain \u00b7 canonical', lv.label, esc(lv.def));
   }));
   refBody.querySelectorAll('[data-kisil]').forEach(b => b.addEventListener('click', () => {
-    const k = b.dataset.kisil, lv = KISIL.levels.find(l => l.id === k);
+    const k = b.dataset.kisil, lv = KSL.levels.find(l => l.id === k);
     selectSet(NODEREFS.filter(r => (ENRICH[key(r)]||{}).kisil === k), 'KSL band \u00b7 local scheme', lv.label, esc(lv.def));
   }));
   refBody.querySelectorAll('[data-node]').forEach(b => b.addEventListener('click', () => {
@@ -3048,7 +3050,7 @@ const TOURS = [
     { s:'The governance roadmap needs something only your team has: your sector regulator, your existing enterprise architecture body, your records-management schedules. Everything else in that thread is finished.', run:() => selectNode('gov', 4) },
     { s:'And this one is a decision, not a task. Apps and websites was three questions asked and never answered. It shares no idea with anything else on the web, so nothing reaches it. Answer it or cut it.', run:() => selectNode('apps', 1) }
   ]},
-  { id:'class', name:'Reading by classification', blurb:'Four stops across taxonomy, KISIL and the thesaurus.', stops:[
+  { id:'class', name:'Reading by classification', blurb:'Four stops across taxonomy, KSL and the thesaurus.', stops:[
     { s:'The taxonomy asks what a piece of work is for, not what it is. Govern, describe, measure, deliver. A portal and a manual can sit in the same branch.', run:() => { const hits = NODEREFS.filter(r => ((ENRICH[key(r)]||{}).tax||'').startsWith('govern')); selectSet(hits, 'Taxonomy', 'Govern', 'Everything whose purpose is to set or enforce the rules.'); } },
     { s:'Two ladders run alongside each other. KIL is canonical, from your specification: workstream, artefact, insight, signal, decision. KSL is a local scheme this prototype inferred, kept under a name that does not collide.', run:() => { selectSet(NODEREFS.filter(r => kilOf(key(r)) === 'I'), 'KIL chain \u00b7 canonical', 'Insight', 'Synthesised understanding derived from artefacts. Carries impact and confidence, 1 to 5.'); } },
     { s:'The thesaurus means you can search the way you actually talk. Type C D A and it finds Critical Data Asset. Type D A M and it finds the asset management policy.', run:() => { document.getElementById('q').value = 'CDA'; runQuery('CDA'); } },
@@ -3639,7 +3641,7 @@ function owlDetail(){
       ${ax(`<b>web:thread</b> "${esc(ind.s.label)}"`)}
       ${ax(`<b>web:kilStage</b> "${esc((KIL.levels.find(l=>l.id===kilOf(id))||{}).label)}" <span class="tag">KIL \u00b7 canonical</span>`)}
       ${e2.tax ? ax(`<b>web:purpose</b> "${esc(flatTax()[e2.tax])}"`) : ''}
-      ${e2.kisil ? ax(`<b>web:kslBand</b> "${esc((KISIL.levels.find(l=>l.id===e2.kisil)||{}).label)}" <span class="tag">KSL \u00b7 unratified</span>`) : ''}
+      ${e2.kisil ? ax(`<b>web:kslBand</b> "${esc((KSL.levels.find(l=>l.id===e2.kisil)||{}).label)}" <span class="tag">KSL \u00b7 unratified</span>`) : ''}
       ${(ind.nd.themes||[]).map(t => ax(`<b>web:crossing</b> "${esc((THEMES.find(x=>x.id===t)||{}).label)}"`)).join('')}
       <h4>Property assertions</h4>`;
     const asserts = assertionsOf(id);
@@ -3735,8 +3737,8 @@ const STRATA = { on:false, by:'kil', tilt:40, yaw:0, gap:150, twist:6 };
 const STRAT_BY = {
   kil:    { label:'KIL synthesis chain', of:r => Math.max(0, KIL.levels.findIndex(l => l.id === kilOf(key(r)))),
             name:i => (KIL.levels[i]||{}).label || '', n:() => KIL.levels.length },
-  kisil:  { label:'KSL knowledge state', of:r => Math.max(0, KISIL.levels.findIndex(l => l.id === (ENRICH[key(r)]||{}).kisil)),
-            name:i => (KISIL.levels[i]||{}).label || '' , n:() => KISIL.levels.length },
+  kisil:  { label:'KSL knowledge state', of:r => Math.max(0, KSL.levels.findIndex(l => l.id === (ENRICH[key(r)]||{}).kisil)),
+            name:i => (KSL.levels[i]||{}).label || '' , n:() => KSL.levels.length },
   cls:    { label:'Ontology depth',           of:r => ancestorsOf(CLSOF(key(r))).length - 1,
             name:i => ['Thing','top classes','mid classes','leaf classes','deep leaves'][i] || ('depth ' + i), n:() => 5 },
   tax:    { label:'Purpose (taxonomy)',       of:r => Math.max(0, TAXONOMY.findIndex(g => ((ENRICH[key(r)]||{}).tax||'').startsWith(g.id))),
@@ -4016,7 +4018,7 @@ TOURS.push(
   ]},
   { id:'strata', name:'Tilt it into layers', blurb:'Five stops through the stratified view and the eagle lens.', stops:[
     { s:'Knowledge is rarely flat. Press T, or the Strata button, and the web tilts. Every bead lifts onto the layer it belongs to.', run:() => { toggleStrata(true); } },
-    { s:'This is stratified by KISIL band. Information sits low, insight sits higher, learning higher still. The dashed risers are every relation that crosses a level.', run:() => { document.getElementById('stBy').value = 'kisil'; STRATA.by = 'kisil'; relayout(); syncStrandLines(); } },
+    { s:'This is stratified by KSL band. Information sits low, insight sits higher, learning higher still. The dashed risers are every relation that crosses a level.', run:() => { document.getElementById('stBy').value = 'kisil'; STRATA.by = 'kisil'; relayout(); syncStrandLines(); } },
     { s:'Change the dimension and the same content restacks. By purpose, by ontology depth, by distance from the hub, or by thread. The web does not change, only the axis you read it against.', run:() => { document.getElementById('stBy').value = 'tax'; STRATA.by = 'tax'; relayout(); syncStrandLines(); } },
     { s:'Now the eagle. Press L for the lens: three times magnification following your pointer without giving up the wide view. Hold shift and scroll to change the power.', run:() => { toggleStrata(false); toggleLens(true); } },
     { s:'And the stoop. In owl view, opening a bead dives onto it the way a falcon drops. Press S at any time to stoop onto wherever you last were.', run:() => { toggleLens(false); toggleOwl(true); selectNode('cda', 5); } }
@@ -4042,7 +4044,7 @@ document.getElementById('manBody').insertAdjacentHTML('beforeend', `
 <p>The reasoner reports honestly when it finds nothing. Transitivity currently adds no assertions, because no part chain in this ontology runs more than one step — that is a fact about your estate, not a broken feature.</p>
 
 <h3>Strata — the tilted web</h3>
-<p>Press <kbd>T</kbd>. The web tilts and every bead lifts onto its layer. Stratify by KISIL band, purpose, ontology depth, ring, or thread; adjust tilt, turn and layer spacing. Threads become polylines climbing through the levels, and <b>risers</b> mark every relation that crosses one. Set tilt to zero and it flattens back to the plan view without leaving the mode.</p>
+<p>Press <kbd>T</kbd>. The web tilts and every bead lifts onto its layer. Stratify by KSL band, purpose, ontology depth, ring, or thread; adjust tilt, turn and layer spacing. Threads become polylines climbing through the levels, and <b>risers</b> mark every relation that crosses one. Set tilt to zero and it flattens back to the plan view without leaving the mode.</p>
 
 <h3>The eagle</h3>
 <p><b>Lens</b> (<kbd>L</kbd>) magnifies around your pointer without giving up the wide view — shift-scroll changes the power. <b>Stoop</b> (<kbd>S</kbd>) dives from wherever you are onto your last target, and happens automatically when you open a bead in owl view.</p>
@@ -4096,9 +4098,9 @@ const KIL = {
     { id:'D', label:'Decision',   def:'A formal or informal decision, with rationale, owner and status. Traceable back to artefacts.' }
   ]
 };
-KISIL.canonicalName = 'Knowledge Integration & Semantic Interoperability Layer';
-KISIL.renamedTo = 'KSL — Knowledge State Ladder';
-KISIL.note = 'This five-band ladder was inferred before the specification was supplied. It is retained under the name KSL so it no longer collides with the canonical KISIL.';
+KSL.formerlyMisnamedAs = 'KISIL \u2014 the layer\u2019s name, wrongly applied to this ladder before the rename';
+KSL.name = 'KSL \u2014 Knowledge State Ladder';
+KSL.note = 'This five-band ladder was inferred before the specification was supplied. It is retained under the name KSL so it no longer collides with the canonical KISIL.';
 
 /* map each bead onto the canonical KIL chain */
 const KIL_BY_CLASS = {
