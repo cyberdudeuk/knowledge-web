@@ -9,7 +9,7 @@ source of truth. **Trace** cites the source that demands the item.
 | **BL-WEB-02** | Remove the external font dependency. Ship a system-font stack with an optional embedded subset, so the artefact renders correctly on an air-gapped or egress-restricted desktop. | P1 | 1 | T-03, SELF |
 | **BL-WEB-03** | Collection authoring pipeline. Generate a collection from a source file — xlsx, csv, JSON-LD, a register export — through a declared mapping, with a reviewable mapping report. The single item that turns a demonstrator into a platform. | P1 | 1 | IA-06, GDS, STD |
 | **BL-WEB-04** | Assisted-usability testing with five participants, at least one screen-reader user and one keyboard-only user. UCD means tested, not designed-to. | P1 | 1 | MG-NFR-002 |
-| **BL-WEB-05** | Version control the code line. The prototype exists only as build-session output. Establish a repository and tagged releases. | P1 | 0 | R-02 |
+| **BL-WEB-05** | Version control the code line. The prototype exists only as build-session output. Establish a repository and tagged releases. | DONE | 0 | R-02 |
 | **BL-WEB-06** | Shareable state. Encode collection, selection, view mode and zoom in the URL so a view can be cited in a governance pack. | DONE | 1 | IA-07 |
 | **BL-WEB-07** | Complete the augmentation register. Define manual counterparts for AUG-06, 07 and 08 before those capabilities ship. | P1 | 2 | T-02 |
 | **BL-WEB-08** | Accessibility statement in the artefact, naming what has been verified, what has not, and how to report a barrier. | P2 | 1 | MG-NFR-002 |
@@ -64,14 +64,15 @@ source of truth. **Trace** cites the source that demands the item.
 
 ## Do these first
 
-1. **BL-WEB-05** version control — closed the moment this repo has its first commit.
-2. **BL-WEB-04** five-participant usability testing, at least one screen-reader user.
-   Open since v1.0. No amount of building substitutes for it.
-3. **BL-WEB-01 / 02** degraded-mode render and removing the font CDN — the two
+1. **BL-WEB-04** five-participant usability testing, at least one screen-reader user.
+   Open since v1.0. No amount of building substitutes for it. Recruitment brief and
+   test script drafted in `docs/USER-TESTING-PLAN.md`; sessions not yet scheduled.
+2. **BL-WEB-01 / 02** degraded-mode render and removing the font CDN — the two
    doctrine failures the Authority records openly.
 
 ## Closed
 
+- **BL-WEB-05** version control — repository initialised at v2.0, first commit 3470350, tagged v2.0 (2026-08-01)
 - **BL-WEB-06** shareable state — collection, page, selection, mode and stratification in the URL
 - **BL-WEB-10** global search across the whole portal
 - **BL-WEB-11** display preferences collapsed into one popover
