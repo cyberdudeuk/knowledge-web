@@ -4,6 +4,21 @@ All notable changes to the artefact. Mirrors Section 13 (Release history) of
 `docs/programme-authority.html`, which remains the source of truth. Defects
 found during verification are named, never quietly fixed.
 
+## v2.5 — 2026-08-02
+
+Design system step 4: the edge grammar.
+
+- Typed relation edges: epistemic state carried by stroke pattern (inferred
+  dashed, induced dotted) with the word in a hover title and a "why?" stub
+  pointing at the planned axiom-chain view (BL-WEB-21). Decision-inbound
+  edges take authority gold (live only where a collection carries Decisions).
+- Lineage edge class (`.edge-lin`) inheriting the source node's state, with a
+  degraded pulse variant (killed by reduced motion) — substrate for the
+  traceability walk (step 6).
+- One shared context-stroke arrowhead marker serves every edge type.
+- States come from edge data only — the mechanism never invents one.
+- Defect found and fixed: none. Verified: 8 pages × 6 collections × 2 themes.
+
 ## v2.4 — 2026-08-01
 
 Owner ruling applied: one layer, one data model.

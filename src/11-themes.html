@@ -204,6 +204,17 @@ html{font-size:100%}
 [data-owl="on"] .frame-thread,[data-owl="on"] .guy{opacity:.3}
 .onto-edge{fill:none;stroke:var(--dew);stroke-width:1.2;opacity:.5;vector-effect:non-scaling-stroke;marker-end:url(#arw)}
 .onto-edge.hi{stroke:var(--amber);opacity:.95;stroke-width:1.8}
+
+/* typed edge grammar — stroke pattern carries the epistemic state, and the
+   word travels in a <title>; decision-inbound edges take authority gold.
+   One shared context-stroke arrowhead marker (#arw) serves every type. */
+.onto-edge.edge-inf{stroke:var(--ep-inferred);stroke-dasharray:5 3;opacity:.65;cursor:help}
+.onto-edge.edge-ind{stroke:var(--ep-induced);stroke-dasharray:1.2 3;stroke-linecap:round;opacity:.65;cursor:help}
+.onto-edge.edge-dec{stroke:var(--gold);opacity:.9;stroke-width:1.6}
+/* lineage edges (traceability walk): inherit the SOURCE node's state colour */
+.edge-lin{fill:none;stroke:var(--edge-src,var(--moth));stroke-width:2;vector-effect:non-scaling-stroke;marker-end:url(#arw)}
+@keyframes edgePulse{0%,100%{opacity:.45}50%{opacity:.95}}
+.edge-lin.degraded{stroke-dasharray:6 4;animation:edgePulse 2.4s ease-in-out infinite}
 .edge-lbl{font-family:var(--mono);font-size:9px;fill:var(--faint);letter-spacing:.04em;pointer-events:none}
 .owl-mark{opacity:0;transition:opacity .4s}
 [data-owl="on"] .owl-mark{opacity:1}
