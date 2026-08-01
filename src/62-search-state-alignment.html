@@ -1,0 +1,274 @@
+<script>
+/* ============================================================
+   IA-10 · Global search across the whole portal
+   ============================================================ */
+function searchIndex(){
+  const ix = [];
+  NODEREFS.forEach(r => ix.push({ k:'Bead', t:r.nd.t, d:r.nd.b, page:'web',
+    go:() => { go('web'); selectNode(r.s.id, r.j); }, ctx:r.s.label }));
+  STRANDS.forEach(s => ix.push({ k:'Thread', t:s.label, d:s.summary, page:'web',
+    go:() => { go('web'); selectStrand(s.id); }, ctx:s.meta }));
+  GLOSSARY.forEach(g => ix.push({ k:'Glossary', t:g.t, d:g.d, page:'reference',
+    go:() => { go('reference'); renderRef('gloss'); }, ctx:'definition' }));
+  THESAURUS.forEach(t => ix.push({ k:'Thesaurus', t:t.pref, d:'Also: ' + t.alt.join(', ') + '. Broader: ' + t.broader, page:'reference',
+    go:() => { go('reference'); renderRef('thes'); }, ctx:t.alt.join(' ') }));
+  DICTIONARY.forEach(d => ix.push({ k:'Field', t:d.f, d:d.d, page:'reference',
+    go:() => { go('reference'); renderRef('dict'); }, ctx:d.ty + ' · ' + d.src }));
+  ONTOLOGY.forEach(o => ix.push({ k:'Class', t:o.label, d:o.def, page:'ontology',
+    go:() => { go('ontology'); owlTab='classes'; owlSel=o.id; owlTree(); owlDetail(); }, ctx:'ontology' }));
+  PROPS.forEach(p => ix.push({ k:'Property', t:p.id, d:p.note, page:'ontology',
+    go:() => { go('ontology'); owlTab='props'; owlSel=p.id; owlTree(); owlDetail(); }, ctx:'ontology' }));
+  TAXONOMY.forEach(g => (g.kids||[]).forEach(kd => ix.push({ k:'Taxonomy', t:kd.label, d:'Under ' + g.label, page:'reference',
+    go:() => { go('reference'); renderRef('tax'); }, ctx:g.label })));
+  KIL.levels.forEach(l => ix.push({ k:'KIL stage', t:l.label, d:l.def, page:'reference',
+    go:() => { go('reference'); renderRef('kisil'); }, ctx:'canonical ladder' }));
+  Object.values(COLLECTIONS).forEach(c => ix.push({ k:'Collection', t:c.label, d:c.repairs.length + ' declared gaps · ' + c.strands.length + ' threads', page:'collections',
+    go:() => { loadCollection(c.id); go('web'); }, ctx:'collection' }));
+  TOURS.forEach(t => ix.push({ k:'Tour', t:t.name, d:t.blurb, page:'tours', go:() => startTour(t.id), ctx:'guided route' }));
+  PAGES.forEach(p => ix.push({ k:'Page', t:p.title, d:p.lede || 'Portal section', page:p.id, go:() => go(p.id), ctx:p.kicker }));
+  REPAIRS.forEach(r => ix.push({ k:'Torn strand', t:r.t, d:r.d, page:'web',
+    go:() => { go('web'); if (r.s && byKey[r.s + ':0']) selectStrand(r.s); }, ctx:'declared gap' }));
+  return ix;
+}
+
+(function globalSearch(){
+  const host = document.querySelector('.topbar-in');
+  const wrap = document.createElement('div');
+  wrap.className = 'gsearch';
+  wrap.innerHTML = `<input id="gq" type="search" placeholder="Search everything…" autocomplete="off"
+      aria-label="Search the whole portal" aria-expanded="false" aria-controls="gres" role="combobox">
+    <div class="gres" id="gres" role="listbox" hidden></div>`;
+  host.insertBefore(wrap, document.getElementById('pnav'));
+
+  const inp = document.getElementById('gq'), box = document.getElementById('gres');
+  let hits = [], cur = -1;
+  const close = () => { box.hidden = true; inp.setAttribute('aria-expanded','false'); cur = -1; };
+
+  function run(){
+    const q = inp.value.trim().toLowerCase();
+    if (q.length < 2) return close();
+    const ix = searchIndex();
+    hits = ix.map(e => {
+      const t = e.t.toLowerCase(), d = (e.d||'').toLowerCase(), c = (e.ctx||'').toLowerCase();
+      let s = 0;
+      if (t === q) s = 100; else if (t.startsWith(q)) s = 70; else if (t.includes(q)) s = 50;
+      else if (c.includes(q)) s = 30; else if (d.includes(q)) s = 15;
+      return s ? { ...e, s } : null;
+    }).filter(Boolean).sort((a,b) => b.s - a.s).slice(0, 14);
+    if (!hits.length){
+      box.innerHTML = `<div class="gempty">Nothing matches \u201c${esc(q)}\u201d anywhere in the portal.</div>`;
+    } else {
+      const groups = {};
+      hits.forEach((h, i) => (groups[h.k] = groups[h.k] || []).push({ ...h, i }));
+      box.innerHTML = Object.entries(groups).map(([k, list]) =>
+        `<div class="ggroup">${esc(k)}</div>` + list.map(h =>
+          `<button class="ghit" data-i="${h.i}" role="option"><b>${esc(h.t)}</b><span>${esc((h.d||'').slice(0,96))}</span></button>`).join('')).join('');
+      box.querySelectorAll('.ghit').forEach(b => b.addEventListener('click', () => { hits[+b.dataset.i].go(); close(); inp.value=''; }));
+    }
+    box.hidden = false; inp.setAttribute('aria-expanded','true');
+  }
+  inp.addEventListener('input', run);
+  inp.addEventListener('keydown', e => {
+    const list = [...box.querySelectorAll('.ghit')];
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){
+      e.preventDefault(); if (!list.length) return;
+      cur = e.key === 'ArrowDown' ? Math.min(list.length-1, cur+1) : Math.max(0, cur-1);
+      list.forEach((b,i) => b.classList.toggle('on', i === cur)); list[cur].focus();
+    } else if (e.key === 'Enter' && hits.length){ e.preventDefault(); hits[Math.max(0,cur)].go(); close(); inp.value=''; }
+    else if (e.key === 'Escape'){ close(); inp.blur(); }
+  });
+  document.addEventListener('click', e => { if (!wrap.contains(e.target)) close(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === '/' && !/input|textarea|select/i.test(e.target.tagName)){ e.preventDefault(); inp.focus(); }
+  });
+})();
+
+/* ============================================================
+   IA-03 · Display preferences collapse into one popover
+   ============================================================ */
+(function displayPopover(){
+  const sub = document.getElementById('subbar');
+  const ctrls = sub.querySelector('.mast-controls');
+  const pop = document.createElement('div');
+  pop.className = 'prefpop'; pop.id = 'prefpop'; pop.hidden = true;
+  pop.setAttribute('role','group'); pop.setAttribute('aria-label','Display preferences');
+  ['cTheme','cContrast','cPalette','cText','cMotion','cVoice'].forEach(id => {
+    const b = document.getElementById(id); if (b) pop.appendChild(b);
+  });
+  const btn = document.createElement('button');
+  btn.className = 'ctl'; btn.id = 'cDisplay'; btn.setAttribute('aria-expanded','false');
+  btn.textContent = 'Display';
+  btn.addEventListener('click', () => {
+    pop.hidden = !pop.hidden;
+    btn.setAttribute('aria-expanded', String(!pop.hidden));
+    btn.setAttribute('aria-pressed', String(!pop.hidden));
+  });
+  ctrls.insertBefore(btn, ctrls.firstChild);
+  ctrls.appendChild(pop);
+  document.addEventListener('click', e => {
+    if (!pop.hidden && !pop.contains(e.target) && e.target !== btn){ pop.hidden = true; btn.setAttribute('aria-expanded','false'); btn.removeAttribute('aria-pressed'); }
+  });
+})();
+
+/* ============================================================
+   IA-07 · The whole view lives in the URL
+   ============================================================ */
+let stateLock = false;
+function writeState(){
+  if (stateLock) return;
+  const page = (document.querySelector('.page.on')||{}).id || 'pg-home';
+  const p = page.replace('pg-','');
+  const parts = ['#/' + p];
+  if (CURRENT !== 'web') parts.push('c=' + CURRENT);
+  if (S.node !== null && S.strand) parts.push('n=' + S.strand + '.' + S.node);
+  else if (S.strand) parts.push('s=' + S.strand);
+  else if (S.theme) parts.push('t=' + S.theme);
+  if (STRATA.on) parts.push('x=' + STRATA.by);
+  if (owlOn) parts.push('owl=1');
+  const h = parts[0] + (parts.length > 1 ? '?' + parts.slice(1).join('&') : '');
+  if (location.hash !== h) history.replaceState(null, '', h);
+}
+function readState(){
+  const raw = (location.hash || '').replace('#/','');
+  const [page, qs] = raw.split('?');
+  const q = {}; (qs||'').split('&').filter(Boolean).forEach(kv => { const [k,v] = kv.split('='); q[k] = v; });
+  stateLock = true;
+  if (q.c && COLLECTIONS[q.c] && q.c !== CURRENT) loadCollection(q.c);
+  go(page || 'home');
+  if (q.n){ const [s,j] = q.n.split('.'); if (byKey[s + ':' + j]) selectNode(s, +j); }
+  else if (q.s && STRANDS.some(x => x.id === q.s)) selectStrand(q.s);
+  else if (q.t && THEMES.some(x => x.id === q.t)) selectTheme(q.t);
+  if (q.x && STRAT_BY[q.x]){ STRATA.by = q.x; const sel = document.getElementById('stBy'); if (sel) sel.value = q.x; toggleStrata(true); }
+  if (q.owl === '1') toggleOwl(true);
+  stateLock = false;
+}
+['selectNode','selectStrand','selectTheme','reset','toggleStrata','toggleOwl','loadCollection','go'].forEach(fn => {
+  const orig = window[fn];
+  if (typeof orig !== 'function') return;
+  window[fn] = function(){ const r = orig.apply(this, arguments); setTimeout(writeState, 30); return r; };
+});
+(function shareBtn(){
+  const tools = document.querySelector('.stage-tools');
+  const b = document.createElement('button');
+  b.className = 'tool'; b.id = 'tShare'; b.title = 'Copy a link to exactly this view';
+  b.textContent = 'Copy view';
+  b.addEventListener('click', async () => {
+    writeState();
+    try { await navigator.clipboard.writeText(location.href); b.textContent = 'Copied'; }
+    catch(e){ b.textContent = 'Select the address bar'; }
+    say('Link to this exact view copied. It restores the collection, page, selection, view mode and stratification.');
+    setTimeout(() => b.textContent = 'Copy view', 2200);
+  });
+  tools.insertBefore(b, document.getElementById('tFull'));
+})();
+
+/* ============================================================
+   Live link validation — checked against the published locations
+   ============================================================ */
+const GDS_LINKCHECK = {
+  checked:71, reachable:68, redirected:12, withdrawn:0, broken:3, date:'25 July 2026',
+  moved:[
+    ['DDaT Professional Capability framework','gov.uk collection','ddat-capability-framework.service.gov.uk — moved to its own service domain'],
+    ['Secure by Design policy','security.gov.uk/policy/','security.gov.uk/policy-and-guidance/secure-by-design/policy/'],
+    ['Secure by Design principles','security.gov.uk/guidance/','security.gov.uk/policy-and-guidance/secure-by-design/principles/'],
+    ['Secure by Design activities','security.gov.uk/guidance/','security.gov.uk/policy-and-guidance/secure-by-design/activities/'],
+    ['Implementing Secure by Design','security.gov.uk/guidance/','security.gov.uk/policy-and-guidance/secure-by-design/implementation/'],
+    ['Microsoft 365 guidance ×3','microsoft.com/industry/blog/','microsoft.com/microsoft-cloud/blog/'],
+    ['Data ethics framework','deep link to a section','parent publication page']
+  ],
+  brokenList:[
+    ['Government Digital Service YouTube','HTTP 404 — the channel handle no longer resolves'],
+    ['Secure by Design Newsletter','Link field contains the literal word "email", not a URL'],
+    ['Communities blogs','Link field contains "Multiple links", not a URL']
+  ]
+};
+
+/* ============================================================
+   Alignment: missions → priorities → kickstarters → standards
+   ============================================================ */
+const MISSIONS = [
+  { id:'m1', label:'Kickstart economic growth', colour:'#79d6cf',
+    ks:[['SME legal guidance','AI-powered legal guidance for small businesses using authoritative legal records. Targets a share of the estimated £13.6bn a year UK businesses bear from unaddressed legal issues.']],
+    std:['5.3 Finance / Accounting','5.4 Sourcing / Procurement','5.5 Payments','5.6 Tax'],
+    cda:'Business & Economy · 54 assets' },
+  { id:'m2', label:'Build an NHS fit for the future', colour:'#e3a044',
+    ks:[['Long-term health conditions','Reducing administrative burden for people managing a long-term condition or disability, and helping them find or stay in work. Runs against the Get Britain Working goal.'],
+        ['Adult social care','Improving adult social care planning so services match demand.']],
+    std:['5.11 Health & Life Sciences','2.4 Demographic'],
+    cda:'People & Society · 145 assets' },
+  { id:'m3', label:'Safer streets', colour:'#c96f4c',
+    ks:[], std:['5.15 Justice & Law Enforcement'], cda:'Government & Public Sector · 174 assets', gap:true },
+  { id:'m4', label:'Break down barriers to opportunity', colour:'#9a8ada',
+    ks:[['Early years / school readiness','With Leeds City Council, Hammersmith & Fulham and Liverpool City Region councils. Connects health, education and childcare data. 32% of children start school without the basic skills they need, rising to 48% where parents receive certain benefits.']],
+    std:['5.12 Education & Training','5.8 Welfare'],
+    cda:'People & Society · 145 assets' },
+  { id:'m5', label:'Make Britain a clean energy superpower', colour:'#6fbf8e',
+    ks:[['Energy bill support','Securely linking data held across government to target energy bill support at the households that need it.'],
+        ['Weather & climate data','Expanding use of Met Office weather and climate data so organisations and councils can plan for severe weather and long-term climate change.']],
+    std:['5.9 Energy & Natural Resources','5.18 Environment & Climate','2.1 Geospatial'],
+    cda:'Place & Environment · 92 assets' }
+];
+const GDS_PRIORITIES = [
+  ['Join up public sector services','Cohesive digital infrastructure that reduces duplication and simplifies access.'],
+  ['Harness AI for public good','Responsible adoption, with the AI Opportunities Unit and Responsible Technology Adoption folded into the digital centre.'],
+  ['Strengthen digital and data public infrastructure','Where the National Data Library, the CDA estate and the standards classification all sit.'],
+  ['Elevate leadership and invest in talent','A Government Chief Digital Officer at Second Permanent Secretary level; DDaT pay and capability reform.'],
+  ['Fund for outcomes, procure for growth','Reformed funding models through the Spending Review; Procurement Act 2023.'],
+  ['Commit to transparency and drive accountability','Spend controls, published performance, and open reporting.']
+];
+const SDR_FINDINGS = ['Institutionalised fragmentation','Persistent legacy estate','Cyber and resilience risk','Siloed data','Under-digitisation','Inconsistent digital leadership'];
+
+function makeAlignCollection(){
+  const strands=[], enrich={}, themes=[
+    { id:'a-ks', label:'NDL kickstarter', note:'One of the National Data Library kickstarter projects announced January 2026.' },
+    { id:'a-std', label:'Standards domain', note:'A domain or topic of the v5.0 classification that serves this mission.' },
+    { id:'a-cda', label:'CDA estate', note:'The part of the 499-asset critical data estate that serves this mission.' }
+  ];
+  MISSIONS.forEach((m, i) => {
+    const nodes=[{ t:m.label, k:'National mission', themes:[],
+      b:`One of the five national missions of the Plan for Change. ${m.ks.length ? `${m.ks.length} National Data Library kickstarter${m.ks.length===1?'':'s'} serve${m.ks.length===1?'s':''} it.` : 'No National Data Library kickstarter currently serves this mission.'}`,
+      c:[`NDL kickstarters: ${m.ks.length}`, `Standards topics: ${m.std.length}`, `CDA estate: ${m.cda}`], open:!!m.gap }];
+    enrich[m.id+':0']={ cls:'Capability', tax:'meas/value', kisil:'K', rel:[] };
+    let j=0;
+    m.ks.forEach(([t,d]) => { j++;
+      nodes.push({ t, k:'NDL kickstarter', themes:['a-ks'], b:d, c:['Announced January 2026','Part of the £100m+ National Data Library programme'] });
+      enrich[`${m.id}:${j}`]={ cls:'Method', tax:'meas/value', kisil:'I2', rel:[['partOf', m.id+':0']] };
+    });
+    m.std.forEach(s => { j++;
+      nodes.push({ t:s, k:'Standards topic', themes:['a-std'], b:`Classification v5.0 topic serving ${m.label}.`, c:['Source: UK Gov Data Standards Classification v5.0'] });
+      enrich[`${m.id}:${j}`]={ cls:'Standard', tax:'govern/policy', kisil:'K', rel:[['partOf', m.id+':0']] };
+    });
+    j++;
+    nodes.push({ t:m.cda, k:'CDA estate', themes:['a-cda'], b:`The part of the 499-asset critical data estate most directly serving ${m.label}.`, c:['Source: CDA Live Register'] });
+    enrich[`${m.id}:${j}`]={ cls:'Register', tax:'desc/metadata', kisil:'I', rel:[['partOf', m.id+':0']] };
+    strands.push({ id:m.id, key:String(i+1), angle:0, colour:m.colour, label:m.label,
+      meta:`${m.ks.length} kickstarter${m.ks.length===1?'':'s'} \u00b7 ${m.std.length} topics`, url:'',
+      state:m.gap?'dormant':'in-flight',
+      summary:`${m.label}. ${m.ks.length ? `Served by ${m.ks.length} NDL kickstarter project${m.ks.length===1?'':'s'}` : 'Not currently served by any NDL kickstarter project'}, ${m.std.length} classification topics and the ${m.cda.split(' · ')[0]} part of the CDA estate.`,
+      nodes });
+  });
+  /* the digital foundations that carry all five */
+  const fn=[{ t:'Digital foundations', k:'GDS priorities', themes:[],
+    b:'The six GDS priorities and the State of Digital Government Review findings they answer. These carry every mission rather than belonging to one.',
+    c:GDS_PRIORITIES.map(p=>p[0]) }];
+  enrich['f:0']={ cls:'Capability', tax:'govern/process', kisil:'K', rel:[] };
+  GDS_PRIORITIES.forEach(([t,d], k) => {
+    fn.push({ t, k:'GDS priority', themes:[], b:d, c:['Source: A blueprint for modern digital government'] });
+    enrich[`f:${k+1}`]={ cls:'Concept', tax:'govern/process', kisil:'K', rel:[['partOf','f:0']] };
+  });
+  strands.push({ id:'f', key:'6', angle:0, colour:'#5fa8d3', label:'Digital foundations',
+    meta:'6 GDS priorities \u00b7 6 SDR findings', url:'', state:'in-flight',
+    summary:'The six GDS priorities from the blueprint for modern digital government, answering the six systemic challenges the State of Digital Government Review identified.',
+    nodes:fn });
+
+  return { id:'align', hub:['missions to standards','alignment map'],
+    label:'Mission alignment \u2014 missions, priorities, kickstarters, standards', strands, themes, enrich,
+    repairs:[
+      { t:'No NDL kickstarter serves Safer Streets', d:'Four of the five national missions have at least one kickstarter project. Safer Streets has none. Justice and law enforcement data is in the classification and in the CDA estate, but nothing in the National Data Library programme currently connects it.', s:'m3' },
+      { t:'The classification does not carry mission alignment', d:'v5.0 has 7 domains and 57 topics but no field linking any of them to a national mission, a GDS priority or an NDL kickstarter. The alignment shown here was constructed for this prototype, not read from the source.', s:'' },
+      { t:'SDR findings have no owner in the classification', d:'Institutionalised fragmentation, persistent legacy, cyber and resilience risk, siloed data, under-digitisation and inconsistent leadership are the six systemic challenges. None maps to a standards domain that would evidence progress against it.', s:'f' },
+      { t:'Alignment is asserted, not evidenced', d:'Every link on this web is a reasonable reading, not a recorded relationship. Until the classification and the CDA register carry mission and priority fields, this map cannot be validated or maintained.', s:'' }
+    ]};
+}
+COLLECTIONS.align = makeAlignCollection();
+</script>

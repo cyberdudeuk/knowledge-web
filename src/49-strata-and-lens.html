@@ -1,0 +1,254 @@
+<script>
+/* ============================================================
+   Strata.
+   Knowledge is not flat. Tilt the web and every bead lifts onto
+   the layer it belongs to, with risers showing every relation
+   that crosses a level.
+   ============================================================ */
+const STRATA = { on:false, by:'kil', tilt:40, yaw:0, gap:150, twist:6 };
+
+const STRAT_BY = {
+  kil:    { label:'KIL synthesis chain', of:r => Math.max(0, KIL.levels.findIndex(l => l.id === kilOf(key(r)))),
+            name:i => (KIL.levels[i]||{}).label || '', n:() => KIL.levels.length },
+  kisil:  { label:'KSL knowledge state', of:r => Math.max(0, KISIL.levels.findIndex(l => l.id === (ENRICH[key(r)]||{}).kisil)),
+            name:i => (KISIL.levels[i]||{}).label || '' , n:() => KISIL.levels.length },
+  cls:    { label:'Ontology depth',           of:r => ancestorsOf(CLSOF(key(r))).length - 1,
+            name:i => ['Thing','top classes','mid classes','leaf classes','deep leaves'][i] || ('depth ' + i), n:() => 5 },
+  tax:    { label:'Purpose (taxonomy)',       of:r => Math.max(0, TAXONOMY.findIndex(g => ((ENRICH[key(r)]||{}).tax||'').startsWith(g.id))),
+            name:i => (TAXONOMY[i]||{}).label || '', n:() => TAXONOMY.length },
+  ring:   { label:'Distance from the hub',    of:r => r.j,
+            name:i => 'ring ' + (i+1), n:() => 7 },
+  thread: { label:'Thread',                   of:r => r.si,
+            name:i => (STRANDS[i]||{}).label || '', n:() => STRANDS.length }
+};
+
+const RADX = Math.PI / 180;
+function project(x, y, z){
+  const th = STRATA.tilt * RADX, ph = (STRATA.yaw + z * STRATA.twist) * RADX;
+  const dx = x - CX, dy = y - CY;
+  const rx = dx * Math.cos(ph) - dy * Math.sin(ph);
+  const ry = dx * Math.sin(ph) + dy * Math.cos(ph);
+  return { x: CX + rx, y: CY + ry * Math.cos(th) - z * STRATA.gap * Math.sin(th) };
+}
+const zOf = r => STRATA.on ? STRAT_BY[STRATA.by].of(r) : 0;
+
+/* extra groups, created once, kept behind the beads */
+(function makeStrataGroups(){
+  const vp = document.getElementById('vp'), radii = document.getElementById('gRadii');
+  ['gPlanes','gRadiiS','gRisers'].forEach(id => {
+    const g = el('g', { id }); g.style.display = 'none'; vp.insertBefore(g, radii);
+  });
+})();
+
+function relayout(){
+  const planes = document.getElementById('gPlanes'), rs = document.getElementById('gRadiiS'),
+        risers = document.getElementById('gRisers');
+  const flatOnly = ['gRadii','gSpiral'];
+
+  if (!STRATA.on){
+    NODEREFS.forEach(r => {
+      r.p = { x:r.p0.x, y:r.p0.y };
+      r.bead.setAttribute('d', shapePath(r.shape, r.p.x, r.p.y, r.size));
+      r.lblEl.setAttribute('x', r.p.x + r.s._lab.px * r.s._lab.off);
+      r.lblEl.setAttribute('y', r.p.y + r.s._lab.py * r.s._lab.off + 3.5);
+    });
+    const gN0 = document.getElementById('gNodes');
+    NODEREFS.slice().sort((a,b) => (a.si - b.si) || (a.j - b.j)).forEach(r => gN0.appendChild(r.g));
+    flatOnly.forEach(id => document.getElementById(id).style.display = '');
+    [planes, rs, risers].forEach(g => { g.style.display = 'none'; g.innerHTML = ''; });
+    document.getElementById('gHub').setAttribute('transform', '');
+    document.querySelectorAll('.node .lbl').forEach(l => l.style.opacity = '');
+    return;
+  }
+
+  /* project every bead onto its layer */
+  NODEREFS.forEach(r => {
+    r.p = project(r.p0.x, r.p0.y, zOf(r));
+    r.bead.setAttribute('d', shapePath(r.shape, r.p.x, r.p.y, r.size));
+    r.lblEl.setAttribute('x', r.p.x + r.s._lab.px * r.s._lab.off);
+    r.lblEl.setAttribute('y', r.p.y + r.s._lab.py * r.s._lab.off + 3.5);
+  });
+
+  flatOnly.forEach(id => document.getElementById(id).style.display = 'none');
+  [planes, rs, risers].forEach(g => { g.style.display = ''; g.innerHTML = ''; });
+
+  /* one plane per layer, back to front */
+  const used = [...new Set(NODEREFS.map(zOf))].sort((a,b) => b - a);
+  used.forEach(z => {
+    const ring = STRANDS.map(s => project(...Object.values(pt(s.angle, FRAME_R[s.id])), z));
+    const d = 'M' + ring.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L') + ' Z';
+    planes.appendChild(el('path', { d, class:'plane-fill' }));
+    planes.appendChild(el('path', { d, class:'plane' }));
+    const anchor = project(CX - 470, CY, z);
+    const t = el('text', { x:anchor.x, y:anchor.y, class:'plane-lbl' });
+    t.textContent = STRAT_BY[STRATA.by].name(z) || ('layer ' + z);
+    planes.appendChild(t);
+  });
+
+  /* each thread becomes a polyline climbing through the layers */
+  STRANDS.forEach(s => {
+    const chain = NODEREFS.filter(r => r.s.id === s.id).sort((a,b) => a.j - b.j);
+    const pts = [project(CX, CY, 0), ...chain.map(r => r.p)];
+    const d = 'M' + pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L');
+    const path = el('path', { d, class:'radius', fill:'none' });
+    path.style.setProperty('--strand-c', `var(--sc-${s.id})`);
+    path.dataset.s = s.id;
+    rs.appendChild(path);
+    s._radiusS = path;
+  });
+
+  /* risers: every declared relation that changes level */
+  DECLARED.forEach(e => {
+    const a = byKey[e.from], b = byKey[e.to];
+    if (!a || !b || zOf(a) === zOf(b)) return;
+    risers.appendChild(el('path', { d:`M${a.p.x},${a.p.y} L${b.p.x},${b.p.y}`, class:'riser' }));
+  });
+
+  /* depth sort: paint far layers first so the nearest bead is the one you click */
+  const gN = document.getElementById('gNodes');
+  NODEREFS.slice().sort((a,b) => a.p.y - b.p.y).forEach(r => gN.appendChild(r.g));
+
+  const hub = project(CX, CY, 0);
+  document.getElementById('gHub').setAttribute('transform', `translate(${(hub.x-CX).toFixed(1)},${(hub.y-CY).toFixed(1)})`);
+  walkTo(NODEREFS[0].p);
+}
+
+/* keep lit/dominant states working on the projected threads too */
+const _clearClasses = clearClasses;
+clearClasses = function(){
+  _clearClasses();
+  STRANDS.forEach(s => { if (s._radiusS) s._radiusS.classList.remove('lit','dominant'); });
+};
+function syncStrandLines(){
+  STRANDS.forEach(s => {
+    if (!s._radiusS) return;
+    s._radiusS.classList.toggle('lit', s._radius.classList.contains('lit'));
+    s._radiusS.classList.toggle('dominant', s._radius.classList.contains('dominant'));
+  });
+}
+
+/* ---------- controls ---------- */
+(function strataUI(){
+  const tools = document.querySelector('.stage-tools');
+  const b = document.createElement('button');
+  b.className = 'tool'; b.id = 'tStrata'; b.title = 'Tilt the web into layers (T)'; b.textContent = 'Strata';
+  tools.insertBefore(b, document.getElementById('tFull'));
+
+  const dock = document.createElement('div');
+  dock.className = 'strata-dock'; dock.id = 'strataDock';
+  dock.innerHTML = `
+    <label for="stBy">Stratify by</label>
+    <select id="stBy">${Object.entries(STRAT_BY).map(([k,v]) => `<option value="${k}"${k===STRATA.by?' selected':''}>${v.label}</option>`).join('')}</select>
+    <label for="stTilt">Tilt <b id="stTiltV">40°</b></label>
+    <input type="range" id="stTilt" min="0" max="72" value="40" aria-label="Tilt angle">
+    <label for="stYaw">Turn <b id="stYawV">0°</b></label>
+    <input type="range" id="stYaw" min="0" max="359" value="0" aria-label="Turn angle">
+    <label for="stGap">Layer gap <b id="stGapV">150</b></label>
+    <input type="range" id="stGap" min="60" max="260" value="150" aria-label="Distance between layers">`;
+  document.getElementById('stage').appendChild(dock);
+
+  const upd = () => { relayout(); syncStrandLines(); syncMinimapState(); };
+  document.getElementById('stBy').addEventListener('change', e => {
+    STRATA.by = e.target.value; upd();
+    say('Stratified by ' + STRAT_BY[STRATA.by].label + '.');
+  });
+  [['stTilt','tilt','°'],['stYaw','yaw','°'],['stGap','gap','']].forEach(([id, k, unit]) => {
+    document.getElementById(id).addEventListener('input', e => {
+      STRATA[k] = +e.target.value;
+      document.getElementById(id + 'V').textContent = e.target.value + unit;
+      upd();
+    });
+  });
+  b.addEventListener('click', () => toggleStrata());
+})();
+
+function toggleStrata(force){
+  STRATA.on = (force === undefined) ? !STRATA.on : force;
+  document.getElementById('tStrata').classList.toggle('on', STRATA.on);
+  document.body.dataset.strata = STRATA.on ? 'on' : 'off';
+  document.getElementById('strataDock').classList.toggle('on', STRATA.on);
+  relayout(); syncStrandLines(); syncMinimapState();
+  if (STRATA.on){
+    VPmain.reset();
+    say('Strata on. The web is tilted ' + STRATA.tilt + ' degrees and stacked by ' + STRAT_BY[STRATA.by].label +
+        '. Dashed risers mark every relation that crosses a layer.');
+  } else say('Strata off. The web is flat again.');
+}
+
+/* ============================================================
+   The eagle: a lens for minute detail, and a stoop to dive on it
+   ============================================================ */
+(function makeLens(){
+  const svg = document.getElementById('web');
+  const defs = svg.querySelector('defs');
+  const cp = el('clipPath', { id:'lensClip' });
+  cp.appendChild(el('circle', { id:'lensCircle', cx:0, cy:0, r:150 }));
+  defs.appendChild(cp);
+  const g = el('g', { id:'lensGroup' });
+  const inner = el('g', { 'clip-path':'url(#lensClip)', id:'lensInner' });
+  const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+  use.setAttribute('href', '#vp');
+  inner.appendChild(use);
+  g.appendChild(inner);
+  g.appendChild(el('circle', { id:'lensRing', cx:0, cy:0, r:150, class:'lens-ring' }));
+  svg.appendChild(g);
+})();
+
+let lensOn = false, lensMag = 3.2;
+function toggleLens(force){
+  lensOn = (force === undefined) ? !lensOn : force;
+  document.getElementById('lensGroup').classList.toggle('on', lensOn);
+  document.getElementById('tLens').classList.toggle('on', lensOn);
+  say(lensOn ? 'Eagle lens on. Move the pointer over the web for ' + lensMag + ' times detail without leaving the wide view.' : 'Eagle lens off.');
+}
+document.getElementById('web').addEventListener('pointermove', e => {
+  if (!lensOn) return;
+  const m = VPmain.metrics();
+  const ux = (e.clientX - m.r.left - m.ox) / m.sc + VB.x;
+  const uy = (e.clientY - m.r.top  - m.oy) / m.sc + VB.y;
+  document.getElementById('lensCircle').setAttribute('cx', ux);
+  document.getElementById('lensCircle').setAttribute('cy', uy);
+  document.getElementById('lensRing').setAttribute('cx', ux);
+  document.getElementById('lensRing').setAttribute('cy', uy);
+  document.getElementById('lensInner').setAttribute('transform',
+    `translate(${ux},${uy}) scale(${lensMag}) translate(${-ux},${-uy})`);
+});
+document.getElementById('web').addEventListener('wheel', e => {
+  if (!lensOn || !e.shiftKey) return;
+  lensMag = Math.max(1.5, Math.min(8, lensMag * (e.deltaY < 0 ? 1.12 : 1/1.12)));
+}, { passive:true });
+
+/* the stoop — a falcon's dive from the wide view onto one target */
+function stoop(ref, to){
+  to = to || 4.2;
+  const V = VPmain.V, k0 = V.k, t0 = performance.now(), dur = 850;
+  const still = document.body.dataset.motion === 'still';
+  if (still) { VPmain.centreOn(ref.p.x, ref.p.y, to); return; }
+  (function frame(now){
+    const t = Math.min(1, (now - t0) / dur);
+    const e = t < .5 ? 2*t*t : 1 - Math.pow(-2*t+2, 2)/2;
+    VPmain.centreOn(ref.p.x, ref.p.y, k0 + (to - k0) * e);
+    if (t < 1) requestAnimationFrame(frame);
+  })(t0);
+  say('Stooping onto ' + ref.nd.t + '.');
+}
+
+(function lensUI(){
+  const tools = document.querySelector('.stage-tools');
+  const b = document.createElement('button');
+  b.className = 'tool'; b.id = 'tLens'; b.title = 'Eagle lens — magnify without losing the wide view (L)'; b.textContent = 'Lens';
+  tools.insertBefore(b, document.getElementById('tStrata'));
+  b.addEventListener('click', () => toggleLens());
+})();
+
+/* selecting a bead in owl view stoops onto it */
+const _selNode4 = selectNode;
+selectNode = function(sid, j){
+  _selNode4(sid, j);
+  syncStrandLines();
+  const r = byKey[sid + ':' + j];
+  if (r && owlOn && !armed) stoop(r, Math.max(VPmain.V.k, 2.6));
+};
+const _selStrand4 = selectStrand;
+selectStrand = function(sid){ _selStrand4(sid); syncStrandLines(); };
+</script>

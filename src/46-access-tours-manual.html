@@ -1,0 +1,319 @@
+<script>
+/* ============================================================
+   Voice, tours, manual, and the controls that make all of it
+   usable by more people than a picture alone can reach.
+   ============================================================ */
+const liveEl = document.getElementById('live');
+let voiceOn = false;
+
+function say(text){
+  liveEl.textContent = text;                       /* always announced to assistive tech */
+  if (!voiceOn || !('speechSynthesis' in window)) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 1.0; u.pitch = 1.0; u.lang = 'en-GB';
+    speechSynthesis.speak(u);
+  } catch (e) { /* voice is an enhancement; never let it break navigation */ }
+}
+function speakPanel(){
+  const t = document.querySelector('.detail-title'), b = document.querySelector('#detailBody .detail-body');
+  say([t && t.textContent, b && b.textContent].filter(Boolean).join('. '));
+}
+
+/* ---------- preference controls ---------- */
+function toggleAttr(btn, attr, onVal, offVal, onLabel, offLabel, announce){
+  const now = document.body.dataset[attr] === onVal;
+  document.body.dataset[attr] = now ? offVal : onVal;
+  btn.setAttribute('aria-pressed', String(!now));
+  if (onLabel) btn.textContent = now ? onLabel : offLabel;
+  say(announce + ' ' + (now ? 'off' : 'on'));
+}
+document.getElementById('cTheme').addEventListener('click', e => {
+  const dark = document.body.dataset.theme === 'dark';
+  document.body.dataset.theme = dark ? 'light' : 'dark';
+  e.target.textContent = dark ? 'Dark' : 'Light';
+  e.target.setAttribute('aria-pressed', String(dark));
+  say(dark ? 'Light theme on.' : 'Dark theme on.');
+});
+document.getElementById('cContrast').addEventListener('click', e =>
+  toggleAttr(e.target, 'contrast', 'high', 'normal', null, null, 'High contrast'));
+document.getElementById('cPalette').addEventListener('click', e =>
+  toggleAttr(e.target, 'palette', 'safe', 'true', null, null, 'Colour-safe palette'));
+document.getElementById('cMotion').addEventListener('click', e => {
+  const still = document.body.dataset.motion === 'still';
+  document.body.dataset.motion = still ? 'full' : 'still';
+  e.target.textContent = still ? 'Stop motion' : 'Allow motion';
+  e.target.setAttribute('aria-pressed', String(!still));
+  if (!still && crawlTimer) { clearTimeout(crawlTimer); crawlTimer = null; }
+  say(still ? 'Motion allowed.' : 'Motion stopped.');
+});
+let textStep = 0;
+document.getElementById('cText').addEventListener('click', e => {
+  textStep = (textStep + 1) % 3;
+  const scale = [1, 1.14, 1.3][textStep];
+  document.documentElement.style.setProperty('--scale', scale);
+  e.target.textContent = ['Larger text', 'Larger text ×1.14', 'Larger text ×1.3'][textStep];
+  e.target.setAttribute('aria-pressed', String(textStep > 0));
+  say('Text scale ' + scale + '.');
+});
+document.getElementById('cVoice').addEventListener('click', e => {
+  voiceOn = !voiceOn;
+  e.target.setAttribute('aria-pressed', String(voiceOn));
+  if (!voiceOn && 'speechSynthesis' in window) speechSynthesis.cancel();
+  if (voiceOn && !('speechSynthesis' in window)){
+    voiceOn = false; e.target.setAttribute('aria-pressed', 'false');
+    say('This browser has no speech voice. Everything spoken is also written to the panel and announced to screen readers.');
+    return;
+  }
+  say(voiceOn ? 'Voiceover on. Every stop is read aloud, and everything read aloud is also written on screen.' : 'Voiceover off.');
+  if (voiceOn) setTimeout(speakPanel, 700);
+});
+document.getElementById('cOwl').addEventListener('click', () => toggleOwl());
+document.getElementById('tTurn').addEventListener('click', () => owlTurn());
+
+/* ---------- rail tabs ---------- */
+const TABS = [['tabNav','panNav'],['tabRef','panRef'],['tabTour','panTour']];
+TABS.forEach(([t, p]) => document.getElementById(t).addEventListener('click', () => {
+  TABS.forEach(([t2, p2]) => {
+    const on = t2 === t;
+    document.getElementById(t2).setAttribute('aria-selected', String(on));
+    document.getElementById(p2).hidden = !on;
+  });
+}));
+
+/* ---------- the web as text ---------- */
+document.getElementById('cList').addEventListener('click', e => {
+  const lv = document.getElementById('listview');
+  lv.hidden = !lv.hidden;
+  e.target.setAttribute('aria-pressed', String(!lv.hidden));
+  say(lv.hidden ? 'Text version hidden.' : 'Text version shown below the web.');
+});
+(function buildList(){
+  document.getElementById('lvBody').innerHTML = STRANDS.map(s => `
+    <div class="lv-strand">
+      <button class="lv-head" style="--strand-c:var(--sc-${s.id})" data-s="${s.id}">${esc(s.label)}
+        <span class="sub">${esc(s.meta)} \u00b7 ${s.nodes.length} beads</span></button>
+      <ul class="lv-items">${s.nodes.map((n, j) => {
+        const e2 = ENRICH[s.id + ':' + j] || {};
+        return `<li><button data-s="${s.id}" data-j="${j}">${esc(n.t)}
+          <span class="cls">${esc(e2.cls || '')}${e2.tax ? ' \u00b7 ' + esc(flatTax()[e2.tax] || '') : ''}${n.open ? ' \u00b7 still open' : ''}</span></button></li>`;
+      }).join('')}</ul>
+    </div>`).join('');
+  document.querySelectorAll('#lvBody .lv-head').forEach(b => b.addEventListener('click', () => selectStrand(b.dataset.s)));
+  document.querySelectorAll('#lvBody .lv-items button').forEach(b =>
+    b.addEventListener('click', () => selectNode(b.dataset.s, +b.dataset.j)));
+})();
+
+/* ---------- legend: shape carries class, so colour never has to ---------- */
+(function buildLegend(){
+  const shown = ['Concept','Artefact','Portal','Standard','Source','Method','Risk'];
+  document.getElementById('legend').innerHTML =
+    shown.map(id => {
+      const o = ONTOLOGY.find(x => x.id === id);
+      return `<span><svg viewBox="0 0 17 17" aria-hidden="true"><path d="${shapePath(o.shape, 8.5, 8.5, 5.6)}"${id==='Risk'?' stroke-dasharray="2.5 2.5"':''}></path></svg>${esc(o.label)}</span>`;
+    }).join('') + '<span style="color:var(--amber)">Solid amber line — main route</span><span style="color:var(--alt1)"><i style="display:inline-block;width:15px;border-top:2px dashed currentColor;vertical-align:3px;margin-right:5px"></i>alternatives</span>';
+})();
+
+/* ============================================================
+   Guided tours
+   ============================================================ */
+const TOURS = [
+  { id:'start', name:'Start here', blurb:'Six stops. What the web is, how to move on it, and where to go next.', stops:[
+    { s:'This is one web with one centre: data and metadata management for UK central government. Five radial threads run out from it. Everything on those threads was made in your conversations or is carried in memory between them.', run:() => reset() },
+    { s:'The longest thread is the Data Governance Playbook. Fifteen artefacts, built over one sitting, ordered here from the core model at the hub out to the finished portal at the rim.', run:() => selectStrand('gov') },
+    { s:'This is the far end of that thread: the Command Centre. Everything else on the radius was folded into it. Watch the beads light in order — that is the route from the five recipes out to the portal.', run:() => selectNode('gov', 6) },
+    { s:'The spiral is where separate threads share an idea. Single-file HTML portal touches four of the five threads. That is not a coincidence, it is your delivery pattern.', run:() => selectTheme('single-file') },
+    { s:'Now the honest part. Five strands are torn. The sharpest is the Observatory v6.1 pass, which stopped with the styling finished and the behaviour half-written.', run:() => selectNode('obs', 1) },
+    { s:'That is the tour. Pluck a thread to search, press one to five to walk a radius, press B to balloon somewhere unopened, or open the Reference tab to navigate by ontology instead.', run:() => reset() }
+  ]},
+  { id:'onto', name:'Navigate like an owl', blurb:'Five stops through the ontology — classes, properties, and the lineage they expose.', stops:[
+    { s:'An owl hunts a web from above. Owl view lifts you off the silk and draws the typed relations instead: sixteen properties across the whole estate.', run:() => { toggleOwl(true); reset(); } },
+    { s:'Class is drawn as a shape, never as colour alone. Portals are hexagons. Three of your five threads end in one, which is why they all feel like the same thing.', run:() => { const o = ONTOLOGY.find(x=>x.id==='Portal'); selectSet(instancesOfClass('Portal'), 'Ontology class \u00b7 Portal', 'Portal', esc(o.def)); } },
+    { s:'Derived-from is the property that carries provenance. Follow it and the Cataloguing Playbook turns out to be the ancestor of nearly everything else here.', run:() => { const l = DECLARED.filter(e=>e.prop==='derivedFrom'); selectSet([...new Set(l.flatMap(e=>[e.from,e.to]))].map(nodeOf), 'Object property', 'derived from', 'Provenance of design or content.'); drawEdges(l, {label:true, hi:true}); } },
+    { s:'Equivalent-to is the interesting one. The Command Centre and the Observatory are the same pattern doing the same job in two different threads. So are the two scoring models.', run:() => { const l = DECLARED.filter(e=>e.prop==='equivalentTo'); selectSet([...new Set(l.flatMap(e=>[e.from,e.to]))].map(nodeOf), 'Object property', 'equivalent to', 'Same pattern, different thread.'); drawEdges(l, {label:true, hi:true}); } },
+    { s:'Press Turn to rotate the whole web and bring a different thread to the top. The labels stay upright. Owl view stays on until you switch it off.', run:() => { owlTurn(72); } }
+  ]},
+  { id:'open', name:'What is still torn', blurb:'Four stops through the unfinished work, in the order worth picking it up.', stops:[
+    { s:'Start with the one that is genuinely mid-flight. The Observatory v6.1 pass has its styling complete and its behaviour unfinished. This is the highest-value resume point on the web.', run:() => selectNode('obs', 1) },
+    { s:'Behind it sits a risk that would bite at review: the version six spec file was returning a four-oh-four. Collections anchors and the evidence-flag taxonomy both need checking against the committed spec.', run:() => selectNode('obs', 5) },
+    { s:'The governance roadmap needs something only your team has: your sector regulator, your existing enterprise architecture body, your records-management schedules. Everything else in that thread is finished.', run:() => selectNode('gov', 4) },
+    { s:'And this one is a decision, not a task. Apps and websites was three questions asked and never answered. It shares no idea with anything else on the web, so nothing reaches it. Answer it or cut it.', run:() => selectNode('apps', 1) }
+  ]},
+  { id:'class', name:'Reading by classification', blurb:'Four stops across taxonomy, KISIL and the thesaurus.', stops:[
+    { s:'The taxonomy asks what a piece of work is for, not what it is. Govern, describe, measure, deliver. A portal and a manual can sit in the same branch.', run:() => { const hits = NODEREFS.filter(r => ((ENRICH[key(r)]||{}).tax||'').startsWith('govern')); selectSet(hits, 'Taxonomy', 'Govern', 'Everything whose purpose is to set or enforce the rules.'); } },
+    { s:'Two ladders run alongside each other. KIL is canonical, from your specification: workstream, artefact, insight, signal, decision. KSL is a local scheme this prototype inferred, kept under a name that does not collide.', run:() => { selectSet(NODEREFS.filter(r => kilOf(key(r)) === 'I'), 'KIL chain \u00b7 canonical', 'Insight', 'Synthesised understanding derived from artefacts. Carries impact and confidence, 1 to 5.'); } },
+    { s:'The thesaurus means you can search the way you actually talk. Type C D A and it finds Critical Data Asset. Type D A M and it finds the asset management policy.', run:() => { document.getElementById('q').value = 'CDA'; runQuery('CDA'); } },
+    { s:'And the glossary and data dictionary sit behind the same tab: every term defined, every field in the registers described with its type and its source.', run:() => { document.getElementById('tabRef').click(); renderRef('dict'); } }
+  ]}
+];
+
+let tour = null, tourI = 0, tourTimer = null, tourPlaying = false;
+const tourbar = document.getElementById('tourbar');
+
+function startTour(id){
+  tour = TOURS.find(t => t.id === id); tourI = 0;
+  tourbar.hidden = false;
+  tourPlaying = document.body.dataset.motion !== 'still';
+  document.getElementById('tourPlay').textContent = tourPlaying ? 'Pause' : 'Play';
+  runStop();
+}
+function runStop(){
+  if (!tour) return;
+  const st = tour.stops[tourI];
+  document.getElementById('tourStep').textContent = `${tour.name} · stop ${tourI+1} of ${tour.stops.length}`;
+  document.getElementById('tourSay').textContent = st.s;
+  try { st.run(); } catch (e) { /* a stop must never strand the tour */ }
+  setTimeout(() => say(st.s), 260);
+  if (tourTimer) clearTimeout(tourTimer);
+  if (tourPlaying) tourTimer = setTimeout(() => { if (tourI < tour.stops.length - 1) { tourI++; runStop(); } else endTour(true); }, Math.max(7000, st.s.length * 62));
+}
+function endTour(done){
+  if (tourTimer) clearTimeout(tourTimer);
+  tour = null; tourbar.hidden = true;
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  say(done ? 'Tour finished. The view is yours.' : 'Tour ended.');
+}
+document.getElementById('tourNext').addEventListener('click', () => { if (tour && tourI < tour.stops.length-1) { tourI++; runStop(); } else endTour(true); });
+document.getElementById('tourPrev').addEventListener('click', () => { if (tour && tourI > 0) { tourI--; runStop(); } });
+document.getElementById('tourEnd').addEventListener('click', () => endTour(false));
+document.getElementById('tourPlay').addEventListener('click', e => {
+  tourPlaying = !tourPlaying;
+  e.target.textContent = tourPlaying ? 'Pause' : 'Play';
+  if (tourPlaying) runStop(); else if (tourTimer) clearTimeout(tourTimer);
+});
+document.getElementById('tourPick').innerHTML = TOURS.map(t =>
+  `<button class="tour-btn" data-t="${t.id}"><b>${esc(t.name)}</b><span>${esc(t.blurb)}</span></button>`).join('');
+document.querySelectorAll('.tour-btn').forEach(b => b.addEventListener('click', () => startTour(b.dataset.t)));
+
+/* ============================================================
+   User manual
+   ============================================================ */
+document.getElementById('manBody').innerHTML = `
+<h3>What this is</h3>
+<p>A map of everything made across your conversations here, drawn as an orb web. The shape is not decoration: a real orb web has a <b>hub</b>, non-sticky <b>radial threads</b> the spider walks on, a sticky <b>capture spiral</b>, and <b>frame threads</b> anchoring the whole thing. Each of those carries meaning here, and every way of moving is a way a spider actually moves.</p>
+<p>It is one self-contained HTML file. Nothing is stored, nothing is sent anywhere, and it works offline once loaded.</p>
+
+<h3>The five threads</h3>
+<ul>
+  <li><b>Data Governance Playbook</b> — 21 July, fifteen artefacts, ending in the Command Centre.</li>
+  <li><b>CDA Estate Command Dashboard</b> — 7 July, 136 assets over 59 fields, real harvested data.</li>
+  <li><b>Data Sharing Observatory</b> — carried in memory, seven views, mid-way through v6.1.</li>
+  <li><b>Data Cataloguing Playbook</b> — the ancestor. Packs 1–9, and the design system everything else inherited.</li>
+  <li><b>Apps and websites</b> — 20 July. One exchange, never answered. The only island on the web.</li>
+</ul>
+
+<h3>Nine ways to move</h3>
+<table class="keytable">
+  <tr><td><b>Sit</b></td><td>Click the hub to return to the whole web.</td></tr>
+  <tr><td><b>Walk</b></td><td>Click a thread or press <kbd>1</kbd>–<kbd>5</kbd> to travel out along one body of work. Beads light in order, hub outward.</td></tr>
+  <tr><td><b>Pluck</b></td><td>Search. It does not jump you — it vibrates, brightening matches on every thread at once. Thesaurus synonyms match too.</td></tr>
+  <tr><td><b>Cross</b></td><td>Select a spiral crossing to draw the chords between threads sharing that idea.</td></tr>
+  <tr><td><b>Drop</b></td><td>The dragline under the web records every bead you open. <kbd>⌫</kbd> climbs back up it.</td></tr>
+  <tr><td><b>Balloon</b></td><td><kbd>B</kbd> casts you onto something you have not opened yet.</td></tr>
+  <tr><td><b>Bridge</b></td><td><kbd>X</kbd>, then two beads. Lights the shortest route bead by bead, with runners-up behind in dimmer colours.</td></tr>
+  <tr><td><b>Retreat</b></td><td>Pops the web into its own window, keeping a signal thread open — clicks there still land here.</td></tr>
+  <tr><td><b>Owl</b></td><td>Lifts you into the ontology: typed relations instead of proximity. <kbd>R</kbd> turns the web; labels stay upright.</td></tr>
+</table>
+
+<h3>How the lighting works</h3>
+<p>The <b>main route</b> is a solid amber line, lit one bead at a time in the order a spider would feel its way along. The thread carrying most of the current selection <b>breathes</b> slowly so you can see where the weight of an idea sits. <b>Alternative routes</b> are drawn behind in dashed, dimmer, distinct hues — present without competing. Stop motion freezes all of it and shows the finished state instead.</p>
+
+<h3>The formal layer</h3>
+<ul>
+  <li><b>Ontology</b> — fifteen classes and sixteen object properties. Class is drawn as a <b>shape</b>, so it never depends on colour.</li>
+  <li><b>Taxonomy</b> — what work is <i>for</i>: govern, describe, measure, deliver.</li>
+  <li><b>Thesaurus</b> — SKOS-shaped. Preferred label, alternative labels, broader, related. Feeds the search.</li>
+  <li><b>Glossary</b> — every acronym and term used across the estate.</li>
+  <li><b>Data dictionary</b> — the actual fields in your registers, with type, source and meaning.</li>
+</ul>
+
+<div class="callout"><p><b>Two ladders, deliberately distinct.</b> <b>KIL</b> — Workstream, Artefact, Insight, Signal, Decision — is canonical, taken from your Knowledge Integration &amp; Semantic Interoperability Layer specification, and is the default stratification. <b>KSL</b> — Knowledge, Information, Skills, Insight, Learning — is a local scheme this prototype inferred before that specification was supplied. It is retained under a non-colliding name and is marked unratified wherever it appears. <b>KISIL</b> itself is the layer, never a ladder.</p></div>
+
+<h3>Accessibility</h3>
+<p>Built to WCAG 2.1 AA intent, and tested by keyboard alone.</p>
+<ul>
+  <li><b>Nothing is picture-only.</b> The Text version button renders the entire web as headings and lists.</li>
+  <li><b>Nothing is colour-only.</b> Ontology class is a shape; open items have a broken outline; routes differ by dash pattern as well as hue.</li>
+  <li><b>Nothing is audio-only.</b> Everything the voiceover says is written on screen at the same moment and announced to screen readers.</li>
+  <li><b>Motion is stoppable</b> at any time, and the system reduced-motion setting is respected without being asked.</li>
+  <li><b>Tours pause</b>, step backwards, and never auto-advance when motion is stopped.</li>
+  <li><b>Text scales</b> to 1.3× without breaking layout; high contrast and a colour-safe palette are one press away.</li>
+  <li>Every bead is reachable by <kbd>Tab</kbd> and has a spoken name, its class, and its description.</li>
+</ul>
+
+<h3>Every key</h3>
+<table class="keytable">
+  <tr><td><kbd>/</kbd></td><td>Focus the search</td></tr>
+  <tr><td><kbd>1</kbd>–<kbd>5</kbd></td><td>Walk a radius</td></tr>
+  <tr><td><kbd>+</kbd> <kbd>−</kbd> <kbd>0</kbd></td><td>Zoom in, out, reset</td></tr>
+  <tr><td><kbd>M</kbd></td><td>Bird's eye strip</td></tr>
+  <tr><td><kbd>B</kbd></td><td>Balloon</td></tr>
+  <tr><td><kbd>X</kbd></td><td>Arm bridge</td></tr>
+  <tr><td><kbd>R</kbd></td><td>Owl's turn</td></tr>
+  <tr><td><kbd>O</kbd></td><td>Owl view</td></tr>
+  <tr><td><kbd>V</kbd></td><td>Voiceover</td></tr>
+  <tr><td><kbd>F</kbd></td><td>Full screen</td></tr>
+  <tr><td><kbd>⌫</kbd></td><td>Climb back down the dragline</td></tr>
+  <tr><td><kbd>?</kbd></td><td>This manual</td></tr>
+  <tr><td><kbd>Esc</kbd></td><td>Cancel, close, return to the hub</td></tr>
+</table>
+
+<h3>What is missing, and why</h3>
+<p>This web is spun only from conversations held <b>outside</b> a project. Anything inside a project sits in a separate scope that cannot be read from here — those radii are missing rather than absent. Open the same request inside the project and they can be woven in.</p>`;
+
+const manual = document.getElementById('manual');
+let lastFocus = null;
+function openManual(){
+  lastFocus = document.activeElement;
+  manual.hidden = false;
+  document.getElementById('manClose').focus();
+  say('User manual open.');
+}
+function closeManual(){
+  manual.hidden = true;
+  if (lastFocus) lastFocus.focus();
+}
+document.getElementById('cManual').addEventListener('click', openManual);
+document.getElementById('manClose').addEventListener('click', closeManual);
+manual.addEventListener('click', e => { if (e.target === manual) closeManual(); });
+manual.addEventListener('keydown', e => {
+  if (e.key !== 'Tab') return;
+  const f = manual.querySelectorAll('button, a[href], [tabindex]:not([tabindex="-1"])');
+  if (!f.length) return;
+  const first = f[0], last = f[f.length-1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+});
+
+/* ---------- keys added by this layer ---------- */
+document.addEventListener('keydown', e => {
+  if (/input|textarea/i.test(e.target.tagName)) return;
+  if (e.key === '?') { e.preventDefault(); openManual(); }
+  else if (e.key === 'o' || e.key === 'O') toggleOwl();
+  else if (e.key === 'r' || e.key === 'R') owlTurn();
+  else if (e.key === 'v' || e.key === 'V') document.getElementById('cVoice').click();
+  else if (e.key === 'Escape') { if (!manual.hidden) closeManual(); if (tour) endTour(false); }
+});
+
+/* respect the system setting without being asked */
+if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches){
+  document.body.dataset.motion = 'still';
+  const b = document.getElementById('cMotion');
+  b.textContent = 'Allow motion'; b.setAttribute('aria-pressed', 'true');
+}
+if (window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches){
+  document.body.dataset.theme = 'light';
+  const b = document.getElementById('cTheme');
+  b.textContent = 'Dark'; b.setAttribute('aria-pressed', 'true');
+}
+
+/* ---------- final wiring ---------- */
+document.getElementById('tRels').textContent = DECLARED.length;
+renderRef('onto');
+document.getElementById('pluckHint').innerHTML =
+  'Matching strands light up; the rest fall slack. Synonyms count. ' +
+  '<kbd>/</kbd> search \u00b7 <kbd>1</kbd>\u2013<kbd>5</kbd> walk \u00b7 <kbd>+</kbd><kbd>\u2212</kbd><kbd>0</kbd> zoom \u00b7 <kbd>M</kbd> bird\u2019s eye \u00b7 ' +
+  '<kbd>B</kbd> balloon \u00b7 <kbd>X</kbd> bridge \u00b7 <kbd>O</kbd> owl \u00b7 <kbd>R</kbd> turn \u00b7 <kbd>V</kbd> voice \u00b7 <kbd>F</kbd> full screen \u00b7 <kbd>?</kbd> manual';
+say('Web ready. Twenty-six beads on five threads. Press question mark for the manual, or open the Tours tab to be shown around.');
+</script>

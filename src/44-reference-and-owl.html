@@ -1,0 +1,250 @@
+<script>
+/* ============================================================
+   Owl-based navigation.
+   Two senses, both intended: OWL the ontology language, and the
+   owl that hunts the web from above and turns its head to reorient.
+   ============================================================ */
+const PROPOF = id => PROPS.find(p => p.id === id) || { id, label:id, inv:null };
+const nodeOf = id => byKey[id];
+
+/* build the directed graph, then add the inverse of every edge so it traverses both ways */
+const EDGES = [];
+Object.entries(ENRICH).forEach(([from, e]) => (e.rel || []).forEach(([prop, to]) => {
+  if (!byKey[to]) return;
+  EDGES.push({ from, to, prop, declared:true });
+  const inv = PROPOF(prop).inv;
+  if (inv && inv !== prop) EDGES.push({ from:to, to:from, prop:inv, declared:false });
+}));
+const DECLARED = EDGES.filter(e => e.declared);
+
+function edgesOf(id){ return EDGES.filter(e => e.from === id); }
+function classAncestry(cls){
+  const out = []; let c = ONTOLOGY.find(o => o.id === cls);
+  while (c) { out.push(c); c = ONTOLOGY.find(o => o.id === c.parent); }
+  return out;
+}
+function instancesOfClass(cls){
+  return NODEREFS.filter(r => classAncestry(CLSOF(key(r))).some(c => c.id === cls));
+}
+
+/* ---------- drawing typed relations ---------- */
+function clearOnto(){ document.getElementById('gOnto').innerHTML = ''; }
+function drawEdges(list, opts){
+  opts = opts || {};
+  const g = document.getElementById('gOnto');
+  if (!opts.keep) g.innerHTML = '';
+  list.forEach(e => {
+    const a = nodeOf(e.from), b = nodeOf(e.to);
+    if (!a || !b) return;
+    const mx = (a.p.x + b.p.x)/2, my = (a.p.y + b.p.y)/2;
+    const cx = CX + (mx - CX) * 0.55, cy = CY + (my - CY) * 0.55;
+    const path = el('path', { d:`M${a.p.x},${a.p.y} Q${cx},${cy} ${b.p.x},${b.p.y}`,
+                              class:'onto-edge' + (opts.hi ? ' hi' : '') });
+    g.appendChild(path);
+    if (opts.label){
+      const t = el('text', { x:(a.p.x + cx + b.p.x)/3, y:(a.p.y + cy + b.p.y)/3 - 4, class:'edge-lbl', 'text-anchor':'middle' });
+      t.textContent = PROPOF(e.prop).label;
+      g.appendChild(t);
+    }
+  });
+}
+
+/* ---------- owl view: lift off the silk, look at the types ---------- */
+let owlOn = false;
+function toggleOwl(force){
+  owlOn = (force === undefined) ? !owlOn : force;
+  document.body.dataset.owl = owlOn ? 'on' : 'off';
+  document.getElementById('cOwl').setAttribute('aria-pressed', owlOn);
+  if (owlOn){ drawEdges(DECLARED, { label:true }); say('Owl view on. ' + DECLARED.length + ' typed relations drawn between beads.'); }
+  else { clearOnto(); say('Owl view off.'); }
+}
+
+/* ---------- the owl's turn: rotate the web, keep the words upright ---------- */
+function owlTurn(step){
+  VPmain.V.rot = ((VPmain.V.rot || 0) + (step === undefined ? 72 : step)) % 360;
+  VPmain.apply();
+  counterRotateText();
+  say('Web turned to ' + Math.round(VPmain.V.rot) + ' degrees. Labels stay upright.');
+}
+function counterRotateText(){
+  const r = -(VPmain.V.rot || 0);
+  document.querySelectorAll('#vp text').forEach(t => {
+    const x = parseFloat(t.getAttribute('x')), y = parseFloat(t.getAttribute('y'));
+    if (isNaN(x) || isNaN(y)) return;
+    t.setAttribute('transform', r ? `rotate(${r} ${x} ${y})` : '');
+  });
+}
+
+/* ============================================================
+   Reference panels
+   ============================================================ */
+const glyphSvg = shape => {
+  const d = shapePath(shape, 8.5, 8.5, 5.6);
+  return `<svg class="onto-glyph" viewBox="0 0 17 17" aria-hidden="true"><path d="${d}"></path></svg>`;
+};
+const refBody = document.getElementById('refBody');
+let refWhich = 'onto', refQ = '';
+
+function selectSet(refs, kicker, title, note, extra){
+  disarm();
+  document.getElementById('gBridge').innerHTML = '';
+  document.getElementById('gRoute').innerHTML = '';
+  document.getElementById('gAlt').innerHTML = '';
+  clearClasses();
+  NODEREFS.forEach(r => r.g.classList.remove('onpath','step','alt1','alt2','alt3'));
+  NODEREFS.forEach(r => r.g.classList.add(refs.includes(r) ? 'res' : 'mute'));
+  refs.forEach(r => r.s._radius.classList.add('lit'));
+  markDominant(refs);
+  if (refs.length) { VPmain.centreOn && vibrate(refs[0].p); walkTo(refs[0].p); }
+  document.querySelector('#detail h2').textContent = 'Selection';
+  document.getElementById('detailBody').innerHTML =
+    `<div class="detail-kicker" style="--strand-c:var(--dew)">${esc(kicker)}</div>
+     <h3 class="detail-title">${esc(title)}</h3>
+     <p class="detail-body">${note}</p>${extra || ''}
+     ${refs.length ? xrefBlock(refs.length + (refs.length === 1 ? ' bead' : ' beads'), refs) : '<p class="empty">Nothing on the web carries this yet.</p>'}`;
+  wire();
+  syncMinimapState(); syncPopup();
+  say(title + '. ' + refs.length + ' beads.');
+}
+
+function renderRef(which){
+  refWhich = which;
+  document.querySelectorAll('.subtab').forEach(b => b.setAttribute('aria-selected', b.dataset.ref === which));
+  const search = ph => `<input class="ref-search" id="refQ" type="search" placeholder="${ph}" value="${esc(refQ)}" aria-label="${ph}">`;
+  const m = s => (s || '').toLowerCase().includes(refQ.toLowerCase());
+  let h = '';
+
+  if (which === 'onto'){
+    h = `<p style="font-size:12px;color:var(--faint);margin:0 0 12px;line-height:1.5">Fifteen classes and sixteen properties. Class is drawn as a <b style="color:var(--moth)">shape</b>, never as colour alone.</p>`;
+    const draw = (parent, depth) => ONTOLOGY.filter(o => o.parent === parent).map(o => {
+      const n = instancesOfClass(o.id).length;
+      return `<button class="onto-row" data-cls="${o.id}" style="padding-left:${depth*13}px" title="${esc(o.def)}">
+        ${glyphSvg(o.shape)}<span class="onto-name">${esc(o.label)}</span><span class="onto-ct">${n}</span></button>` + draw(o.id, depth+1);
+    }).join('');
+    h += draw(null, 0);
+    h += `<h2 style="margin-top:20px">Object properties</h2>`;
+    h += PROPS.filter(p => DECLARED.some(e => e.prop === p.id)).map(p =>
+      `<button class="prop-row" data-prop="${p.id}">${esc(p.id)} <span>${esc(p.note)}</span></button>`).join('');
+  }
+
+  else if (which === 'tax'){
+    h = `<p style="font-size:12px;color:var(--faint);margin:0 0 12px;line-height:1.5">What each piece of work is <b style="color:var(--moth)">for</b> — a separate dimension from what it <b style="color:var(--moth)">is</b>.</p><ul class="tree">`;
+    h += TAXONOMY.map(g => {
+      const kids = (g.kids||[]).map(k => {
+        const n = NODEREFS.filter(r => (ENRICH[key(r)]||{}).tax === k.id).length;
+        return `<li><button data-tax="${k.id}">${esc(k.label)}<span class="ct">${n}</span></button></li>`;
+      }).join('');
+      const tot = NODEREFS.filter(r => ((ENRICH[key(r)]||{}).tax||'').startsWith(g.id + '/')).length;
+      return `<li><button data-tax="${g.id}"><b>${esc(g.label)}</b><span class="ct">${tot}</span></button><ul>${kids}</ul></li>`;
+    }).join('') + '</ul>';
+  }
+
+  else if (which === 'kisil'){
+    h = `<div class="callout"><p><b>Name collision, now resolved.</b> <b>KISIL</b> is the Knowledge Integration &amp; Semantic Interoperability Layer, per your specification. <b>KIL</b> is the Knowledge Integration Layer inside it \u2014 Workstream, Artefact, Insight, Signal, Decision. A third KIL exists in Whitehall Connect, "Keystone Up the Chain". The five-band ladder this prototype invented is renamed <b>KSL</b> so nothing clashes.</p></div>
+      <h2>KIL synthesis chain \u00b7 canonical</h2>
+      <p style="font-size:11.5px;color:var(--faint);margin:-4px 0 9px;line-height:1.5">${esc(KIL.note)}</p>`;
+    h += KIL.levels.map((l,i) => {
+      const n = NODEREFS.filter(r => kilOf(key(r)) === l.id).length;
+      return `<button class="onto-row" data-kil="${l.id}"><span class="onto-ct">${i+1}</span>
+        <span class="onto-name"><b style="color:var(--silk)">${esc(l.label)}</b><br><span style="font-size:11.5px;color:var(--faint)">${esc(l.def)}</span></span>
+        <span class="onto-ct">${n}</span></button>`;
+    }).join('');
+    if (!NODEREFS.filter(r => kilOf(key(r)) === 'D').length)
+      h += `<div class="ax obs" style="margin-top:10px">No <b>Decision</b> entities exist in this collection. The estate captures artefacts and insights but not the decisions they informed \u2014 precisely the gap the Memory Grid Decision Traceability Layer is specified to close.</div>`;
+    h += `<h2 style="margin-top:20px">KSL knowledge state ladder \u00b7 local</h2>
+      <p style="font-size:11.5px;color:var(--faint);margin:-4px 0 9px;line-height:1.5">${esc(KISIL.note)}</p>`;
+    h += KISIL.levels.map((l,i) => {
+      const n = NODEREFS.filter(r => (ENRICH[key(r)]||{}).kisil === l.id).length;
+      return `<button class="onto-row" data-kisil="${l.id}"><span class="onto-ct">${i+1}</span>
+        <span class="onto-name"><b style="color:var(--silk)">${esc(l.label)}</b><br><span style="font-size:11.5px;color:var(--faint)">${esc(l.def)}</span></span>
+        <span class="onto-ct">${n}</span></button>`;
+    }).join('');
+  }
+
+  else if (which === 'thes'){
+    h = search('Search terms and synonyms…') + '<ul class="ref-list">';
+    h += THESAURUS.filter(t => !refQ || m(t.pref) || t.alt.some(m) || m(t.broader)).map(t =>
+      `<li><span class="ref-term">${esc(t.pref)}</span>
+        <div class="alt-labels">also: ${t.alt.map(esc).join(' \u00b7 ')}</div>
+        <span class="ref-meta">broader: ${esc(t.broader)}${t.related?.length ? ' \u00b7 related: ' + t.related.map(esc).join(', ') : ''}</span>
+        ${t.node && byKey[t.node] ? `<button class="ref-jump" data-node="${t.node}">Go to ${esc(byKey[t.node].nd.t)} \u2192</button>` : ''}</li>`).join('') + '</ul>';
+  }
+
+  else if (which === 'gloss'){
+    h = search('Search the glossary…') + '<ul class="ref-list">';
+    h += GLOSSARY.filter(g => !refQ || m(g.t) || m(g.d)).map(g =>
+      `<li><span class="ref-term">${esc(g.t)}</span><div class="ref-def">${esc(g.d)}</div></li>`).join('') + '</ul>';
+  }
+
+  else if (which === 'dict'){
+    h = search('Search fields…') + '<ul class="ref-list">';
+    h += DICTIONARY.filter(d => !refQ || m(d.f) || m(d.d) || m(d.src)).map(d =>
+      `<li><span class="ref-term mono" style="font-size:12px">${esc(d.f)}</span>
+        <div class="ref-def">${esc(d.d)}</div>
+        <span class="ref-meta">${esc(d.ty)} \u00b7 ${esc(d.src)}</span></li>`).join('') + '</ul>';
+  }
+
+  refBody.innerHTML = h;
+
+  refBody.querySelectorAll('[data-cls]').forEach(b => b.addEventListener('click', () => {
+    const c = b.dataset.cls, o = ONTOLOGY.find(x => x.id === c);
+    selectSet(instancesOfClass(c), 'Ontology class \u00b7 ' + c, o.label, esc(o.def) +
+      ' Drawn as a ' + o.shape + '.', '');
+  }));
+  refBody.querySelectorAll('[data-prop]').forEach(b => b.addEventListener('click', () => {
+    const p = b.dataset.prop, list = DECLARED.filter(e => e.prop === p);
+    const ends = [...new Set(list.flatMap(e => [e.from, e.to]))].map(nodeOf).filter(Boolean);
+    selectSet(ends, 'Object property', PROPOF(p).label, esc(PROPOF(p).note) +
+      ' <b>' + list.length + '</b> declared ' + (list.length === 1 ? 'relation' : 'relations') + ' drawn.');
+    drawEdges(list, { label:true, hi:true });
+  }));
+  refBody.querySelectorAll('[data-tax]').forEach(b => b.addEventListener('click', () => {
+    const t = b.dataset.tax;
+    const hits = NODEREFS.filter(r => { const v = (ENRICH[key(r)]||{}).tax || ''; return v === t || v.startsWith(t + '/'); });
+    selectSet(hits, 'Taxonomy', flatTax()[t] || t, 'Everything on the web classified under this branch.');
+  }));
+  refBody.querySelectorAll('[data-kil]').forEach(b => b.addEventListener('click', () => {
+    const k = b.dataset.kil, lv = KIL.levels.find(l => l.id === k);
+    selectSet(NODEREFS.filter(r => kilOf(key(r)) === k), 'KIL chain \u00b7 canonical', lv.label, esc(lv.def));
+  }));
+  refBody.querySelectorAll('[data-kisil]').forEach(b => b.addEventListener('click', () => {
+    const k = b.dataset.kisil, lv = KISIL.levels.find(l => l.id === k);
+    selectSet(NODEREFS.filter(r => (ENRICH[key(r)]||{}).kisil === k), 'KSL band \u00b7 local scheme', lv.label, esc(lv.def));
+  }));
+  refBody.querySelectorAll('[data-node]').forEach(b => b.addEventListener('click', () => {
+    const r = byKey[b.dataset.node]; selectNode(r.s.id, r.j);
+  }));
+  const rq = document.getElementById('refQ');
+  if (rq) rq.addEventListener('input', e => { refQ = e.target.value; renderRef(refWhich); document.getElementById('refQ').focus(); });
+}
+
+document.querySelectorAll('.subtab').forEach(b =>
+  b.addEventListener('click', () => { refQ = ''; renderRef(b.dataset.ref); }));
+
+/* ---------- thesaurus-aware search ---------- */
+const _runQuery2 = runQuery;
+runQuery = function(v){
+  const q = (v || '').trim().toLowerCase();
+  let expanded = q;
+  if (q){
+    const hit = THESAURUS.find(t => t.pref.toLowerCase().includes(q) || t.alt.some(a => a.toLowerCase().includes(q)));
+    if (hit && hit.node && byKey[hit.node]) expanded = q;
+  }
+  _runQuery2(v);
+  if (q){
+    const syn = THESAURUS.filter(t => t.alt.some(a => a.toLowerCase().includes(q)) || t.pref.toLowerCase().includes(q));
+    const extra = syn.map(t => byKey[t.node]).filter(Boolean);
+    if (extra.length){
+      extra.forEach(r => { r.g.classList.remove('mute'); r.g.classList.add('res'); r.s._radius.classList.add('lit'); });
+      const box = document.getElementById('detailBody');
+      box.insertAdjacentHTML('beforeend',
+        `<div class="xref"><div class="xref-h">Matched through the thesaurus</div>` +
+        syn.map(t => `<button class="xref-item" data-s="${byKey[t.node].s.id}" data-j="${byKey[t.node].j}">${esc(t.pref)}<span class="src">you typed \u201c${esc(q)}\u201d \u00b7 an alternative label</span></button>`).join('') +
+        `</div>`);
+      box.querySelectorAll('.xref-item').forEach(x =>
+        x.addEventListener('click', () => selectNode(x.dataset.s, +x.dataset.j)));
+      syncMinimapState(); syncPopup();
+    }
+  }
+};
+</script>

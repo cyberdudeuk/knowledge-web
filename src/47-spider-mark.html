@@ -1,0 +1,133 @@
+<script>
+/* ============================================================
+   The spider mark.
+   Top right, and not decoration: each pill animates the mark AND
+   performs the real movement on the web, with the zoom that shows
+   it best.
+   ============================================================ */
+const MOVES = [
+  { id:'walk',    label:'Walk',    cap:'walking a radius',      say:'Walking a radius. Non-sticky thread, hub outward, one bead at a time.' },
+  { id:'pluck',   label:'Pluck',   cap:'plucking the web',      say:'Plucking. The whole web answers at once wherever the idea recurs.' },
+  { id:'crawl',   label:'Crawl',   cap:'crawling a route',      say:'Crawling a route. Each bead lights as the spider reaches it.' },
+  { id:'drop',    label:'Drop',    cap:'dropping on a dragline',say:'Dropping on the dragline, then climbing back up the same silk.' },
+  { id:'balloon', label:'Balloon', cap:'ballooning away',       say:'Ballooning. Silk into the air, and the wind decides where you land.' },
+  { id:'bridge',  label:'Bridge',  cap:'throwing a bridge line',say:'Throwing a bridge line across a gap, then walking it.' },
+  { id:'turn',    label:'Turn',    cap:'turning the web',       say:'The owl turn. The web rotates, the words stay upright.' },
+  { id:'still',   label:'Still',   cap:'at rest',               say:'At rest.' }
+];
+
+(function buildMark(){
+  const top = document.querySelector('.mast-top');
+  const tally = document.querySelector('.tally');
+  const right = document.createElement('div');
+  right.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;gap:16px';
+  top.appendChild(right);
+  right.appendChild(tally);
+
+  const wrap = document.createElement('div');
+  wrap.className = 'mark-wrap';
+  wrap.innerHTML = `
+  <svg class="spider-mark" id="spiderMark" viewBox="0 0 216 150" data-move="still" role="img"
+       aria-label="A stylised spider on a web. Each control below animates one way a spider moves and performs it on the web.">
+    <g class="sm-silk">
+      <path d="M8,26 Q108,6 208,26"></path><path d="M8,58 Q108,40 208,58"></path>
+      <path d="M8,92 Q108,76 208,92"></path><path d="M8,124 Q108,110 208,124"></path>
+      <path d="M40,10 Q30,72 40,138"></path><path d="M108,6 Q104,72 108,140"></path><path d="M176,10 Q186,72 176,138"></path>
+    </g>
+    <path class="sm-drag" d="M108,4 L108,72" opacity="0"></path>
+    <g id="smRig" transform="translate(108,72)">
+      <circle class="sm-ripple" cx="0" cy="0" r="6"></circle>
+      <circle class="sm-ripple" cx="0" cy="0" r="6"></circle>
+      <g class="sm-balloon"><path d="M0,-6 Q14,-26 34,-40"></path><path d="M0,-6 Q18,-20 40,-28"></path><path d="M0,-6 Q10,-30 22,-46"></path></g>
+      <path class="sm-leg sm-leg-f" d="M2,-5 Q13,-14 22,-11"></path>
+      <path class="sm-leg" d="M2,-1 Q15,-5 24,-1"></path>
+      <path class="sm-leg" d="M2,3 Q15,4 23,10"></path>
+      <path class="sm-leg" d="M2,6 Q12,12 18,20"></path>
+      <path class="sm-leg sm-leg-f sm-leg-l" d="M-2,-5 Q-13,-14 -22,-11"></path>
+      <path class="sm-leg sm-leg-l" d="M-2,-1 Q-15,-5 -24,-1"></path>
+      <path class="sm-leg sm-leg-l" d="M-2,3 Q-15,4 -23,10"></path>
+      <path class="sm-leg sm-leg-l" d="M-2,6 Q-12,12 -18,20"></path>
+      <ellipse class="sm-body" cx="0" cy="5" rx="6.4" ry="8.4"></ellipse>
+      <ellipse class="sm-body" cx="0" cy="-5.5" rx="4.6" ry="4.4"></ellipse>
+      <circle class="sm-body" cx="-1.8" cy="-8.4" r="1.15"></circle>
+      <circle class="sm-body" cx="1.8" cy="-8.4" r="1.15"></circle>
+    </g>
+    <text class="sm-caption" id="smCap" x="108" y="142" text-anchor="middle">at rest</text>
+  </svg>
+  <div class="move-pills" id="movePills" role="group" aria-label="Ways a spider moves"></div>`;
+  right.appendChild(wrap);
+
+  const style = document.createElement('style');
+  style.textContent = '.sm-leg-l{transform-origin:100% 50%}';
+  document.head.appendChild(style);
+
+  document.getElementById('movePills').innerHTML =
+    MOVES.map(m => `<button class="mpill" data-move="${m.id}">${m.label}</button>`).join('');
+  document.querySelectorAll('.mpill').forEach(b => b.addEventListener('click', () => demo(b.dataset.move)));
+})();
+
+let markTimer = null;
+function setMark(id){
+  const m = MOVES.find(x => x.id === id) || MOVES[MOVES.length-1];
+  document.getElementById('spiderMark').dataset.move = document.body.dataset.motion === 'still' ? 'still' : id;
+  document.getElementById('smCap').textContent = m.cap;
+  document.querySelectorAll('.mpill').forEach(b => b.classList.toggle('on', b.dataset.move === id));
+}
+
+/* each demonstration drives the real web, at the zoom that shows it best */
+function demo(id){
+  const m = MOVES.find(x => x.id === id);
+  setMark(id);
+  if (markTimer) { clearTimeout(markTimer); markTimer = null; }
+  const back = () => { markTimer = setTimeout(() => setMark('still'), 9000); };
+
+  switch(id){
+    case 'walk':
+      selectStrand('gov');
+      VPmain.fitBox(boundsOf(NODEREFS.filter(r => r.s.id === 'gov')), .82);
+      break;
+    case 'pluck':
+      VPmain.reset();
+      document.getElementById('q').value = 'evidence';
+      runQuery('evidence');
+      break;
+    case 'crawl':
+      selectNode('cda', 6);
+      setTimeout(() => VPmain.fitBox(boundsOf(NODEREFS.filter(r => r.s.id === 'cda')), .8), 200);
+      break;
+    case 'drop':
+      if (TRAIL.length > 1) climbBack();
+      else { selectNode('obs', 4); setTimeout(() => selectNode('gov', 2), 900); }
+      setTimeout(() => VPmain.zoomBy(1/1.6), 400);
+      break;
+    case 'balloon':
+      balloon();
+      break;
+    case 'bridge': {
+      const a = byKey['cat:2'], b = byKey['obs:4'];
+      const path = routeBetween(a, b);
+      if (path) drawRoute(path);
+      break; }
+    case 'turn':
+      owlTurn(72);
+      break;
+    default:
+      VPmain.reset(); reset();
+  }
+  say(m.say);
+  back();
+}
+
+/* the mark idles through the repertoire until you touch anything */
+let idleCycle = null, idleIx = 0;
+function startIdle(){
+  if (document.body.dataset.motion === 'still') return;
+  idleCycle = setInterval(() => {
+    idleIx = (idleIx + 1) % (MOVES.length - 1);
+    setMark(MOVES[idleIx].id);
+  }, 4200);
+}
+function stopIdle(){ if (idleCycle) { clearInterval(idleCycle); idleCycle = null; } }
+['pointerdown','keydown'].forEach(ev => document.addEventListener(ev, stopIdle, { once:true }));
+setTimeout(startIdle, 1500);
+</script>

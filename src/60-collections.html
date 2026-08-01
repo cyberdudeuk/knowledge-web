@@ -1,0 +1,422 @@
+<script>
+/* ============================================================
+   1. KISIL / KIL / KSL — resolving a three-way name collision
+   ------------------------------------------------------------
+   Canonical, from the uploaded specification:
+     KISIL = Knowledge Integration & Semantic Interoperability Layer
+     KIL   = Knowledge Integration Layer, the data architecture inside it
+             (Workstreams > Artefacts > Insights > Signals > Decisions)
+   A third KIL exists in Whitehall Connect ("Keystone Up the Chain").
+   The ladder this prototype invented is renamed KSL so nothing clashes.
+   ============================================================ */
+const KIL = {
+  canonical:true,
+  source:'Technical Specification: Knowledge Integration & Semantic Interoperability Layer (KISIL)',
+  note:'The synthesis chain the KISIL data architecture is built on. Decision traceability runs back down it.',
+  levels:[
+    { id:'W', label:'Workstream', def:'A thematic or operational area. Owns scope and status.' },
+    { id:'A', label:'Artefact',   def:'A document, report, dataset or external source. The evidence base.' },
+    { id:'I', label:'Insight',    def:'Synthesised understanding derived from artefacts. Carries impact and confidence, 1 to 5.' },
+    { id:'S', label:'Signal',     def:'An early warning or high-priority issue promoted from an insight. Carries severity.' },
+    { id:'D', label:'Decision',   def:'A formal or informal decision, with rationale, owner and status. Traceable back to artefacts.' }
+  ]
+};
+KISIL.canonicalName = 'Knowledge Integration & Semantic Interoperability Layer';
+KISIL.renamedTo = 'KSL — Knowledge State Ladder';
+KISIL.note = 'This five-band ladder was inferred before the specification was supplied. It is retained under the name KSL so it no longer collides with the canonical KISIL.';
+
+/* map each bead onto the canonical KIL chain */
+const KIL_BY_CLASS = {
+  Capability:'W', Concept:'W', ProcessModel:'W', RoleModel:'W',
+  Artefact:'A', Document:'A', Deck:'A', Register:'A', Portal:'A', Standard:'A', Source:'A',
+  Method:'I', ScoringModel:'I',
+  Risk:'S'
+};
+const kilOf = id => KIL_BY_CLASS[CLSOF(id)] || 'A';
+
+/* ============================================================
+   2. Collections
+   ============================================================ */
+const GDS_AREAS = {
+"Government Chief Technology Officer":{"Guidance":17,"Community":12,"Gov Service":7,"Tools":7,"Standards":6,"Principle":5,"Analysis":4,"Expert advice":3,"Blog / Comms tool":2},
+"CustomerFirst":{"Guidance":12,"Email inbox":6,"Community":4,"Blog / Comms tool":2,"Expert advice":2,"Tools":1,"Standards":1},
+"Government Chief Data Officer":{"Guidance":9,"Tools":5,"Gov Service":3,"Strategy":1,"Email inbox":1,"Community":1},
+"Government Digital Enablement":{"Tools":4,"Email inbox":4,"Guidance":3,"Expert advice":2,"Training":2,"Analysis":1,"Build team":1},
+"Performance & Assurance":{"Guidance":3,"Standards":2,"Expert advice":2,"Email inbox":2,"Tools":1,"Assurance":1,"Analysis":1,"Training":1,"Community":1},
+"OGD owned (external)":{"Blog / Comms tool":4,"Strategy":2,"Tools":1,"Guidance":1,"Training":1,"Email inbox":1,"Community":1},
+"Digital Strategy & Assurance":{"Email inbox":4,"Guidance":2,"Strategy":2,"Tools":2,"Expert advice":1},
+"[REVIEW] unmapped":{"Guidance":1,"Community":1},
+"Government Chief AI Officer":{"Standards":1}
+};
+const GDS_CLS = { Guidance:'Document', Standards:'Standard', Tools:'Portal', Policy:'Document',
+  Principle:'Concept', Strategy:'Concept', 'Blog / Comms tool':'Source', 'Gov Service':'Portal',
+  'Expert advice':'Method', Community:'Capability', Analysis:'Method', Training:'Deck',
+  Assurance:'Register', 'Build team':'Capability', 'Email inbox':'Source' };
+
+const PALETTE = ['#79d6cf','#e3a044','#9a8ada','#6fbf8e','#c96f4c','#5fa8d3','#d78ab0','#9fbf5f','#b0a0e0'];
+
+const CDA_DOM = {"Business & Economy": {"n": 54, "dam": 0.859, "disc": 0.661, "ndl": 0.441, "evs": 72.8, "crit": 7, "flag": 18, "dept": "ONS", "types": {"Data Service": {"n": 14, "dam": 0.987, "disc": 0.85, "ndl": 0.594, "evs": 63.0}, "Dataset": {"n": 35, "dam": 0.818, "disc": 0.581, "ndl": 0.379, "evs": 76.6}, "Dataset / API": {"n": 2, "dam": 0.785, "disc": 0.65, "ndl": 0.45, "evs": 77.0}}}, "Government & Public Sector": {"n": 174, "dam": 0.847, "disc": 0.596, "ndl": 0.339, "evs": 70.1, "crit": 10, "flag": 20, "dept": "DfE", "types": {"Catalogue": {"n": 7, "dam": 0.764, "disc": 0.621, "ndl": 0.421, "evs": 73.7}, "Data Distribution": {"n": 9, "dam": 0.8, "disc": 0.833, "ndl": 0.392, "evs": 52.2}, "Data Service": {"n": 19, "dam": 0.934, "disc": 0.6, "ndl": 0.26, "evs": 63.4}, "Dataset": {"n": 131, "dam": 0.845, "disc": 0.573, "ndl": 0.333, "evs": 71.6}, "Register": {"n": 7, "dam": 0.811, "disc": 0.693, "ndl": 0.493, "evs": 80.6}}}, "Operations & Infrastructure": {"n": 34, "dam": 0.806, "disc": 0.679, "ndl": 0.463, "evs": 77.4, "crit": 7, "flag": 1, "dept": "Department for Transport", "types": {"Data Distribution": {"n": 2, "dam": 0.685, "disc": 0.8, "ndl": 0.375, "evs": 55.3}, "Data Service": {"n": 2, "dam": 0.82, "disc": 0.7, "ndl": 0.5, "evs": 82.0}, "Dataset": {"n": 25, "dam": 0.814, "disc": 0.668, "ndl": 0.464, "evs": 78.6}, "Dataset / API": {"n": 2, "dam": 0.8, "disc": 0.675, "ndl": 0.475, "evs": 78.0}, "Register": {"n": 2, "dam": 0.82, "disc": 0.7, "ndl": 0.5, "evs": 82.0}}}, "People & Society": {"n": 145, "dam": 0.839, "disc": 0.63, "ndl": 0.394, "evs": 74.5, "crit": 14, "flag": 11, "dept": "NHS Digital", "types": {"Data Service": {"n": 13, "dam": 0.921, "disc": 0.535, "ndl": 0.218, "evs": 64.0}, "Dataset": {"n": 126, "dam": 0.832, "disc": 0.638, "ndl": 0.409, "evs": 75.4}, "Reference Data": {"n": 2, "dam": 0.82, "disc": 0.7, "ndl": 0.5, "evs": 82.0}}}, "Place & Environment": {"n": 92, "dam": 0.829, "disc": 0.643, "ndl": 0.411, "evs": 75.9, "crit": 11, "flag": 10, "dept": "Environment Agency", "types": {"Catalogue": {"n": 5, "dam": 0.79, "disc": 0.66, "ndl": 0.46, "evs": 76.8}, "Data Distribution": {"n": 3, "dam": 0.91, "disc": 0.9, "ndl": 0.543, "evs": 86.9}, "Data Service": {"n": 17, "dam": 0.848, "disc": 0.624, "ndl": 0.371, "evs": 72.9}, "Dataset": {"n": 53, "dam": 0.832, "disc": 0.629, "ndl": 0.399, "evs": 75.9}, "Dataset / API": {"n": 13, "dam": 0.792, "disc": 0.662, "ndl": 0.462, "evs": 77.2}}}};
+const STD5 = {"1": {"name": "Metadata", "topics": [{"c": "1.1", "n": "Business (Descriptive)", "s": "Endorsed", "ex": "Dublin Core ISO 15836-2:2019; Schema.org; BIBO; DCAT; SKOS; ISO/IEC 11179-3; RDF Data Cube"}, {"c": "1.2", "n": "Technical (Structural)", "s": "Endorsed", "ex": "XML Metadata Interchange XMI ISO/IEC 19503:2005; ISO/TS 19139:2007; OpenLineage"}, {"c": "1.3", "n": "Operational (Administrative)", "s": "Endorsed", "ex": "ISO 8601:2004 (date/time); ISO 15836 (Dublin Core lifecycle elements)"}]}, "2": {"name": "Common Reference Data", "topics": [{"c": "2.1", "n": "Geospatial", "s": "Endorsed", "ex": "UPRN/USRN (BS 7666-2:2006); GeoJSON; WKT; GeoPackage; WFS/WMS; INSPIRE; OS MasterMap; Gemini 2.3"}, {"c": "2.2", "n": "Socio-Political", "s": "Endorsed", "ex": "ISO 3166-1/2/3; ISO 639-1/2/3; ISO 4217:2015; ITU-T E.164"}, {"c": "2.3", "n": "Temporal", "s": "Endorsed", "ex": "ISO 8601:2004; W3C Time Ontology; OWL Time"}, {"c": "2.4", "n": "Demographic", "s": "Partially Endorsed", "ex": "ONS Ethnic Group Classification; Equality Act 2010 protected characteristics; ILO Classification of Occupations (ISCO-08)"}, {"c": "2.5", "n": "Statistical", "s": "Endorsed", "ex": "SDMX 3.0; SKOS; GSS Statistical Service guidance; ONS data standards"}, {"c": "2.6", "n": "Economic / Financial", "s": "Partially Endorsed", "ex": "ISO 4217:2015; BIS/FCA reference data standards; XBRL GL"}, {"c": "2.7", "n": "Individual / Organisational Entities", "s": "Endorsed", "ex": "ISO 17442 (LEI); BS ISO 24366:2021 (NPI); GLEIF; Companies House CH number format"}, {"c": "2.8", "n": "Domain-specific Taxonomy / Ontology", "s": "Partially Endorsed", "ex": "NHS SNOMED CT; ICD-11 (WHO); CPV codes (procurement); SIC codes; SOC codes"}, {"c": "2.9", "n": "Service / Product", "s": "Draft", "ex": "OpenReferralUK; GS1 GTIN; CPV; UNSPSC"}, {"c": "2.1", "n": "Algorithms", "s": "Draft", "ex": "W3C PROV; MLflow Model Registry schema; ISO/IEC 25010"}]}, "3": {"name": "Service / Product / Application / System / Platform Design", "topics": [{"c": "3.1", "n": "Identify", "s": "Endorsed", "ex": "GPG 45; GPG 46; W3C Verifiable Credentials; eIDAS; UK Digital Identity & Attributes Trust Framework; GDPR Consent"}, {"c": "3.2", "n": "Authenticate", "s": "Endorsed", "ex": "GPG 44; FIDO2/WebAuthn; ISO 19092:2008; ISO/IEC 19794-7; SAML 2.0; OAuth 2.0"}, {"c": "3.3", "n": "Authorise", "s": "Endorsed", "ex": "OAuth 2.0 (RFC6749); OpenID Connect 1.0; XACML; UMA 2.0"}, {"c": "3.4", "n": "Connect", "s": "Endorsed", "ex": "GOV.UK Design System; GPG 43; API Design Guidance (GDS); OpenAPI 3.x"}, {"c": "3.5", "n": "Exchange", "s": "Endorsed", "ex": "Data Sharing Frameworks (CDEI); UK GDPR Article 46; ISO/IEC 19944 (Cloud data); RESTful API standards (RFC 7231)"}, {"c": "3.6", "n": "Communicate / Collaborate", "s": "Endorsed", "ex": "OASIS CAP v1.2; RFC 5322 (email); W3C Notifications API; GOV.UK Notify standards"}, {"c": "3.7", "n": "Assist", "s": "Draft", "ex": "OpenReferralUK; WCAG 2.2; EN 301 549; GOV.UK content design standards"}, {"c": "3.8", "n": "Interact / Monitor", "s": "Endorsed", "ex": "GPG 53; EN 301 549 v3.2.1; WCAG 2.2; ISO/IEC 40500"}, {"c": "3.9", "n": "Notify", "s": "Draft", "ex": "IETF WebSub (RFC 8030); GOV.UK Notify; ISO/IEC 20000-1"}]}, "4": {"name": "Data, Information & Records Management Lifecycle", "topics": [{"c": "4.1", "n": "Privacy", "s": "Endorsed", "ex": "UK GDPR; Data Protection Act 2018; ICO Anonymisation Code; ISO/IEC 29101:2018; ENISA PET guidance"}, {"c": "4.2", "n": "Security", "s": "Endorsed", "ex": "ISO/IEC 27001:2022; ISO/IEC 27037:2012; NCSC Cyber Essentials; NCSC 10 Steps; Zero Trust Architecture (NIST SP 800-207)"}, {"c": "4.3", "n": "Storage", "s": "Endorsed", "ex": "Parquet; Apache Avro; SQLite; ORC; HDF5; ISO/IEC 14721:2012 (OAIS – Open Archival Information System)"}, {"c": "4.4", "n": "Transport", "s": "Endorsed", "ex": "RFC 5322; RFC 7231; RFC 7540 (HTTP/2); RFC 9114 (HTTP/3); TLS 1.3 (RFC 8446); ISO/IEC 18004:2015"}, {"c": "4.5", "n": "Discovery & Findability", "s": "Endorsed", "ex": "OpenAPI 3.x; RAML; GraphQL; DCAT 3.0; schema.org; data.gov.uk API standards; GOV.UK Find Data"}, {"c": "4.6", "n": "Quality & Assurance", "s": "Endorsed", "ex": "DAMA DMBOK2; ISO/IEC 25012 (Data Quality); ONS GSS Data Quality Framework; UK Statistics Authority CoP"}, {"c": "4.7", "n": "Content Management", "s": "Endorsed", "ex": "ODF 1.3; RFC 4180 (CSV); OOXML ISO/IEC 29500; GOV.UK content standards; W3C Web Publications"}, {"c": "4.8", "n": "Retention", "s": "Endorsed", "ex": "ISO 15489-1:2016; TNA Records Management Code; GDPR retention principles; Scottish Government EDRMS policy"}, {"c": "4.9", "n": "Disposal", "s": "Endorsed", "ex": "HMG IA Standard No. 5 (secure sanitisation); NIST SP 800-88; GDPR Art. 17 (Right to Erasure)"}]}, "5": {"name": "Transactional & Domain-specific", "topics": [{"c": "5.1", "n": "Government, Sovereigns & Supranationals", "s": "Endorsed", "ex": "Open Government Licence v3.0; MOU frameworks; UN/CEFACT; G20 data frameworks"}, {"c": "5.2", "n": "Corporate", "s": "Partially Endorsed", "ex": "ISO 17442 (LEI); GLEIF; PSC Register (Companies House); BEIS corporate transparency standards"}, {"c": "5.3", "n": "Finance / Accounting", "s": "Endorsed", "ex": "iXBRL (HMRC); ESEF (FCA); XBRL GL; NHS Healthcare Costing Standards; FReM (HM Treasury)"}, {"c": "5.4", "n": "Sourcing / Procurement", "s": "Endorsed", "ex": "Open Contracting Data Standard (OCDS); Find a Tender (FTS); Contracts Finder; PPN standard terms"}, {"c": "5.5", "n": "Payments", "s": "Endorsed", "ex": "ISO 20022; Pay.UK Faster Payments; CHAPS; Open Banking API v3.1; PSD2"}, {"c": "5.6", "n": "Tax", "s": "Endorsed", "ex": "MTD (Making Tax Digital) API standards; HMRC PAYE schema; XBRL for Corporation Tax"}, {"c": "5.7", "n": "Grants, Loans & Subsidies", "s": "Endorsed", "ex": "360Giving Data Standard; Grants Management System GovTech standards; Find a Grant API"}, {"c": "5.8", "n": "Welfare", "s": "Draft", "ex": "DWP Benefits API standards; UC conditionality data model; Pension credit data schema"}, {"c": "5.9", "n": "Energy & Natural Resources", "s": "Partially Endorsed", "ex": "MPAN/MPRN identifiers; Smart Metering Equipment Technical Standards (SMETS2); ELEXON BSC data standards"}, {"c": "5.1", "n": "Land & Forestry", "s": "Endorsed", "ex": "UK BIM Framework; IFC (ISO 16739-1:2018); HM Land Registry INSPIRE polygons; UPRN"}, {"c": "5.11", "n": "Health & Life Sciences", "s": "Endorsed", "ex": "ISO 13606-1:2019; SNOMED CT; HL7 FHIR R4; NHS Data Model; FHIR UK Core; ISO 27799:2016"}, {"c": "5.12", "n": "Education & Training", "s": "Endorsed", "ex": "LRMI v1.1; IEEE LOM; IMS Global QTI; DfE data collections schema; Unique Learner Number (ULN)"}, {"c": "5.13", "n": "Sports & Leisure", "s": "Draft", "ex": "OpenActive data standard; iStar schema"}, {"c": "5.14", "n": "Smart Cities & Digital Twins", "s": "Endorsed", "ex": "PAS 182:2014; PAS 183:2017; ISO/IEC 30182:2017; CDBB GEMINI 2.0; BS EN ISO 19650"}, {"c": "5.15", "n": "Justice & Law Enforcement", "s": "Draft", "ex": "POLE data model; CJS Exchange; NPCC data standards; Victims Code data requirements"}, {"c": "5.16", "n": "Transport & Mobility", "s": "Draft", "ex": "NeTEx (CEN TS 16614); SIRI (EN 15531); ATOC/ATCO timetable formats; BODS (Bus Open Data Service)"}, {"c": "5.17", "n": "Housing & Planning", "s": "Draft", "ex": "DLUHC Planning Data standards; PropTech Engagement Fund schemas; UPRN; UPRNs/USRNs; GeoJSON planning boundaries"}, {"c": "5.18", "n": "Environment & Climate", "s": "Draft", "ex": "ISO 14064 (GHG accounting); TCFD disclosure standards; DEFRA environmental reporting; Dasgupta biodiversity metrics; EA flood data API"}]}, "6": {"name": "Governance, Ethics & Trust [NEW]", "topics": [{"c": "6.1", "n": "AI Ethics & Algorithmic Accountability", "s": "Draft", "ex": "Ada Lovelace Institute algorithmic accountability framework; Centre for Data Ethics & Innovation (CDEI) standards; ISO/IEC TR 24368"}, {"c": "6.2", "n": "Data Ethics", "s": "Draft", "ex": "Data Ethics Framework (DSIT); CDEI Data Ethics Canvas; UK Statistics Authority ethical assurance"}, {"c": "6.3", "n": "Open Data & Transparency", "s": "Endorsed", "ex": "Open Data Charter; OGL v3.0; IATI standard; OpenSpending; Open Contracting"}, {"c": "6.4", "n": "Privacy-Enhancing Technologies (PET)", "s": "Draft", "ex": "NIST PET guidelines; ICO PET guidance; ISO/IEC 27562 (PET for AI); ONS Synthetic Data Pilot"}]}, "7": {"name": "AI, Machine Learning & Emerging Technologies [NEW]", "topics": [{"c": "7.1", "n": "AI/ML Model Standards", "s": "Draft", "ex": "ISO/IEC 42001:2023 (AI Management Systems); ISO/IEC 23894:2023 (AI risk management); NIST AI RMF; CDDO AI assurance guidance"}, {"c": "7.2", "n": "Foundation Models & Large Language Models", "s": "Draft", "ex": "NIST AI 100-1; UK AI Safety Institute AISI evaluation frameworks; EU AI Act (high-risk classification)"}, {"c": "7.3", "n": "Automated Decision-Making (ADM)", "s": "Draft", "ex": "ICO guidance on automated decision-making; GDPR Art. 22; CDEI ADM guidance; Ada Lovelace algorithmic transparency standard"}, {"c": "7.8", "n": "Cloud & Edge Computing", "s": "Draft", "ex": "NCSC Cloud Security Principles; ISO/IEC 27017; ISO/IEC 27018; GDS Cloud Guidance; G-Cloud procurement standards"}]}};
+const XWALK = {"DAM Policy / x-gov": {"Concept": 2}, "DCAT profile / specialism": {"Profile": 8}, "DCAT v3": {"Class": 15, "Property": 69}, "DQV": {"Class": 10, "Property": 10}, "Discoverability Platform": {"Concept": 2}, "GOV.UK Open Standards": {"Standard": 20}, "NDL / Foundational Data": {"Concept": 6}, "PROV-O": {"Class": 11, "Property": 19}, "UK MEM / x-gov": {"Class": 6, "Property": 34}};
+
+const CDA_CLS = {"Dataset":"Register","Data Service":"Portal","Data Distribution":"Source",
+  "Dataset / API":"Portal","Catalogue":"Portal","Register":"Register"};
+
+function makeCdaCollection(){
+  const strands=[], enrich={}, themes=[], typeDom={};
+  Object.entries(CDA_DOM).forEach(([d,v]) => Object.keys(v.types).forEach(t => (typeDom[t]=typeDom[t]||[]).push(d)));
+  Object.entries(typeDom).filter(([t,d]) => d.length >= 3).forEach(([t]) =>
+    themes.push({ id:'ct-'+t.replace(/\W+/g,''), label:t, note:`Asset type present in ${typeDom[t].length} of the five domains.` }));
+  const pct = n => Math.round(n*100) + '%';
+  Object.entries(CDA_DOM).sort((a,b)=>b[1].n-a[1].n).forEach(([dom,v], i) => {
+    const id='d'+i;
+    const nodes=[{ t:dom, k:`${v.n} assets`, themes:[],
+      b:`${v.n} critical data assets. Mean DAM compliance ${pct(v.dam)}, discovery readiness ${pct(v.disc)}, NDL readiness ${pct(v.ndl)}. Enterprise value ${v.evs}. ${v.crit} rated Critical impact, ${v.flag} classified Flagship.`,
+      c:[`Assets: ${v.n}`,`DAM compliance: ${pct(v.dam)}`,`Discovery readiness: ${pct(v.disc)}`,`NDL / valuation readiness: ${pct(v.ndl)}`,`Mean enterprise value: ${v.evs}`,`Critical impact: ${v.crit}`,`Flagship: ${v.flag}`,`Largest holder: ${v.dept}`],
+      open: v.ndl < 0.45 }];
+    enrich[id+':0']={ cls:'Capability', tax:'meas/value', kisil:'I2', rel:[] };
+    Object.entries(v.types).sort((a,b)=>b[1].n-a[1].n).slice(0,8).forEach(([t,m], j) => {
+      nodes.push({ t, k:`${m.n} \u00b7 EVS ${m.evs}`, themes:themes.filter(x=>x.label===t).map(x=>x.id),
+        b:`${m.n} ${t.toLowerCase()} assets in ${dom}. DAM ${pct(m.dam)}, discovery ${pct(m.disc)}, NDL ${pct(m.ndl)}, enterprise value ${m.evs}.`,
+        c:[`Count: ${m.n}`,`DAM compliance: ${pct(m.dam)}`,`Discovery readiness: ${pct(m.disc)}`,`NDL readiness: ${pct(m.ndl)}`,`Enterprise value: ${m.evs}`],
+        open: m.ndl < 0.4 });
+      enrich[`${id}:${j+1}`]={ cls:CDA_CLS[t]||'Register', tax:'desc/metadata', kisil:'I', rel:[['partOf', id+':0']] };
+    });
+    strands.push({ id, key:String(i+1), angle:0, colour:PALETTE[i%PALETTE.length], label:dom,
+      meta:`${v.n} assets \u00b7 EVS ${v.evs}`, url:'', state: v.ndl<0.45?'in-flight':'complete',
+      summary:`${dom} holds ${v.n} of the 499 critical data assets. Mean enterprise value ${v.evs}; NDL and valuation readiness ${pct(v.ndl)}.`, nodes });
+  });
+  return { id:'cda', hub:['critical data assets','499 \u00b7 live register'],
+    label:'CDA Live Register \u2014 499 critical data assets', strands, themes, enrich,
+    repairs:[
+      { t:'No asset anywhere reaches Tier 3', d:'NDL and valuation readiness averages 39% and peaks at 63%. Not one of the 499 assets is ready for National Data Library or valuation use. Tier 1 averages 84%, Tier 2 63%, Tier 3 is effectively unstarted across the whole estate.', s:'' },
+      { t:'74% are Invest to Unlock', d:'371 of 499 assets are high value and low readiness. Only 12% are Flagship and only 4% are quick wins. The estate is almost entirely potential, not delivery.', s:'' },
+      { t:'Department names are uncontrolled', d:'115 distinct department strings for what is a far smaller set of organisations \u2014 ONS and Office for National Statistics, DfE and Department for Education, DEFRA and Defra all appear separately. Any count by department is currently wrong.', s:'' },
+      { t:'DAM Category has 300 distinct values', d:'A categorisation field with 300 values across 499 rows is free text wearing a controlled list\u2019s clothing. It cannot support the reporting the DAM Policy requires.', s:'' },
+      { t:'130 sheets in one workbook', d:'The register, its analytics, 60-plus ADIS seed registers, assurance trackers and merged hubs all live in a single file. This is the clearest case in the estate for a navigable overview rather than a spreadsheet.', s:'' }
+    ]};
+}
+
+function makeStd5Collection(){
+  const strands=[], enrich={};
+  const themes=[
+    { id:'s-endorsed', label:'Endorsed', note:'Topics whose standards are formally endorsed for UK government use.' },
+    { id:'s-partial',  label:'Partially endorsed', note:'Topics with partial endorsement \u2014 some standards agreed, others still contested.' },
+    { id:'s-draft',    label:'Draft', note:'Topics still in draft at v5.0. These are what the consultation is asking about.' }
+  ];
+  const st = s => s === 'Endorsed' ? 's-endorsed' : (s === 'Draft' ? 's-draft' : 's-partial');
+  Object.entries(STD5).forEach(([num, dom], i) => {
+    const id='v'+num, isNew = dom.name.includes('[NEW]');
+    const clean = dom.name.replace(' [NEW]','');
+    const counts = dom.topics.reduce((a,t) => (a[t.s]=(a[t.s]||0)+1, a), {});
+    const nodes=[{ t:`${num}. ${clean}`, k:isNew?'New in v5.0':'Domain', themes:dom.topics.map(t=>st(t.s)).filter((v,k,a)=>a.indexOf(v)===k),
+      b:`Domain ${num} of the v5.0 classification${isNew?', introduced in this version':''}. ${dom.topics.length} topics listed. ${Object.entries(counts).map(([k,v])=>`${v} ${k.toLowerCase()}`).join(', ')}.`,
+      c:dom.topics.map(t => `${t.c} ${t.n} \u00b7 ${t.s}`), open:isNew }];
+    enrich[id+':0']={ cls:'Capability', tax:'govern/policy', kisil:'K', rel:[] };
+    dom.topics.slice(0,9).forEach((t, j) => {
+      nodes.push({ t:`${t.c} ${t.n}`, k:t.s, themes:[st(t.s)],
+        b:`Topic ${t.c} of domain ${num}. Status: ${t.s}.`,
+        c:[`Standards: ${t.ex}`,`Status: ${t.s}`,`Domain: ${clean}`], open:t.s==='Draft' });
+      enrich[`${id}:${j+1}`]={ cls:'Standard', tax:'govern/policy', kisil:t.s==='Endorsed'?'K':'L', rel:[['partOf', id+':0']] };
+    });
+    strands.push({ id, key:String(i+1), angle:0, colour:PALETTE[i%PALETTE.length], label:clean,
+      meta:`Domain ${num} \u00b7 ${dom.topics.length} topics${isNew?' \u00b7 NEW':''}`, url:'',
+      state:isNew?'in-flight':(counts['Draft']?'in-flight':'complete'),
+      summary:`${clean}. ${dom.topics.length} topics.${isNew?' Introduced in v5.0 and out for consultation.':''}`, nodes });
+  });
+  return { id:'std', hub:['data standards','classification v5.0'],
+    label:'UK Gov Data Standards Classification v5.0 (draft)', strands, themes, enrich,
+    repairs:[
+      { t:'59% complete overall', d:'The status dashboard records 66 topics planned, 39 complete and 27 to be confirmed. Domains 6 and 7 sit at 25% and 22%.', s:'' },
+      { t:'The two new domains are the least developed', d:'Governance, Ethics & Trust and AI, ML & Emerging Technologies were introduced in v5.0 and are the thinnest \u2014 which is exactly what the consultation brief asks stakeholders about.', s:'v6' },
+      { t:'17 of 57 topics are still Draft', d:'35 endorsed, 5 partially endorsed, 17 draft. Partial endorsement is the harder category: some standards agreed, others contested, with no visible record of which.', s:'' },
+      { t:'Subject tier still not populated', d:'The scheme is Domain \u2192 Topic \u2192 Subject. Subjects appear as free-text areas of scope rather than as a controlled third tier.', s:'' },
+      { t:'Domains 5, 6 and 7 exceed the ring budget', d:'Domain 5 carries 18 topics; the web shows the first 9. Same layout limit as v4.4, now more visible.', s:'v5' }
+    ]};
+}
+
+function makeXwalkCollection(){
+  const strands=[], enrich={}, themes=[];
+  const typeVocab={};
+  Object.entries(XWALK).forEach(([v,tt]) => Object.keys(tt).forEach(t => (typeVocab[t]=typeVocab[t]||[]).push(v)));
+  Object.entries(typeVocab).filter(([t,v]) => v.length >= 2).forEach(([t]) =>
+    themes.push({ id:'x-'+t, label:t, note:`Term type declared by ${typeVocab[t].length} vocabularies in the crosswalk.` }));
+  const XCLS={ Class:'Concept', Property:'Standard', Standard:'Standard', Concept:'Concept', Profile:'Method' };
+  Object.entries(XWALK).sort((a,b) => Object.values(b[1]).reduce((x,y)=>x+y,0) - Object.values(a[1]).reduce((x,y)=>x+y,0))
+    .forEach(([v, tt], i) => {
+      const id='x'+i, total=Object.values(tt).reduce((a,b)=>a+b,0);
+      const nodes=[{ t:v, k:`${total} terms`, themes:Object.keys(tt).map(t=>'x-'+t).filter(t=>themes.some(x=>x.id===t)),
+        b:`${v} contributes ${total} terms to the crosswalk, across ${Object.keys(tt).length} term type${Object.keys(tt).length===1?'':'s'}.`,
+        c:Object.entries(tt).map(([k,n]) => `${k}: ${n}`), open:total<5 }];
+      enrich[id+':0']={ cls:'Capability', tax:'desc/vocab', kisil:'K', rel:[] };
+      Object.entries(tt).sort((a,b)=>b[1]-a[1]).forEach(([t,n], j) => {
+        nodes.push({ t:`${t} \u00b7 ${n}`, k:t, themes:themes.filter(x=>x.label===t).map(x=>x.id),
+          b:`${n} ${t.toLowerCase()} term${n===1?'':'s'} contributed by ${v}.`, c:[`Vocabulary: ${v}`,`Term type: ${t}`,`Count: ${n}`] });
+        enrich[`${id}:${j+1}`]={ cls:XCLS[t]||'Concept', tax:'desc/vocab', kisil:'I', rel:[['partOf', id+':0']] };
+      });
+      strands.push({ id, key:String(i+1), angle:0, colour:PALETTE[i%PALETTE.length], label:v,
+        meta:`${total} terms \u00b7 ${Object.keys(tt).length} type${Object.keys(tt).length===1?'':'s'}`, url:'',
+        state: total<5?'dormant':'complete',
+        summary:`${v} in the standards crosswalk. ${total} terms across ${Object.keys(tt).length} term type${Object.keys(tt).length===1?'':'s'}.`, nodes });
+    });
+  return { id:'xwalk', hub:['standards crosswalk','61 concepts \u00b7 212 terms'],
+    label:'Data Cataloguing Standards & Tooling Crosswalks', strands, themes, enrich,
+    repairs:[
+      { t:'Five vocabularies contribute fewer than five terms each', d:'NDL, DAM Policy and the Discoverability Platform appear as concepts only. The cross-government layer is thin next to DCAT v3, which alone supplies 84 of 212 terms.', s:'' },
+      { t:'GOV.UK Open Standards contributes only standards', d:'Twenty entries, all of type Standard, with no classes or properties. It names what to comply with but not what to record.', s:'' },
+      { t:'Concept mappings are indicative, not normative', d:'The tool and supplier crosswalk is explicitly labelled indicative. Twenty-six concepts across six catalogue tools \u2014 useful for orientation, not for procurement evidence.', s:'' },
+      { t:'No machine-readable export yet', d:'The Rosetta Stone maps 61 concepts across ten profiles by hand. Nothing emits SKOS or JSON-LD, so the crosswalk cannot be applied automatically. Backlog BL-WEB-23.', s:'' }
+    ]};
+}
+
+
+function makeGdsCollection(){
+  const strands = [], enrich = {}, themes = [];
+  const typeAreas = {};
+  Object.entries(GDS_AREAS).forEach(([area, types]) =>
+    Object.keys(types).forEach(t => (typeAreas[t] = typeAreas[t] || []).push(area)));
+  Object.entries(typeAreas).filter(([t, a]) => a.length >= 3).forEach(([t]) =>
+    themes.push({ id:'t-' + t.replace(/\W+/g,''), label:t, note:`Delivery type appearing across ${typeAreas[t].length} of the nine 2026 areas.` }));
+
+  Object.entries(GDS_AREAS).forEach(([area, types], i) => {
+    const id = 'a' + i, total = Object.values(types).reduce((a,b)=>a+b,0);
+    const list = Object.entries(types).sort((a,b) => b[1]-a[1]).slice(0, 8);
+    const nodes = [{ t:area.replace('[REVIEW] ',''), k:'2026 area', themes:[],
+      b:`A mapped GDS DTx area in the 2026 estate, carrying ${total} products, services and pipeline items across ${Object.keys(types).length} delivery types.`,
+      c:Object.entries(types).map(([k,v]) => `${k} \u00b7 ${v}`), open:area.startsWith('[REVIEW]') }];
+    enrich[id + ':0'] = { cls:'Capability', tax:'del/portal', kisil:'K', rel:[] };
+    list.forEach(([t, n], j) => {
+      nodes.push({ t:`${t}`, k:`${n} item${n===1?'':'s'}`, themes:themes.filter(x=>x.label===t).map(x=>x.id),
+        b:`${n} ${t.toLowerCase()} item${n===1?'':'s'} recorded against ${area} in the 2026 catalogue.`,
+        c:[`Type: ${t}`, `Count: ${n}`, `Area: ${area}`] });
+      enrich[`${id}:${j+1}`] = { cls:GDS_CLS[t] || 'Concept', tax:'del/docs', kisil:'I', rel:[['partOf', id + ':0']] };
+    });
+    strands.push({ id, key:String(i+1), angle:0, colour:PALETTE[i % PALETTE.length],
+      label:area.replace('[REVIEW] unmapped','Unmapped — needs review'),
+      meta:`${total} items \u00b7 ${Object.keys(types).length} types`, url:'', state:area.startsWith('[REVIEW]') ? 'dormant' : 'complete',
+      summary:`One of the nine GDS DTx areas the 2026 catalogue maps products, services and pipeline entries onto. ${total} items in total.`,
+      nodes });
+  });
+  return { id:'gds', hub:['GDS products & services','2026 estate'],
+    label:'GDS Products & Services Catalogue 2026', strands, themes, enrich,
+    repairs:[
+      { t:'120 of 173 mappings are inferred', d:'Only 25 area mappings are marked [OK]. 120 are [INFERRED] and 26 are flagged [REVIEW]. The estate view rests on machine inference that has not been confirmed by owners.', s:'' },
+      { t:'Two items are unmapped entirely', d:'One guidance item and one community item carry no 2026 area at all.', s:'a7' },
+      { t:'No typed relations in the source', d:'The workbook records classification, not relationships. Nothing states which product supports which service, so the ontology layer has almost nothing to reason over.', s:'' },
+      { t:'Status is free text', d:'Current status runs to dozens of unique strings — "Published", "Published ", "Up to date", "No active management". It cannot be counted until it is a controlled list.', s:'' }
+    ]};
+}
+
+/* the collection the prototype was born with */
+const HOME_COLLECTION = { id:'web', hub:['data & metadata','management'], label:'This build \u2014 conversation history',
+  strands:STRANDS.map(s => s), themes:THEMES.map(t => t), enrich:Object.assign({}, ENRICH), repairs:REPAIRS.map(r => r) };
+const COLLECTIONS = { web:HOME_COLLECTION, cda:makeCdaCollection(), std:makeStd5Collection(),
+                      gds:makeGdsCollection(), xwalk:makeXwalkCollection() };
+let CURRENT = 'web';
+
+/* ============================================================
+   3. Rebuilding the geometry for a different collection
+   ============================================================ */
+function buildGeom(col){
+  ['gFrame','gSpiral','gRadii','gChords','gOnto','gAlt','gBridge','gRoute','gPulse','gNodes','gPlanes','gRadiiS','gRisers']
+    .forEach(id => { const g = document.getElementById(id); if (g) g.innerHTML = ''; });
+  NODEREFS.length = 0; Object.keys(byKey).forEach(k => delete byKey[k]);
+  Object.keys(FRAME_R).forEach(k => delete FRAME_R[k]);
+
+  const n = col.strands.length, maxN = Math.max(...col.strands.map(s => s.nodes.length));
+  const step = Math.min(50, Math.max(30, (400 - 100) / Math.max(1, maxN - 1)));
+  col.strands.forEach((s, i) => {
+    s.angle = -90 + i * (360 / n);
+    FRAME_R[s.id] = 450 + (i % 3) * 9;
+    const cosA = Math.cos(s.angle * RAD);
+    if (s.lab === undefined) s.lab = Math.abs(cosA) < .2 ? (i % 2 ? 0 : 180) : (cosA >= 0 ? 0 : 180);
+  });
+
+  /* frame + guys */
+  const gF = document.getElementById('gFrame');
+  const verts = col.strands.map(s => ({ ...pt(s.angle, FRAME_R[s.id]), a:s.angle }));
+  let d = '';
+  verts.forEach((v, i) => {
+    const nx = verts[(i + 1) % verts.length];
+    const mid = (v.a + (i === verts.length - 1 ? nx.a + 360 : nx.a)) / 2;
+    const c = pt(mid, FRAME_R[col.strands[i].id] * 0.9);
+    d += (i === 0 ? `M${v.x},${v.y}` : '') + ` Q${c.x},${c.y} ${nx.x},${nx.y}`;
+  });
+  gF.appendChild(el('path', { d, class:'frame-thread' }));
+  ANCHORS.forEach(a => {
+    verts.map(v => ({ v, dd:(v.x-a.x)**2 + (v.y-a.y)**2 })).sort((p,q) => p.dd-q.dd).slice(0,2)
+      .forEach(nn => gF.appendChild(el('line', { x1:a.x, y1:a.y, x2:nn.v.x, y2:nn.v.y, class:'guy' })));
+    gF.appendChild(el('circle', { cx:a.x, cy:a.y, r:3, fill:'var(--ridge)', stroke:'var(--faint)', 'stroke-width':1 }));
+    const lb = el('text', { x:a.x + (a.ta === 'start' ? 10 : -10), y:a.y + 4, class:'anchor-lbl', 'text-anchor':a.ta });
+    lb.textContent = a.t; gF.appendChild(lb);
+  });
+
+  /* spiral */
+  const gS = document.getElementById('gSpiral');
+  let sd = '', prev = null;
+  for (let ring = 0; ring < Math.min(9, maxN + 1); ring++)
+    for (let i = 0; i < n; i++){
+      const a = col.strands[i].angle + 360 * ring, r = 100 + ring * step + (i / n) * step, p = pt(a, r);
+      if (!prev) sd += `M${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+      else { const c = pt((prev.a + a) / 2, (prev.r + r) / 2 * .945); sd += ` Q${c.x.toFixed(1)},${c.y.toFixed(1)} ${p.x.toFixed(1)},${p.y.toFixed(1)}`; }
+      prev = { a, r };
+    }
+  gS.appendChild(el('path', { d:sd, class:'spiral' }));
+
+  /* radii + beads */
+  const gR = document.getElementById('gRadii'), gN = document.getElementById('gNodes');
+  col.strands.forEach((s, si) => {
+    const end = pt(s.angle, FRAME_R[s.id]);
+    const line = el('line', { x1:CX, y1:CY, x2:end.x, y2:end.y, class:'radius' });
+    line.style.setProperty('--strand-c', s.colour); line.dataset.s = s.id;
+    gR.appendChild(line); s._radius = line; s._frameEnd = end;
+
+    const lp = pt(s.angle, FRAME_R[s.id] + 30), cs = Math.cos(s.angle*RAD), sn = Math.sin(s.angle*RAD);
+    const sl = el('text', { x:lp.x, y:lp.y + (sn > .4 ? 16 : (sn < -.4 ? -18 : -2)), class:'strand-lbl',
+      'text-anchor':cs > .25 ? 'start' : (cs < -.25 ? 'end' : 'middle') });
+    sl.style.setProperty('--strand-c', s.colour);
+    splitLabel(s.label).forEach((ln, k) => { const ts = el('tspan', { x:lp.x, dy:k ? 18 : 0 }); ts.textContent = ln; sl.appendChild(ts); });
+    sl.addEventListener('click', () => selectStrand(s.id));
+    gR.appendChild(sl);
+
+    const pa = s.lab, px = Math.cos(pa*RAD), py = Math.sin(pa*RAD);
+    const lAnchor = px > .05 ? 'start' : 'end', off = 15;
+    s._lab = { px, py, off, anchor:lAnchor };
+
+    s.nodes.forEach((nd, j) => {
+      const r = 100 + j * step, p = pt(s.angle, r), nid = s.id + ':' + j;
+      const cls = (col.enrich[nid] || {}).cls || 'Concept';
+      const g = el('g', { class:'node' + (nd.open ? ' open' : ''), tabindex:'0', role:'button' });
+      g.dataset.s = s.id; g.dataset.j = j;
+      g.style.setProperty('--strand-c', `var(--sc-${s.id})`);
+      g.appendChild(el('circle', { class:'halo', cx:p.x, cy:p.y, r:17, fill:'transparent', 'pointer-events':'all' }));
+      g.appendChild(el('path', { class:'bead', d:shapePath(SHAPEOF(cls), p.x, p.y, j === 0 ? 6.6 : 5.4) }));
+      g.setAttribute('aria-label', `${nd.t}. ${s.label}. Class ${cls}. ${nd.b}`);
+      const tx = el('text', { class:'lbl', x:p.x + px*off, y:p.y + py*off + 3.5, 'text-anchor':lAnchor });
+      tx.textContent = nd.t; g.appendChild(tx); gN.appendChild(g);
+
+      const ref = { s, si, nd, j, p, p0:{ x:p.x, y:p.y }, rad:r, size:j === 0 ? 6.6 : 5.4, shape:SHAPEOF(cls),
+        g, bead:g.querySelector('.bead'), lblEl:tx,
+        hay:(s.label + ' ' + nd.t + ' ' + nd.k + ' ' + nd.b + ' ' + (nd.c||[]).join(' ')).toLowerCase() };
+      NODEREFS.push(ref); byKey[nid] = ref;
+      const meta = () => { const e2 = col.enrich[nid] || {}; return [s.label, e2.cls, flatTax()[e2.tax]].filter(Boolean).join(' \u00b7 '); };
+      g.addEventListener('mouseenter', e => tip(e, nd.t, meta()));
+      g.addEventListener('mousemove', e => tip(e, nd.t, meta()));
+      g.addEventListener('mouseleave', hideTip);
+      g.addEventListener('focus', () => tipAtEl(g, nd.t, meta()));
+      g.addEventListener('blur', hideTip);
+      g.addEventListener('click', () => selectNode(s.id, j));
+      g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectNode(s.id, j); } });
+    });
+  });
+
+  /* hub caption for this collection */
+  const hl = document.querySelectorAll('#gHub .hub-lbl');
+  if (hl[1]) hl[1].textContent = col.hub[0];
+  if (hl[2]) hl[2].textContent = col.hub[1];
+  if (hl[0]) hl[0].textContent = col.id === 'web' ? 'UK central government' : col.label.split(' ').slice(0,3).join(' ');
+}
+
+function rebuildEdges(col){
+  EDGES.length = 0; DECLARED.length = 0;
+  Object.entries(col.enrich).forEach(([from, e]) => (e.rel || []).forEach(([prop, to]) => {
+    if (!byKey[to]) return;
+    EDGES.push({ from, to, prop, declared:true });
+    const inv = PROPOF(prop).inv;
+    if (inv && inv !== prop) EDGES.push({ from:to, to:from, prop:inv, declared:false });
+  }));
+  DECLARED.push(...EDGES.filter(e => e.declared));
+  /* recompute the reasoner in place */
+  const types = {}, inf = {};
+  NODEREFS.forEach(r => { const id = key(r), a = CLSOF(id); types[id] = new Set([a]); inf[id] = new Set(ancestorsOf(a).slice(1)); });
+  REASON.types = types; REASON.inferredTypes = inf;
+  REASON.extra.length = 0; REASON.clashes.length = 0; REASON.observed.length = 0;
+  REASON.notes.length = 0;
+  REASON.notes.push(`Materialised ${EDGES.length - DECLARED.length} inverse assertions from ${DECLARED.length} declared.`);
+  REASON.notes.push(DECLARED.length ? 'Domains and ranges confirmed every assertion; nothing new inferred.'
+    : 'No declared relations in this collection \u2014 the source records classification, not relationships. There is nothing for the reasoner to work on.');
+  REASON.notes.push('Transitivity added nothing \u2014 no chain runs more than one step.');
+  REASON.notes.push('Symmetry added nothing.');
+  REASON.notes.push('Consistent: no individual holds two disjoint classes.');
+  ONTOLOGY.forEach(o => {
+    const inst = instancesOfClass(o.id); if (inst.length < 2) return;
+    Object.keys(PROP_META).forEach(p => {
+      const w = inst.filter(r => EDGES.some(e => e.from === key(r) && e.prop === p));
+      if (w.length === inst.length && w.length)
+        REASON.observed.push({ cls:o.id, prop:p, n:inst.length, fillers:[...new Set(inst.flatMap(r => EDGES.filter(e => e.from === key(r) && e.prop === p).map(e => CLSOF(e.to))))] });
+    });
+  });
+}
+
+function loadCollection(id){
+  const col = COLLECTIONS[id]; if (!col) return;
+  CURRENT = id;
+  STRANDS.length = 0; STRANDS.push(...col.strands);
+  THEMES.length = 0;  THEMES.push(...col.themes);
+  Object.keys(ENRICH).forEach(k => delete ENRICH[k]); Object.assign(ENRICH, col.enrich);
+  REPAIRS.length = 0; REPAIRS.push(...col.repairs);
+
+  const sc = document.createElement('style');
+  sc.id = 'colColours';
+  sc.textContent = ':root{' + col.strands.map((s,i) => `--sc-${s.id}:${s.colour};`).join('') + '}';
+  const old = document.getElementById('colColours'); if (old) old.remove();
+  document.head.appendChild(sc);
+
+  if (STRATA.on) toggleStrata(false);
+  buildGeom(col); rebuildEdges(col);
+  TRAIL.length = 0; VISITED.clear();
+
+  document.getElementById('strandList').innerHTML = '';
+  document.getElementById('themeChips').innerHTML = '';
+  document.getElementById('repairList').innerHTML = '';
+  STRANDS.forEach(s => {
+    const b = document.createElement('button');
+    b.className = 'strand-btn'; b.dataset.s = s.id;
+    b.style.setProperty('--strand-c', `var(--sc-${s.id})`);
+    b.innerHTML = `<span class="nm"><span class="dot"></span>${esc(s.label)}</span><span class="sub">${esc(s.key)} \u00b7 ${esc(s.meta)}</span>`;
+    b.addEventListener('click', () => selectStrand(s.id));
+    document.getElementById('strandList').appendChild(b);
+  });
+  THEMES.forEach(t => {
+    const cnt = NODEREFS.filter(r => (r.nd.themes||[]).includes(t.id)).length;
+    const b = document.createElement('button');
+    b.className = 'chip'; b.dataset.t = t.id;
+    b.innerHTML = `${esc(t.label)}<span class="ct">${cnt}</span>`;
+    b.addEventListener('click', () => selectTheme(t.id));
+    document.getElementById('themeChips').appendChild(b);
+  });
+  REPAIRS.forEach(r => {
+    const li = document.createElement('li');
+    li.innerHTML = `<b>${esc(r.t)}</b>${esc(r.d)}`;
+    if (r.s && byKey[r.s + ':0']) { li.style.cursor = 'pointer'; li.addEventListener('click', () => selectStrand(r.s)); }
+    document.getElementById('repairList').appendChild(li);
+  });
+
+  document.getElementById('mmContent').innerHTML = '';
+  const clone = document.getElementById('vp').cloneNode(true);
+  clone.removeAttribute('transform'); clone.removeAttribute('id'); clone.style.pointerEvents = 'none';
+  clone.querySelectorAll('[id]').forEach(x => x.removeAttribute('id'));
+  clone.querySelectorAll('text, .halo, .chord, .pulse, .ripple').forEach(x => x.remove());
+  clone.querySelectorAll('[tabindex]').forEach(x => x.removeAttribute('tabindex'));
+  document.getElementById('mmContent').appendChild(clone);
+
+  ['tStrands','tNodes','tThemes','tRels','tOpen'].forEach((k, i) =>
+    { const e = document.getElementById(k); if (e) e.textContent = [STRANDS.length, NODEREFS.length, THEMES.length, DECLARED.length, REPAIRS.length][i]; });
+  document.querySelectorAll('.colpick').forEach(s => s.value = id);
+  VPmain.reset(); reset(); renderRef(refWhich); buildListView();
+  say('Loaded ' + col.label + '. ' + STRANDS.length + ' threads, ' + NODEREFS.length + ' beads.');
+}
+
+function buildListView(){
+  document.getElementById('lvBody').innerHTML = STRANDS.map(s => `
+    <div class="lv-strand">
+      <button class="lv-head" style="--strand-c:var(--sc-${s.id})" data-s="${s.id}">${esc(s.label)}
+        <span class="sub">${esc(s.meta)} \u00b7 ${s.nodes.length} beads</span></button>
+      <ul class="lv-items">${s.nodes.map((n, j) => {
+        const e2 = ENRICH[s.id + ':' + j] || {};
+        return `<li><button data-s="${s.id}" data-j="${j}">${esc(n.t)}<span class="cls">${esc(e2.cls || '')}${n.open ? ' \u00b7 still open' : ''}</span></button></li>`;
+      }).join('')}</ul></div>`).join('');
+  document.querySelectorAll('#lvBody .lv-head').forEach(b => b.addEventListener('click', () => selectStrand(b.dataset.s)));
+  document.querySelectorAll('#lvBody .lv-items button').forEach(b => b.addEventListener('click', () => selectNode(b.dataset.s, +b.dataset.j)));
+}
+</script>

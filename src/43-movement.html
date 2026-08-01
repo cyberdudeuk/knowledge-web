@@ -1,0 +1,208 @@
+<script>
+/* ============================================================
+   Dragline, ballooning and bridge lines
+   ============================================================ */
+const key = r => r.s.id + ':' + r.j;
+const byKey = {}; NODEREFS.forEach(r => byKey[key(r)] = r);
+
+function boundsOf(refs){
+  const xs = refs.map(r => r.p.x), ys = refs.map(r => r.p.y);
+  const pad = 90;
+  return { x:Math.min(...xs)-pad, y:Math.min(...ys)-pad,
+           w:(Math.max(...xs)-Math.min(...xs))+pad*2, h:(Math.max(...ys)-Math.min(...ys))+pad*2 };
+}
+
+/* neighbours: the next bead along the same radius, or anything sharing a spiral crossing */
+function neighbours(r){
+  const out = [];
+  NODEREFS.forEach(o => {
+    if (o === r) return;
+    if (o.s.id === r.s.id && Math.abs(o.j - r.j) === 1) { out.push(o); return; }
+    if ((r.nd.themes||[]).some(t => (o.nd.themes||[]).includes(t))) out.push(o);
+  });
+  return out;
+}
+function routeBetween(a, b){
+  const prev = { [key(a)]:null }, q = [a];
+  while (q.length){
+    const cur = q.shift();
+    if (cur === b) break;
+    neighbours(cur).forEach(n => { if (!(key(n) in prev)) { prev[key(n)] = cur; q.push(n); } });
+  }
+  if (!(key(b) in prev)) return null;
+  const path = []; let c = b;
+  while (c) { path.unshift(c); c = prev[key(c)]; }
+  return path;
+}
+
+/* ---------- dragline ---------- */
+const TRAIL = [], VISITED = new Set();
+const trailBar = document.getElementById('trail');
+function renderTrail(){
+  if (!TRAIL.length){
+    trailBar.innerHTML = '<span class="lab">Dragline</span><span class="none">Nothing trailing yet \u2014 every bead you open pays out silk behind you.</span>';
+    return;
+  }
+  trailBar.innerHTML = '<span class="lab">Dragline</span>' +
+    TRAIL.map((t,i) => `${i ? '<span class="sep">\u203a</span>' : ''}<button class="trail-chip${i===TRAIL.length-1?' here':''}" data-i="${i}">${esc(byKey[t].nd.t)}</button>`).join('') +
+    `<button class="climb" id="climb"${TRAIL.length<2?' disabled':''}>\u2191 Climb back</button>`;
+  trailBar.querySelectorAll('.trail-chip').forEach(b => b.addEventListener('click', () => {
+    const i = +b.dataset.i, t = TRAIL[i]; TRAIL.length = i;
+    selectNode(byKey[t].s.id, byKey[t].j);
+  }));
+  const cb = document.getElementById('climb');
+  if (cb) cb.addEventListener('click', climbBack);
+}
+function climbBack(){
+  if (TRAIL.length < 2) return;
+  TRAIL.pop();
+  const t = TRAIL.pop();
+  selectNode(byKey[t].s.id, byKey[t].j);
+}
+
+/* ---------- ballooning ---------- */
+function balloon(){
+  const fresh = NODEREFS.filter(r => !VISITED.has(key(r)));
+  const pool = fresh.length ? fresh : NODEREFS;
+  const r = pool[Math.floor(Math.random() * pool.length)];
+  selectNode(r.s.id, r.j);
+  VPmain.centreOn(r.p.x, r.p.y, Math.max(VPmain.V.k, 2.1));
+  const d = document.getElementById('detailBody');
+  d.insertAdjacentHTML('afterbegin',
+    `<p class="detail-body" style="color:var(--dew);font-size:12.5px;margin-top:0">\u2601 The wind took you here${fresh.length ? '' : ' \u2014 you have now opened everything on the web'}.</p>`);
+}
+
+/* ---------- bridge lines ---------- */
+let armed = false, bridgeA = null;
+const armNote = document.getElementById('armNote');
+function armBridge(){
+  armed = !armed; bridgeA = null;
+  armNote.classList.toggle('on', armed);
+  stageDiv.classList.toggle('arming', armed);
+  document.getElementById('tBridge').classList.toggle('on', armed);
+  armNote.textContent = 'Bridge armed \u00b7 pick two beads \u00b7 Esc to cancel';
+}
+function disarm(){ if (armed) armBridge(); }
+function drawRoute(path){
+  const g = document.getElementById('gBridge');
+  g.innerHTML = '';
+  g.appendChild(el('path', { d:'M' + path.map(r => `${r.p.x},${r.p.y}`).join(' L'), class:'bridge-path' }));
+  NODEREFS.forEach(r => { r.g.classList.remove('sel','res'); r.g.classList.add('mute'); });
+  path.forEach(r => { r.g.classList.remove('mute'); r.g.classList.add('onpath'); });
+  path.forEach(r => r.s._radius.classList.add('lit'));
+  VPmain.fitBox(boundsOf(path), .8);
+  syncMinimapState(); syncPopup();
+
+  const hops = path.length - 1;
+  document.querySelector('#detail h2').textContent = 'Bridge line';
+  document.getElementById('detailBody').innerHTML =
+    `<div class="detail-kicker" style="--strand-c:var(--amber)">${hops} hop${hops===1?'':'s'} across ${new Set(path.map(r=>r.s.id)).size} thread${new Set(path.map(r=>r.s.id)).size===1?'':'s'}</div>
+     <h3 class="detail-title">${esc(path[0].nd.t)} \u2192 ${esc(path[path.length-1].nd.t)}</h3>
+     <p class="detail-body">The shortest silk between them. Each step is either the next bead along the same radius, or an idea the two share.</p>
+     <div class="xref"><div class="xref-h">The route</div>` +
+     path.map(r => `<button class="xref-item" data-s="${r.s.id}" data-j="${r.j}">${esc(r.nd.t)}<span class="src">${esc(r.s.label)}</span></button>`).join('') +
+     '</div>';
+  document.getElementById('detailBody').querySelectorAll('.xref-item').forEach(b =>
+    b.addEventListener('click', () => { disarm(); selectNode(b.dataset.s, +b.dataset.j); }));
+}
+
+function noRoute(a, b){
+  NODEREFS.forEach(x => { x.g.classList.remove('sel','res','onpath'); x.g.classList.add('mute'); });
+  [a,b].forEach(x => { x.g.classList.remove('mute'); x.g.classList.add('sel'); });
+  document.getElementById('gBridge').innerHTML = '';
+  syncMinimapState(); syncPopup();
+  document.querySelector('#detail h2').textContent = 'Bridge line';
+  document.getElementById('detailBody').innerHTML =
+    `<div class="detail-kicker" style="--strand-c:var(--rust)">No silk between them</div>
+     <h3 class="detail-title">${esc(a.nd.t)} \u2715 ${esc(b.nd.t)}</h3>
+     <p class="detail-body">There is no route. These sit on parts of the web that have never been joined \u2014 no shared idea, no common radius. That is a finding, not an error: it means one of them is genuinely isolated from the rest of your work.</p>
+     <p class="detail-body" style="color:var(--faint);font-size:12.5px">The <b>Apps and websites</b> thread is the only true island here. It was thrown across a gap and never anchored, so nothing reaches it.</p>
+     <div class="xref"><div class="xref-h">Open either end</div>
+       <button class="xref-item" data-s="${a.s.id}" data-j="${a.j}">${esc(a.nd.t)}<span class="src">${esc(a.s.label)}</span></button>
+       <button class="xref-item" data-s="${b.s.id}" data-j="${b.j}">${esc(b.nd.t)}<span class="src">${esc(b.s.label)}</span></button>
+     </div>`;
+  document.getElementById('detailBody').querySelectorAll('.xref-item').forEach(x =>
+    x.addEventListener('click', () => selectNode(x.dataset.s, +x.dataset.j)));
+}
+
+/* ---------- wire the new modes into selection ---------- */
+const _selectNode = selectNode, _selectStrand = selectStrand, _selectTheme = selectTheme,
+      _reset = reset, _runQuery = runQuery;
+
+selectNode = function(sid, j){
+  const r = byKey[sid + ':' + j];
+  if (armed){
+    if (!bridgeA){ bridgeA = r; armNote.textContent = 'From \u201c' + r.nd.t + '\u201d \u00b7 now pick the far bead'; 
+      NODEREFS.forEach(x => x.g.classList.toggle('sel', x === r)); return; }
+    const path = routeBetween(bridgeA, r);
+    const from = bridgeA; disarm();
+    document.getElementById('gChords').innerHTML = '';
+    if (!path){ noRoute(from, r); return; }
+    drawRoute(path); return;
+  }
+  document.getElementById('gBridge').innerHTML = '';
+  NODEREFS.forEach(x => x.g.classList.remove('onpath'));
+  _selectNode(sid, j);
+  VISITED.add(sid + ':' + j);
+  if (!TRAIL.length || TRAIL[TRAIL.length-1] !== sid + ':' + j) TRAIL.push(sid + ':' + j);
+  if (TRAIL.length > 9) TRAIL.shift();
+  renderTrail();
+  if (VPmain.V.k > 1.3) VPmain.centreOn(r.p.x, r.p.y);
+  mmWhere.textContent = r.nd.t.toLowerCase();
+  syncMinimapState(); syncPopup();
+};
+selectStrand = function(sid){
+  disarm(); document.getElementById('gBridge').innerHTML = '';
+  NODEREFS.forEach(x => x.g.classList.remove('onpath'));
+  _selectStrand(sid);
+  if (VPmain.V.k > 1.3) VPmain.fitBox(boundsOf(NODEREFS.filter(r => r.s.id === sid)));
+  mmWhere.textContent = STRANDS.find(s => s.id === sid).label.toLowerCase();
+  syncMinimapState(); syncPopup();
+};
+selectTheme = function(tid){
+  disarm(); document.getElementById('gBridge').innerHTML = '';
+  NODEREFS.forEach(x => x.g.classList.remove('onpath'));
+  _selectTheme(tid);
+  mmWhere.textContent = S.theme ? (THEMES.find(t => t.id === S.theme)||{}).label.toLowerCase() : 'whole web';
+  syncMinimapState(); syncPopup();
+};
+reset = function(){
+  disarm(); document.getElementById('gBridge').innerHTML = '';
+  NODEREFS.forEach(x => x.g.classList.remove('onpath'));
+  _reset(); mmWhere.textContent = 'whole web';
+  syncMinimapState(); syncPopup();
+};
+runQuery = function(v){
+  disarm(); document.getElementById('gBridge').innerHTML = '';
+  NODEREFS.forEach(x => x.g.classList.remove('onpath'));
+  _runQuery(v);
+  const hits = NODEREFS.filter(r => r.g.classList.contains('res'));
+  if (hits.length && VPmain.V.k > 1.3) VPmain.fitBox(boundsOf(hits));
+  mmWhere.textContent = v.trim() ? '\u201c' + v.trim() + '\u201d' : 'whole web';
+  syncMinimapState(); syncPopup();
+};
+
+document.getElementById('tBridge').addEventListener('click', armBridge);
+document.getElementById('tBalloon').addEventListener('click', balloon);
+
+document.addEventListener('keydown', e => {
+  const inField = /input|textarea/i.test(e.target.tagName);
+  if (inField) return;
+  if (e.key === '+' || e.key === '=') { e.preventDefault(); VPmain.zoomBy(1.45); }
+  else if (e.key === '-' || e.key === '_') { e.preventDefault(); VPmain.zoomBy(1/1.45); }
+  else if (e.key === '0') { VPmain.reset(); }
+  else if (e.key === 'f' || e.key === 'F') { fullBtn.click(); }
+  else if (e.key === 'b' || e.key === 'B') { balloon(); }
+  else if (e.key === 'x' || e.key === 'X') { armBridge(); }
+  else if (e.key === 'm' || e.key === 'M') { document.getElementById('zMap').click(); }
+  else if (e.key === 'Backspace') { e.preventDefault(); climbBack(); }
+  else if (e.key === 'Escape') { disarm(); }
+});
+
+renderTrail();
+syncMinimapState();
+document.querySelector('.pluck-hint').innerHTML =
+  'Matching strands light up; the rest fall slack. <kbd>/</kbd> search \u00b7 <kbd>1</kbd>\u2013<kbd>5</kbd> walk a radius \u00b7 ' +
+  '<kbd>+</kbd><kbd>\u2212</kbd><kbd>0</kbd> zoom \u00b7 <kbd>M</kbd> bird\u2019s eye \u00b7 <kbd>B</kbd> balloon \u00b7 <kbd>X</kbd> bridge \u00b7 ' +
+  '<kbd>F</kbd> full screen \u00b7 <kbd>\u232b</kbd> climb back';
+</script>

@@ -1,0 +1,219 @@
+<script>
+/* ============================================================
+   Portal shell. One page at a time, addressable by hash.
+   ============================================================ */
+const PAGES = [
+  { id:'home',    nav:'Home',        title:'The Web',                    kicker:'Portal home' },
+  { id:'web',     nav:'Explore',     title:'Explore the web',            kicker:'Visualisation', lede:'Sit at the hub, pluck a thread, walk a radius, cross the spiral. Everything here is one collection at a time — switch it from the bar above.' },
+  { id:'ontology',nav:'Ontology',    title:'Ontology explorer',          kicker:'Semantic layer', lede:'Classes, object properties and individuals, with a reasoner that shows what follows and says plainly when nothing does.' },
+  { id:'reference',nav:'Reference',  title:'Reference',                  kicker:'Controlled vocabulary', lede:'Taxonomy, thesaurus, glossary, data dictionary and the knowledge ladders — the layer that makes the rest navigable.' },
+  { id:'tours',   nav:'Tours',       title:'Guided routes',              kicker:'Orientation', lede:'Six narrated routes through the web. Each drives the interface for you and can be paused, stepped or abandoned at any point.' },
+  { id:'collections',nav:'Collections',title:'Collections',              kicker:'What this can be pointed at', lede:'The same interface over different bodies of work. Two of these are real UK government workbooks, loaded from the files you supplied.' },
+  { id:'manual',  nav:'Manual',      title:'User manual',                kicker:'How it works', lede:'Every control, every key, the doctrine it follows and the things it deliberately does not claim.' }
+];
+
+(function shell(){
+  /* ---- top bar ---- */
+  const bar = document.createElement('div');
+  bar.className = 'topbar';
+  bar.innerHTML = `<div class="topbar-in">
+    <button class="brand" id="brandBtn" aria-label="Portal home">
+      <svg class="bm" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="3"></circle><circle cx="11" cy="11" r="7"></circle>
+        <path d="M11,1 V21 M1,11 H21 M4,4 L18,18 M18,4 L4,18"></path></svg>
+      <b>The Web</b><span>Prototype</span>
+    </button>
+    <select class="colpick" id="colPick" aria-label="Collection"></select>
+    <nav class="pnav" id="pnav" aria-label="Portal sections"></nav>
+  </div>
+  <div class="topbar-in" style="min-height:0;padding-bottom:9px" id="subbar"></div>`;
+  document.body.insertBefore(bar, document.body.querySelector('.shell'));
+
+  document.getElementById('pnav').innerHTML = PAGES.map(p =>
+    `<a href="#/${p.id}" data-p="${p.id}">${p.nav}</a>`).join('');
+  document.getElementById('colPick').innerHTML = Object.values(COLLECTIONS).map(c =>
+    `<option value="${c.id}">${esc(c.label)}</option>`).join('');
+  document.getElementById('colPick').addEventListener('change', e => loadCollection(e.target.value));
+  document.getElementById('brandBtn').addEventListener('click', () => go('home'));
+  document.getElementById('subbar').appendChild(document.querySelector('.mast-controls'));
+
+  /* ---- page containers ---- */
+  const shellEl = document.querySelector('.shell');
+  const footer = shellEl.querySelector(':scope > footer');
+  PAGES.forEach(p => {
+    const d = document.createElement('section');
+    d.className = 'page'; d.id = 'pg-' + p.id;
+    if (p.id !== 'home') d.innerHTML =
+      `<div class="page-head"><div class="eyebrow">${esc(p.kicker)}</div><h2>${esc(p.title)}</h2>${p.lede ? `<p>${esc(p.lede)}</p>` : ''}</div>`;
+    shellEl.insertBefore(d, footer);
+  });
+  const P = id => document.getElementById('pg-' + id);
+
+  /* ---- relocate what already exists ---- */
+  P('home').appendChild(document.querySelector('.masthead'));
+  P('web').appendChild(document.getElementById('main'));
+  P('home').appendChild(document.querySelector('.how'));
+
+  /* reference + tours leave the rail and get the full width */
+  document.querySelectorAll('.tabs .tab').forEach(t => t.replaceWith(t.cloneNode(true)));
+  document.querySelector('.tabs').style.display = 'none';
+  ['panRef','panTour'].forEach((pid, i) => {
+    const el2 = document.getElementById(pid); el2.hidden = false;
+    P(i ? 'tours' : 'reference').appendChild(el2);
+  });
+
+  /* the ontology explorer stops being a modal */
+  const owlSheet = document.querySelector('#owlx .sheet');
+  ['.owl-tabs', '.owl-bar', '.owl-grid'].forEach(sel => P('ontology').appendChild(owlSheet.querySelector(sel)));
+  const flags = document.createElement('div');
+  flags.style.cssText = 'display:flex;gap:9px;align-items:center;margin-bottom:14px;flex-wrap:wrap';
+  flags.appendChild(document.getElementById('owlConsist'));
+  flags.appendChild(document.getElementById('owlInfer'));
+  P('ontology').insertBefore(flags, P('ontology').querySelector('.owl-tabs'));
+  document.getElementById('owlxClose').remove();
+  document.getElementById('owlx').remove();
+
+  /* the manual stops being a modal */
+  P('manual').appendChild(document.getElementById('manBody'));
+  document.getElementById('manual').remove();
+
+  /* masthead: title left, spider hard right */
+  const mastTop = document.querySelector('.mast-top');
+  const tblock = mastTop.firstElementChild;
+  const rightCol = mastTop.lastElementChild;
+  const mark = rightCol.querySelector('.mark-wrap'), tally = rightCol.querySelector('.tally');
+  mastTop.className = 'title-row';
+  tblock.className = 'tblock';
+  mastTop.appendChild(mark); rightCol.remove();
+  const strip = document.createElement('div');
+  strip.className = 'strip'; strip.appendChild(tally);
+  tally.style.cssText = 'display:flex;gap:26px;flex-wrap:wrap';
+  document.querySelector('.masthead').appendChild(strip);
+})();
+
+/* ---- routing ---- */
+function go(id){
+  if (!PAGES.some(p => p.id === id)) id = 'home';
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('on', p.id === 'pg-' + id));
+  document.querySelectorAll('#pnav a').forEach(a =>
+    a.dataset.p === id ? a.setAttribute('aria-current','page') : a.removeAttribute('aria-current'));
+  if (location.hash !== '#/' + id) history.replaceState(null, '', '#/' + id);
+  const p = PAGES.find(x => x.id === id);
+  say(p.title + '.');
+  window.scrollTo({ top:0, behavior: document.body.dataset.motion === 'still' ? 'auto' : 'smooth' });
+  if (id === 'web') setTimeout(() => VPmain.apply(true), 60);
+  if (id === 'ontology') { owlHeaderState(); owlTree(); owlDetail(); }
+}
+window.addEventListener('hashchange', () => { if (typeof readState === 'function') readState(); else go((location.hash||'').replace('#/','').split('?')[0] || 'home'); });
+document.getElementById('pnav').addEventListener('click', e => {
+  const a = e.target.closest('a'); if (!a) return;
+  e.preventDefault(); go(a.dataset.p);
+});
+openOwlX = () => go('ontology');
+openManual = () => go('manual');
+closeOwlX = () => {};
+closeManual = () => {};
+
+/* ============================================================
+   Home
+   ============================================================ */
+(function home(){
+  const h = document.getElementById('pg-home');
+  const mast = h.querySelector('.masthead');
+  const intro = document.createElement('div');
+  intro.innerHTML = `<div class="notice">
+    <b>Honest prototype labelling</b>
+    <p>This is a working prototype, not a service. Content is drawn from your own conversations and from the workbooks you supplied; nothing is contacted, stored or sent anywhere. Where a reading is inferred rather than asserted it says so, and where something is unconfirmed it stays unconfirmed until you confirm it.</p>
+  </div>
+  <div class="deck" id="homeDeck"></div>`;
+  mast.after(intro);
+
+  const cards = [
+    { p:'web',        k:'Start here',  h:'Explore the web',   d:'The visualisation. Nine ways of moving, three views — flat, owl and stratified — and a bird\u2019s eye strip for when it gets crowded.' , n:() => `${NODEREFS.length} beads · ${STRANDS.length} threads` },
+    { p:'collections',k:'Choose',      h:'Collections',       d:'Point the same interface at a different body of work. Two real government workbooks are loaded and ready.', n:() => `${Object.keys(COLLECTIONS).length} collections` },
+    { p:'ontology',   k:'Reason',      h:'Ontology explorer', d:'Classes, properties, individuals and a reasoner. Asserted and inferred axioms kept visibly apart.', n:() => `${ONTOLOGY.length} classes · ${DECLARED.length} relations` },
+    { p:'reference',  k:'Look up',     h:'Reference',         d:'Taxonomy, thesaurus, glossary, data dictionary, and the KIL and KSL ladders.', n:() => `${GLOSSARY.length} terms · ${THESAURUS.length} concepts` },
+    { p:'tours',      k:'Be shown',    h:'Guided routes',     d:'Six narrated tours that drive the interface for you. Pausable, steppable, abandonable.', n:() => `${TOURS.length} tours` },
+    { p:'manual',     k:'Understand',  h:'Manual',            d:'Every control and key, the doctrine it follows, and what it deliberately does not claim.', n:() => 'incl. accessibility' }
+  ];
+  document.getElementById('homeDeck').innerHTML = cards.map(c =>
+    `<button class="card" data-go="${c.p}"><span class="k">${c.k}</span><h3>${esc(c.h)}</h3><p>${esc(c.d)}</p><span class="n" data-n="${c.p}"></span></button>`).join('');
+  document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
+  window.refreshHome = () => cards.forEach(c => {
+    const e = document.querySelector(`[data-n="${c.p}"]`); if (e) e.textContent = c.n();
+  });
+  refreshHome();
+})();
+
+/* ============================================================
+   Collections
+   ============================================================ */
+(function collections(){
+  const p = document.getElementById('pg-collections');
+  const wrap = document.createElement('div');
+  const conf = { '[OK]':25, '[INFERRED]':120, '[REVIEW]':26 };
+  const meta = {
+    web:{ src:'Three conversations outside any project, plus carried memory',
+          why:'The collection this prototype was built from. Small enough to hand-author, which is why it is the only one with a rich typed ontology.',
+          facts:[['5','threads'],['26','beads'],['46','relations']] },
+    cda:{ src:'CDA_Live_Dashboard_Template.xlsx \u00b7 499 assets \u00b7 116 fields \u00b7 130 sheets',
+          why:'The live critical data asset register, up from the 136 assets this estate carried when it was last built. 130 sheets in one workbook is the strongest case in your estate for a navigable overview: the web shows in one glance that no asset anywhere has reached Tier 3, and that three quarters of the estate is high value and low readiness.',
+          facts:[['499','assets'],['5','domains'],['130','sheets']],
+          bar:{ 'Invest to unlock':371, 'Flagship':60, 'Maintain / quick win':68 } },
+    std:{ src:'UK_Gov_Data_Standards_Classification_v5_0_DRAFT.xlsx',
+          why:'Version 5.0, replacing the v4.4 draft. Seven domains now \u2014 Governance, Ethics &amp; Trust and AI, ML &amp; Emerging Technologies are new, and are also the two least complete. That asymmetry is the thing a consultation most needs its readers to see, and it is invisible in a spreadsheet.',
+          facts:[['7','domains'],['57','topics'],['59%','complete']],
+          bar:{ 'Endorsed':35, 'Partially endorsed':5, 'Draft':17 } },
+    gds:{ src:'GDS_Products_and_Services_Catalogue_-_2026.xlsx',
+          why:'173 products, services and pipeline items across nine 2026 DTx areas. One area carries a third of the estate and two items are mapped nowhere at all.',
+          facts:[['173','items'],['9','areas'],['14','sheets']],
+          bar:{ '[OK]':25, '[INFERRED]':120, '[REVIEW]':26 } },
+    xwalk:{ src:'Data_Cataloguing_Standards_and_Tooling_Crosswalks.xlsx',
+          why:'The Rosetta Stone that binds the other collections: 61 canonical concepts mapped across ten standards profiles, 212 terms, and an indicative crosswalk over six catalogue tools. It is the vocabulary layer the rest of the estate is missing.',
+          facts:[['61','concepts'],['212','terms'],['10','profiles']] }
+  };
+  wrap.innerHTML = `<div class="colgrid">` + Object.values(COLLECTIONS).map(c => {
+    const m = meta[c.id];
+    return `<div class="colcard${c.id===CURRENT?' live':''}" data-c="${c.id}">
+      <header><div class="k">${c.id === 'web' ? 'Native' : 'Loaded from your upload'}</div><h3>${esc(c.label)}</h3></header>
+      <div class="body">
+        <div class="facts">${m.facts.map(([n,k]) => `<div><b>${n}</b>${k}</div>`).join('')}</div>
+        <p>${esc(m.why)}</p>
+        ${m.bar ? (()=>{const tot=Object.values(m.bar).reduce((a,b)=>a+b,0);return `<div class="bar">${Object.entries(m.bar).map(([k,v],i) =>
+          `<i style="width:${v/tot*100}%;background:${['var(--ok)','var(--amber)','var(--rust)'][i]}"></i>`).join('')}</div>
+          <div class="barkey">${Object.entries(m.bar).map(([k,v],i) =>
+          `<span><em style="background:${['var(--ok)','var(--amber)','var(--rust)'][i]}"></em>${k} ${v}</span>`).join('')}</div>`;})() : ''}
+        <p style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--faint);letter-spacing:.04em">${esc(m.src)}</p>
+      </div>
+      <footer><button class="cta" data-load="${c.id}">Load into the web</button>
+        <button class="cta ghost" data-torn="${c.id}">What is torn</button></footer>
+    </div>`;
+  }).join('') + `</div>
+  <div class="page-head" style="margin-top:34px"><div class="eyebrow">Why this helps</div>
+    <h2 style="font-size:26px">Reducing the load of learning a whole estate at once</h2>
+    <p>A 14-sheet workbook asks you to hold the whole classification in your head before any of it means anything. A radial web gives you one hub, a handful of threads and a legible shape you can read in seconds — then lets you go deeper only where you need to. That is the same argument the Memory Grid specification makes for federated discovery: centralise the shape, not the content.</p></div>
+  <div id="colDetail"></div>`;
+  p.appendChild(wrap);
+  p.querySelectorAll('[data-load]').forEach(b => b.addEventListener('click', () => {
+    loadCollection(b.dataset.load); refreshHome(); go('web');
+  }));
+  p.querySelectorAll('[data-torn]').forEach(b => b.addEventListener('click', () => {
+    const c = COLLECTIONS[b.dataset.torn];
+    document.getElementById('colDetail').innerHTML =
+      `<div class="page-head" style="margin-top:26px"><div class="eyebrow">Torn strands \u00b7 ${esc(c.label)}</div>
+        <h2 style="font-size:24px">${c.repairs.length} things this collection cannot yet do</h2></div>
+       <ul class="repair" style="max-width:74ch">${c.repairs.map(r => `<li><b>${esc(r.t)}</b>${esc(r.d)}</li>`).join('')}</ul>`;
+    document.getElementById('colDetail').scrollIntoView({ behavior:'smooth', block:'start' });
+  }));
+})();
+
+/* keep the live badge honest when the collection changes */
+const _loadCol = loadCollection;
+loadCollection = function(id){
+  _loadCol(id);
+  document.querySelectorAll('.colcard').forEach(c => c.classList.toggle('live', c.dataset.c === id));
+  if (window.refreshHome) refreshHome();
+};
+
+const _startTour = startTour;
+startTour = function(id){ go('web'); setTimeout(() => _startTour(id), 120); };
+</script>

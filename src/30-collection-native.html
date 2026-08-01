@@ -1,0 +1,156 @@
+<script>
+/* ============================================================
+   THE WEB — data model
+   Spun from: 3 conversations outside any project + carried memory.
+   ============================================================ */
+
+const THEMES = [
+  { id:'design-system', label:'GOV.UK design system', note:'Navy and yellow, OFFICIAL banners, colour-coded modules, progress bars, traceability footers. One visual language across three separate builds.' },
+  { id:'single-file',   label:'Single-file HTML portal', note:'Your signature delivery pattern: one self-contained HTML file, no runtime dependencies, built in validated chunks and assembled.' },
+  { id:'roles',         label:'Owner / Steward / Custodian', note:'The same accountability model appears in the cataloguing family and is formalised in the governance playbook.' },
+  { id:'evidence',      label:'Evidence & traceability', note:'Audit trails, provenance, traceability registers — the tools are built to evidence their own operation.' },
+  { id:'standards',     label:'External standards stack', note:'ISO/IEC 38505-1, DAMA-DMBOK2, DCAM, COBIT, UK GDPR/DPA 2018, DCAT, Dublin Core, ISO 19115/GEMINI and more.' },
+  { id:'barometer',     label:'Observatory / Barometer scoring', note:'A scoring concept that is a whole portal in one thread and a single register column in another.' },
+  { id:'dam',           label:'DAM policy & compliance', note:'The Data Asset Management policy sits under both the governance policy suite and the dashboard\u2019s Tier 1 compliance measure.' },
+  { id:'qa',            label:'Chunked build & validation', note:'Write in parts, syntax-check each part, assemble, then verify in a real browser. The method that made all three portals hold together.' }
+];
+
+const STRANDS = [
+  {
+    id:'gov', key:'1', angle:-90, lab:180, colour:'#79d6cf',
+    label:'Data Governance Playbook',
+    meta:'Conversation \u00b7 21 Jul 2026 \u00b7 15 artefacts',
+    url:'https://claude.ai/chat/2c14e6c2-fbcb-42da-974b-f1d30108f7ec',
+    state:'complete',
+    summary:'The longest and densest thread. A full data governance capability suite for UK central government, built as a sibling volume to the existing Data Cataloguing Playbook family \u2014 same design system, same delivery pattern, same vocabulary. Grew from a single deck into fifteen artefacts and then collapsed back into one unified interactive Command Centre.',
+    nodes:[
+      { t:'The five recipes', k:'Core model', themes:['roles'],
+        b:'The spine everything else hangs off. Each recipe has a trigger, steps, a checklist, named outputs and a pitfall.',
+        c:['Mandate \u2014 charter, sponsor, scope','Frame \u2014 policy suite and standards','Assign \u2014 owners, stewards, custodians','Operate \u2014 decisions, issues, exceptions','Assure \u2014 maturity, KPIs, evidence pack'] },
+      { t:'Role model & RACI', k:'Core model', themes:['roles','design-system'],
+        b:'Six governance roles, cross-walked to GDaD and SFIA, with decision rights and a five-tier escalation ladder.',
+        c:['Data Governance Board','Data Owner \u00b7 Data Steward \u00b7 Data Custodian','Data Protection Officer','Data Ethics Advisor','Escalation ladder with SLAs'] },
+      { t:'Master Manual & Companion', k:'Documents', themes:['design-system','standards'],
+        b:'The source of truth plus its condensed reading version. The manual is explicitly subject to its own recipes \u2014 it is reviewed through the board it describes.',
+        c:['Master Manual \u2014 19pp DOCX, 16 sections','Abridged Companion \u2014 14pp DOCX','Executive Briefing \u2014 2pp, GDS style','Framework & Standards Alignment Appendix \u2014 3pp'] },
+      { t:'Pack 10 learning deck', k:'Training', themes:['design-system'],
+        b:'A 57-slide interactive learning journey mirroring the cataloguing decks exactly \u2014 module sections, progress bars, worked examples, knowledge checks with answer keys, and a 15-question final assessment.',
+        c:['Foundation + Modules 1\u20135 + Reference','Knowledge checks with answer keys','15-question assessment, auto-scored HTML twin','Accessibility statement','Bounds-checked for slide overflow'] },
+      { t:'Toolkit & registers', k:'Working artefacts', themes:['evidence','dam'],
+        b:'The part people actually open on a Tuesday. Live registers and logs with formulas, data validation and conditional RAG.',
+        c:['Toolkit Workbook \u2014 XLSX, 11 tabs','Policy & Standards Register \u00b7 Ownership Register','Decision Log \u00b7 Issue & Risk Log \u00b7 Exception Register','Maturity Assessment \u2014 DMA-aligned, live average','KPI Catalogue \u00b7 Escalation Ladder \u00b7 Meeting Calendar','Implementation Roadmap \u2014 XLSX, 5 tabs','Templates Pack \u2014 5 fillable templates','Owner & Steward pocket guides'] },
+      { t:'Programme & project governance', k:'Change environments', themes:['standards'],
+        b:'A parallel five-stage structure for teams delivering change, deliberately framed as interfacing with the business-as-usual playbook rather than derived from it.',
+        c:['Manual for Programme & Project Teams \u2014 18pp','Quick Reference Guide \u2014 4pp','Governance handback \u2014 the most commonly skipped step, given its own section and template','MSP / PRINCE2 alignment'] },
+      { t:'The Command Centre', k:'Unified portal', themes:['single-file','evidence','qa','design-system'],
+        b:'Everything above, collapsed into one navigable interactive portal. The tool audits itself.',
+        c:['10 interactive views','Governance Health Score \u2014 composite 0\u2013100','Activity / audit trail view','Session export and import','Register validation indicators','Keyboard shortcuts \u2014 Ctrl+K, 1\u20139, ?','Printable Board Pack','Estate Map \u2014 interactive SVG relationship diagram','Artefact Inventory & Traceability Register \u2014 7 tabs'] }
+    ]
+  },
+  {
+    id:'cda', key:'2', angle:-18, lab:72, colour:'#e3a044',
+    label:'CDA Estate Command Dashboard',
+    meta:'Conversation \u00b7 7 Jul 2026 \u00b7 v2/v3 build',
+    url:'https://claude.ai/chat/efc1ed91-b90a-4719-88f5-b0f8608dfea1',
+    state:'in-flight',
+    summary:'A government-grade portal over 136 Critical Data Assets, upgrading a finished v1 into a v2/v3 with one non-negotiable rule running through it: real data only, harvested live from UK open data portals. AI-enabled, secure by default, privacy by design.',
+    nodes:[
+      { t:'The register', k:'Source data', themes:['dam','barometer'],
+        b:'136 UK government Critical Data Assets across 59 register fields \u2014 the substrate everything else in this thread computes over.',
+        c:['Department, asset type, domain, openness','Security classification and impact level','DAM compliance % \u00b7 Discovery readiness %','NDL / valuation readiness % \u00b7 Valuation Index','Observatory / Barometer Score','Strategic archetype and priority rank'] },
+      { t:'Real-data harvest', k:'Provenance', themes:['evidence'],
+        b:'Python against the data.gov.uk CKAN API, pulling live dataset counts and recent records for nine departments \u2014 then pruning eight false-positive title matches rather than letting them inflate the result.',
+        c:['DBT \u00b7 DEFRA \u00b7 DESNZ \u00b7 DVLA \u00b7 DfE','HMT \u00b7 Home Office \u00b7 ONS \u00b7 Ordnance Survey','harvest.json \u2014 16 confirmed asset-to-portal matches','Confidence scores and timestamped provenance'] },
+      { t:'Devolved & regional portals', k:'Provenance', themes:['evidence'],
+        b:'Coverage beyond Whitehall, probed directly rather than assumed.',
+        c:['London Datastore','NHS Scotland Open Data','NISRA PxStat API \u2014 Northern Ireland','Natural Resources Wales','6 UK-wide portal records'] },
+      { t:'Six-standard metadata weaver', k:'Interoperability', themes:['standards'],
+        b:'One asset, six metadata expressions, with bulk export \u2014 so the same record can travel to whichever ecosystem asks for it.',
+        c:['DCAT 3 / DCAT-AP-UK','Dublin Core','schema.org','ISO 19115 / GEMINI','DDI-Lite','Croissant'] },
+      { t:'Lineage & relationships', k:'Intelligence', themes:['qa'],
+        b:'A relationship inference engine feeding a force-directed lineage graph \u2014 connections derived rather than hand-drawn.',
+        c:['Relationship inference engine','Force-directed graph renderer','Ecosystem view wired to the verified api.gov.uk catalogue','Governance view \u2014 classification analysis and privacy watchlist heuristic'] },
+      { t:'Tiers & readiness scoring', k:'Measurement', themes:['dam','barometer'],
+        b:'A three-tier compliance ladder with a weighted composite readiness score \u2014 the numbers that decide what gets attention.',
+        c:['Tier 1 \u2014 DAM policy minimum: identify, describe, own, assure','Tier 2 \u2014 discovery platform rich: findable, accessible, reusable','Tier 3 \u2014 NDL / valuation and Observatory intelligence','Readiness = DAM 50% + Discovery 30% + NDL 20%'] },
+      { t:'Reference layer', k:'Portal', themes:['single-file','design-system'],
+        b:'The parts that make a dashboard usable by people who did not build it. Twelve named views, keyboard shortcuts, data embedded directly in the HTML.',
+        c:['Business glossary \u00b7 thesaurus \u00b7 data dictionary','User manual with curated collections','CSV / JSON / XLSX import engine','No runtime dependencies beyond Chart.js and SheetJS'] }
+    ]
+  },
+  {
+    id:'obs', key:'3', angle:54, lab:-36, colour:'#9a8ada',
+    label:'Data Sharing Observatory',
+    meta:'Carried in memory \u00b7 v6 \u2192 v6.1',
+    url:'',
+    state:'in-flight',
+    summary:'The portal the other two keep measuring themselves against. Held in memory rather than in a readable conversation here: a sophisticated single-file HTML portal, currently mid-way through a v6.1 enhancement pass that stopped with the CSS finished and the JavaScript in progress.',
+    nodes:[
+      { t:'Seven views', k:'Structure', themes:['single-file','barometer'],
+        b:'The shape of the portal as it stands at v6.',
+        c:['Observatory','Barometer','DEIA','Collections','Loop','KIL','Evidence'] },
+      { t:'v6.1 enhancement pass', k:'In progress', themes:['single-file','qa'], open:true,
+        b:'CSS enhancements complete, JavaScript enhancements in progress. This is the thread that is genuinely still being spun.',
+        c:['Command palette','Audit mode','Hash-based routing','Keyboard shortcuts','Accessibility improvements'] },
+      { t:'Barometer analytics', k:'Feature', themes:['barometer'],
+        b:'Analytics over the Barometer view \u2014 the same scoring concept that appears as a single column in the CDA register.',
+        c:['Part of the v6.1 pass'] },
+      { t:'KIL graph interactivity', k:'Feature', themes:['qa'],
+        b:'Making the KIL graph explorable rather than static \u2014 the same instinct as the CDA lineage graph and the Command Centre estate map.',
+        c:['Part of the v6.1 pass'] },
+      { t:'Evidence filtering & export', k:'Feature', themes:['evidence'],
+        b:'Filtering and export on the Evidence view \u2014 evidence you can actually get out of the tool.',
+        c:['Part of the v6.1 pass','Evidence-flag taxonomy needs cross-checking'] },
+      { t:'The spec gap', k:'Risk', themes:['evidence'], open:true,
+        b:'V6_OBSERVATORY_BAROMETER_SPEC.md was returning a 404. A manual cross-check against the committed spec is worth doing before this goes near stakeholders.',
+        c:['Collections anchors \u2014 verify','Evidence-flag taxonomy \u2014 verify'] }
+    ]
+  },
+  {
+    id:'cat', key:'4', angle:126, lab:216, colour:'#6fbf8e',
+    label:'Data Cataloguing Playbook',
+    meta:'Ancestor thread \u00b7 Packs 1\u20139',
+    url:'',
+    state:'reference',
+    summary:'The thread that predates the others and gave them their grammar. Not built in these conversations \u2014 it arrived as reference material \u2014 but the design system, delivery pattern and vocabulary of everything else here descend directly from it.',
+    nodes:[
+      { t:'Packs 1\u20139', k:'Existing family', themes:[],
+        b:'The established playbook family that the governance suite was written to sit alongside as Pack 10.',
+        c:['Referenced throughout the governance build','Cross-referenced by recipe and by pack number'] },
+      { t:'The design system', k:'Inheritance', themes:['design-system'],
+        b:'Supplied as inspiration rather than instruction, then adopted deliberately for consistency, coherence, cohesion and continuity.',
+        c:['GOV.UK navy and yellow title slides','OFFICIAL banners','Colour-coded module sections','Progress bars','Traceability footers','Knowledge checks with answer keys'] },
+      { t:'The delivery pattern', k:'Inheritance', themes:['single-file','design-system'],
+        b:'Single-file interactive HTML plus native Office formats \u2014 the pattern reused by every portal in this web.',
+        c:['Single-file HTML for the interactive artefact','DOCX / PPTX / XLSX for the paper family','Abridged companion + executive briefing as standard'] },
+      { t:'Shared vocabulary', k:'Inheritance', themes:['roles','dam'],
+        b:'Recipes, roles, evidence and traceability read the same across volumes, which is what makes them feel like one series.',
+        c:['Five recipes as a structure','Owner / Steward / Custodian','DAM Policy','Evidence packs and traceability'] }
+    ]
+  },
+  {
+    id:'apps', key:'5', angle:198, lab:108, colour:'#c96f4c',
+    label:'Apps and websites',
+    meta:'Conversation \u00b7 20 Jul 2026 \u00b7 unspun',
+    url:'https://claude.ai/chat/49a0748f-71ef-4e18-853d-5d4960013234',
+    state:'dormant',
+    summary:'A bridge line thrown across a gap and never followed. One opening message, three clarifying questions back, and nothing after. It is the only thread here with no anchor at the far end.',
+    nodes:[
+      { t:'The opening', k:'One exchange', themes:[],
+        b:'An interest in apps and websites, stated broadly. Three questions came back \u2014 what kind of project, who for and what it needs to do, and what it should look like.',
+        c:['Type of project','Audience and functionality','Style and aesthetic'] },
+      { t:'Never answered', k:'Dead end', themes:[], open:true,
+        b:'No further detail was given, so nothing was decided and nothing was built. Whatever this was going to be is still available.',
+        c:['Reopen and answer the three questions, or let it go'] }
+    ]
+  }
+];
+
+const REPAIRS = [
+  { t:'Observatory v6.1 stopped mid-pass', d:'CSS enhancements complete, JavaScript enhancements in progress. Picking this up is the single highest-value resume point in the web.', s:'obs' },
+  { t:'V6 spec file returning 404', d:'Cross-check Collections anchors and the evidence-flag taxonomy against the committed spec before any stakeholder review.', s:'obs' },
+  { t:'Roadmap risks need real specifics', d:'Dependencies & risks and the local-gaps section still need your department\u2019s sector regulator, existing EA/COBIT body and records-management schedules. Only your team has that.', s:'gov' },
+  { t:'Apps and websites never answered', d:'Three questions asked on 20 July, no reply. Either answer them or cut the thread deliberately.', s:'apps' },
+  { t:'Project conversations are out of scope', d:'This web is spun only from chats outside a project. Anything held inside a project is invisible from here \u2014 those radii are missing, not absent.', s:'' }
+];
+</script>

@@ -1,0 +1,227 @@
+<script>
+/* ============================================================
+   Geometry + rendering
+   ============================================================ */
+const CX = 500, CY = 498, R0 = 100, RSTEP = 50, RINGS = 7;
+const FRAME_R = { gov:462, cda:470, obs:452, cat:466, apps:446 };
+const ANCHORS = [
+  { x:148, y:118, t:'Govern',    ta:'start' },
+  { x:858, y:132, t:'Catalogue', ta:'end'   },
+  { x:872, y:886, t:'Measure',   ta:'end'   },
+  { x:132, y:872, t:'Publish',   ta:'start' }
+];
+const RAD = Math.PI / 180;
+const pt = (a, r) => ({ x: CX + r * Math.cos(a * RAD), y: CY + r * Math.sin(a * RAD) });
+let _flatTax = null;
+function flatTax(){
+  if (_flatTax) return _flatTax;
+  _flatTax = {};
+  TAXONOMY.forEach(g => { _flatTax[g.id] = g.label; (g.kids||[]).forEach(k => _flatTax[k.id] = g.label + ' \u203a ' + k.label); });
+  return _flatTax;
+}
+const CLSOF = id => (ENRICH[id]||{}).cls || 'Concept';
+const SHAPEOF = cls => (ONTOLOGY.find(o => o.id === cls)||{}).shape || 'circle';
+function shapePath(shape, x, y, r){
+  const P = (a,rr) => [x + rr*Math.cos(a*Math.PI/180), y + rr*Math.sin(a*Math.PI/180)];
+  switch(shape){
+    case 'square':   return `M${x-r},${y-r} H${x+r} V${y+r} H${x-r} Z`;
+    case 'diamond':  return `M${x},${y-r} L${x+r},${y} L${x},${y+r} L${x-r},${y} Z`;
+    case 'triangle': return `M${x},${y-r} L${x+r*0.9},${y+r*0.62} L${x-r*0.9},${y+r*0.62} Z`;
+    case 'hex':      return 'M' + [0,60,120,180,240,300].map(a => P(a-30,r).map(v=>v.toFixed(1)).join(',')).join(' L') + ' Z';
+    case 'cross': { const a = r*0.38;
+      return `M${x-a},${y-r} H${x+a} V${y-a} H${x+r} V${y+a} H${x+a} V${y+r} H${x-a} V${y+a} H${x-r} V${y-a} H${x-a} Z`; }
+    default:         return `M${x-r},${y} a${r},${r} 0 1,0 ${2*r},0 a${r},${r} 0 1,0 ${-2*r},0`;
+  }
+}
+function splitLabel(s){
+  const w = s.split(' ');
+  if (w.length < 3) return [s];
+  let best = 1, diff = 1e9;
+  for (let i = 1; i < w.length; i++){
+    const d = Math.abs(w.slice(0,i).join(' ').length - w.slice(i).join(' ').length);
+    if (d < diff) { diff = d; best = i; }
+  }
+  return [w.slice(0,best).join(' '), w.slice(best).join(' ')];
+}
+const el = (n, at = {}) => { const e = document.createElementNS('http://www.w3.org/2000/svg', n); for (const k in at) e.setAttribute(k, at[k]); return e; };
+
+const S = { strand:null, node:null, theme:null, query:'', labels:true, spiral:true };
+const NODEREFS = [];
+
+/* ---------- frame, guys, anchors ---------- */
+(function frame(){
+  const g = document.getElementById('gFrame');
+  const verts = STRANDS.map(s => ({ ...pt(s.angle, FRAME_R[s.id]), a:s.angle }));
+  let d = '';
+  verts.forEach((v, i) => {
+    const n = verts[(i + 1) % verts.length];
+    const mid = (v.a + (i === verts.length - 1 ? n.a + 360 : n.a)) / 2;
+    const c = pt(mid, FRAME_R[STRANDS[i].id] * 0.9);
+    d += (i === 0 ? `M${v.x},${v.y}` : '') + ` Q${c.x},${c.y} ${n.x},${n.y}`;
+  });
+  g.appendChild(el('path', { d, class:'frame-thread' }));
+
+  ANCHORS.forEach(a => {
+    const near = verts.map(v => ({ v, dd:(v.x-a.x)**2 + (v.y-a.y)**2 }))
+                      .sort((p,q) => p.dd - q.dd).slice(0,2);
+    near.forEach(n => g.appendChild(el('line', { x1:a.x, y1:a.y, x2:n.v.x, y2:n.v.y, class:'guy' })));
+    g.appendChild(el('circle', { cx:a.x, cy:a.y, r:3, fill:'var(--ridge)', stroke:'var(--faint)', 'stroke-width':1 }));
+    const lb = el('text', { x:a.x + (a.ta === 'start' ? 10 : -10), y:a.y + 4, class:'anchor-lbl', 'text-anchor':a.ta });
+    lb.textContent = a.t;
+    g.appendChild(lb);
+  });
+})();
+
+/* ---------- capture spiral ---------- */
+(function spiral(){
+  const g = document.getElementById('gSpiral');
+  const n = STRANDS.length;
+  let d = '', prev = null;
+  for (let ring = 0; ring < RINGS; ring++) {
+    for (let i = 0; i < n; i++) {
+      const a = STRANDS[i].angle + 360 * ring;
+      const r = R0 + ring * RSTEP + (i / n) * RSTEP;
+      const p = pt(a, r);
+      if (!prev) { d += `M${p.x.toFixed(1)},${p.y.toFixed(1)}`; }
+      else {
+        const c = pt((prev.a + a) / 2, (prev.r + r) / 2 * 0.945);
+        d += ` Q${c.x.toFixed(1)},${c.y.toFixed(1)} ${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+      }
+      prev = { a, r };
+    }
+  }
+  g.appendChild(el('path', { d, class:'spiral' }));
+})();
+
+/* ---------- radii + nodes ---------- */
+STRANDS.forEach((s, si) => {
+  const gR = document.getElementById('gRadii');
+  const gN = document.getElementById('gNodes');
+  const end = pt(s.angle, FRAME_R[s.id]);
+
+  const line = el('line', { x1:CX, y1:CY, x2:end.x, y2:end.y, class:'radius' });
+  line.style.setProperty('--strand-c', `var(--sc-${s.id})`);
+  line.dataset.s = s.id;
+  gR.appendChild(line);
+  s._radius = line;
+
+  // strand label out past the frame, wrapped to two lines
+  const lp = pt(s.angle, FRAME_R[s.id] + 30);
+  const cs = Math.cos(s.angle * RAD), sn = Math.sin(s.angle * RAD);
+  const anchor = cs > 0.25 ? 'start' : (cs < -0.25 ? 'end' : 'middle');
+  const lines = splitLabel(s.label);
+  const yBase = lp.y + (sn > 0.4 ? 16 : (sn < -0.4 ? -18 : -2));
+  const sl = el('text', { x:lp.x, y:yBase, class:'strand-lbl', 'text-anchor':anchor });
+  sl.style.setProperty('--strand-c', `var(--sc-${s.id})`);
+  lines.forEach((ln, k) => {
+    const ts = el('tspan', { x:lp.x, dy: k === 0 ? 0 : 18 });
+    ts.textContent = ln; sl.appendChild(ts);
+  });
+  sl.addEventListener('click', () => selectStrand(s.id));
+  gR.appendChild(sl);
+
+  // label offset direction, aimed into the empty gap beside this thread
+  const pa = (s.lab !== undefined ? s.lab : s.angle + 90);
+  const px = Math.cos(pa * RAD), py = Math.sin(pa * RAD);
+  const lAnchor = px > 0.05 ? 'start' : 'end';
+  const off = 15;
+  s._lab = { px, py, off, anchor:lAnchor };
+  s._frameEnd = end;
+
+  s.nodes.forEach((nd, j) => {
+    const r = R0 + j * RSTEP;
+    const p = pt(s.angle, r);
+    const g = el('g', { class:'node' + (nd.open ? ' open' : ''), tabindex:'0', role:'button' });
+    g.dataset.s = s.id; g.dataset.j = j;
+    g.style.setProperty('--strand-c', `var(--sc-${s.id})`);
+    const nid = s.id + ':' + j, cls = CLSOF(nid);
+    g.appendChild(el('circle', { class:'halo', cx:p.x, cy:p.y, r:17, fill:'transparent', 'pointer-events':'all' }));
+    g.appendChild(el('path', { class:'bead', d: shapePath(SHAPEOF(cls), p.x, p.y, j === 0 ? 6.6 : 5.4) }));
+    g.setAttribute('aria-label', `${nd.t}. ${s.label}. Class ${cls}. ${nd.b}`);
+    const tx = el('text', { class:'lbl', x:p.x + px*off, y:p.y + py*off + 3.5, 'text-anchor':lAnchor });
+    tx.textContent = nd.t;
+    g.appendChild(tx);
+    gN.appendChild(g);
+
+    const ref = { s, si, nd, j, p, p0:{ x:p.x, y:p.y }, rad:r, size:(j === 0 ? 6.6 : 5.4), shape:SHAPEOF(cls),
+      g, bead:g.querySelector('.bead'), lblEl:tx, hay:
+      (s.label + ' ' + nd.t + ' ' + nd.k + ' ' + nd.b + ' ' + (nd.c||[]).join(' ') + ' ' + (nd.themes||[]).join(' ')).toLowerCase() };
+    NODEREFS.push(ref);
+
+    const meta = () => {
+      const e2 = ENRICH[nid] || {}, tx = flatTax()[e2.tax], kb = (KISIL.levels.find(l => l.id === e2.kisil)||{}).label;
+      return [s.label, e2.cls, tx, kb].filter(Boolean).join(' \u00b7 ');
+    };
+    const show = e => tip(e, nd.t, meta());
+    g.addEventListener('mouseenter', show);
+    g.addEventListener('mousemove', show);
+    g.addEventListener('mouseleave', hideTip);
+    g.addEventListener('focus', () => tipAtEl(g, nd.t, meta()));
+    g.addEventListener('blur', hideTip);
+    g.addEventListener('click', () => selectNode(s.id, j));
+    g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectNode(s.id, j); } });
+  });
+});
+
+/* ---------- hub + spider ---------- */
+(function hub(){
+  const g = document.getElementById('gHub');
+  [46, 30].forEach(r => g.appendChild(el('circle', { cx:CX, cy:CY, r, class:'hub-ring' })));
+  g.appendChild(el('circle', { cx:CX, cy:CY, r:9, class:'hub-core' }));
+  const a = el('text', { x:CX, y:CY - 58, class:'hub-lbl' }); a.textContent = 'UK central government';
+  const b = el('text', { x:CX, y:CY + 57, class:'hub-lbl' }); b.textContent = 'data & metadata';
+  const c = el('text', { x:CX, y:CY + 76, class:'hub-lbl' }); c.textContent = 'management';
+  g.appendChild(a); g.appendChild(b); g.appendChild(c);
+  const ttl = el('title'); ttl.textContent = 'The hub \u2014 click to return to the whole web';
+  g.appendChild(ttl);
+  g.style.cursor = 'pointer';
+  g.addEventListener('click', () => reset());
+
+  const sp = el('g', { id:'spider' });
+  sp.innerHTML =
+    '<path d="M-1,-1 Q-8,-8 -12,-6"/><path d="M-1,0 Q-9,-2 -13,1"/><path d="M-1,1 Q-9,3 -12,7"/><path d="M-1,2 Q-7,7 -9,11"/>' +
+    '<path d="M1,-1 Q8,-8 12,-6"/><path d="M1,0 Q9,-2 13,1"/><path d="M1,1 Q9,3 12,7"/><path d="M1,2 Q7,7 9,11"/>' +
+    '<ellipse class="body" cx="0" cy="1.5" rx="3" ry="4"/><circle class="body" cx="0" cy="-3.2" r="2"/>';
+  sp.setAttribute('transform', `translate(${CX},${CY})`);
+  document.getElementById('gSpider').appendChild(sp);
+})();
+
+function walkTo(p){
+  const sp = document.getElementById('spider');
+  if (sp) sp.setAttribute('transform', `translate(${p.x},${p.y})`);
+}
+
+/* ---------- vibration ---------- */
+function vibrate(p){
+  const g = document.getElementById('gPulse');
+  const path = el('path', { d:`M${CX},${CY} L${p.x},${p.y}`, class:'pulse' });
+  const len = Math.hypot(p.x - CX, p.y - CY);
+  path.style.strokeDasharray = len;
+  path.style.setProperty('--len', len);
+  g.appendChild(path);
+  requestAnimationFrame(() => path.classList.add('go'));
+  const rip = el('circle', { cx:p.x, cy:p.y, r:6, class:'ripple' });
+  g.appendChild(rip);
+  setTimeout(() => { path.remove(); rip.remove(); }, 1000);
+}
+
+/* ---------- tooltip ---------- */
+const tipEl = document.getElementById('tip'), stageEl = document.getElementById('stage'), svgEl = document.getElementById('web');
+function tip(e, t, m){
+  const r = stageEl.getBoundingClientRect();
+  place(e.clientX - r.left, e.clientY - r.top, t, m);
+}
+function tipAtEl(node, t, m){
+  const b = node.getBoundingClientRect(), s = stageEl.getBoundingClientRect();
+  place(b.left - s.left + b.width / 2, b.top - s.top + b.height / 2, t, m);
+}
+function place(x, y, t, m){
+  tipEl.innerHTML = `<div class="t">${esc(t)}</div><div class="m">${esc(m)}</div>`;
+  tipEl.classList.add('on');
+  const w = tipEl.offsetWidth, h = tipEl.offsetHeight, sw = stageEl.clientWidth;
+  tipEl.style.left = Math.max(6, Math.min(sw - w - 6, x + 16)) + 'px';
+  tipEl.style.top  = Math.max(6, y - h - 12) + 'px';
+}
+function hideTip(){ tipEl.classList.remove('on'); }
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+</script>

@@ -1,0 +1,365 @@
+<script>
+/* ============================================================
+   OWL explorer — a Protégé-shaped browser over the ontology.
+   Asserted axioms, a small reasoner, and an honest account of
+   what it could and could not infer.
+   ============================================================ */
+const NS = 'web:';
+
+const PROP_META = {
+  hasPart:     { dom:'Artefact',    rng:'Thing',    chars:['Transitive'] },
+  partOf:      { dom:'Thing',       rng:'Artefact', chars:['Transitive'] },
+  derivedFrom: { dom:'Thing',       rng:'Thing',    chars:[] },
+  sourceOf:    { dom:'Thing',       rng:'Thing',    chars:[] },
+  measures:    { dom:'ScoringModel',rng:'Register', chars:[] },
+  measuredBy:  { dom:'Register',    rng:'ScoringModel', chars:[] },
+  describes:   { dom:'Standard',    rng:'Register', chars:[] },
+  describedBy: { dom:'Register',    rng:'Standard', chars:[] },
+  governs:     { dom:'Concept',     rng:'Thing',    chars:[] },
+  governedBy:  { dom:'Thing',       rng:'Concept',  chars:[] },
+  evidences:   { dom:'Register',    rng:'Thing',    chars:[] },
+  evidencedBy: { dom:'Thing',       rng:'Register', chars:[] },
+  alignsWith:  { dom:'Thing',       rng:'Thing',    chars:['Symmetric'] },
+  equivalentTo:{ dom:'Thing',       rng:'Thing',    chars:['Symmetric','Transitive'] },
+  threatens:   { dom:'Risk',        rng:'Thing',    chars:[] },
+  threatenedBy:{ dom:'Thing',       rng:'Risk',     chars:[] }
+};
+const DISJOINT = [ ['Artefact','Concept','Source','Standard','Method'], ['Risk','Portal'] ];
+
+/* ---------- the reasoner ---------- */
+const ancestorsOf = cls => classAncestry(cls).map(c => c.id);
+const childrenOf  = cls => ONTOLOGY.filter(o => o.parent === cls).map(o => o.id);
+function descendantsOf(cls){
+  const out = []; const walk = c => childrenOf(c).forEach(k => { out.push(k); walk(k); }); walk(cls); return out;
+}
+
+const REASON = (function reason(){
+  const types = {}, inferredTypes = {}, notes = [];
+  NODEREFS.forEach(r => {
+    const id = key(r), a = CLSOF(id);
+    types[id] = new Set([a]);
+    inferredTypes[id] = new Set(ancestorsOf(a).slice(1));   /* everything above the asserted class */
+  });
+
+  /* domain and range typing */
+  let dr = 0;
+  DECLARED.forEach(e => {
+    const meta = PROP_META[e.prop]; if (!meta) return;
+    [[e.from, meta.dom], [e.to, meta.rng]].forEach(([ind, cls]) => {
+      if (!types[ind] || cls === 'Thing') return;
+      const known = new Set([...types[ind], ...inferredTypes[ind]]);
+      if (!known.has(cls)) { inferredTypes[ind].add(cls); dr++; }
+    });
+  });
+
+  /* transitive closure on transitive properties */
+  const extra = [];
+  Object.keys(PROP_META).filter(p => PROP_META[p].chars.includes('Transitive')).forEach(p => {
+    const step = EDGES.filter(e => e.prop === p);
+    let added = true, cur = step.map(e => ({ ...e }));
+    while (added){
+      added = false;
+      cur.forEach(a => step.forEach(b => {
+        if (a.to !== b.from || a.from === b.to) return;
+        if (cur.some(x => x.from === a.from && x.to === b.to) || extra.some(x => x.from === a.from && x.to === b.to && x.prop === p)) return;
+        extra.push({ from:a.from, to:b.to, prop:p, inferred:true }); added = true;
+      }));
+      cur = cur.concat(extra.filter(e => e.prop === p));
+    }
+  });
+
+  /* symmetric closure */
+  let sym = 0;
+  Object.keys(PROP_META).filter(p => PROP_META[p].chars.includes('Symmetric')).forEach(p => {
+    DECLARED.filter(e => e.prop === p).forEach(e => {
+      if (!DECLARED.some(x => x.prop === p && x.from === e.to && x.to === e.from)) {
+        extra.push({ from:e.to, to:e.from, prop:p, inferred:true }); sym++;
+      }
+    });
+  });
+
+  /* disjointness consistency */
+  const clashes = [];
+  Object.keys(types).forEach(id => {
+    const all = new Set([...types[id], ...inferredTypes[id]]);
+    DISJOINT.forEach(set => {
+      const hit = set.filter(c => all.has(c) || [...all].some(a => descendantsOf(c).includes(a)));
+      if (hit.length > 1) clashes.push({ id, classes:hit });
+    });
+  });
+
+  /* induced patterns: true of every instance, but never asserted as an axiom */
+  const observed = [];
+  ONTOLOGY.forEach(o => {
+    const inst = instancesOfClass(o.id);
+    if (inst.length < 2) return;
+    Object.keys(PROP_META).forEach(p => {
+      const withP = inst.filter(r => EDGES.some(e => e.from === key(r) && e.prop === p));
+      if (withP.length === inst.length){
+        const fillers = new Set(inst.flatMap(r => EDGES.filter(e => e.from === key(r) && e.prop === p).map(e => CLSOF(e.to))));
+        observed.push({ cls:o.id, prop:p, n:inst.length, fillers:[...fillers] });
+      }
+    });
+  });
+
+  notes.push(`Materialised ${EDGES.length - DECLARED.length} inverse assertions from ${DECLARED.length} declared.`);
+  notes.push(dr ? `${dr} class memberships inferred from property domains and ranges.`
+                : 'No new memberships from domains and ranges — every assertion already matched its declared types.');
+  const tr = extra.filter(e => PROP_META[e.prop].chars.includes('Transitive')).length;
+  notes.push(tr ? `${tr} assertions inferred by transitivity.`
+                : 'Nothing new from transitivity — no part chain in this ontology runs more than one step.');
+  notes.push(sym ? `${sym} assertions inferred by symmetry.` : 'Symmetry added nothing — both directions were already asserted.');
+  notes.push(clashes.length ? `${clashes.length} disjointness clashes.` : 'Consistent: no individual holds two disjoint classes.');
+
+  return { types, inferredTypes, extra, clashes, observed, notes };
+})();
+
+const allTypesOf = id => [...new Set([...(REASON.types[id]||[]), ...(REASON.inferredTypes[id]||[])])];
+const assertionsOf = id => [
+  ...DECLARED.filter(e => e.from === id).map(e => ({ ...e, kind:'asserted' })),
+  ...EDGES.filter(e => e.from === id && !e.declared).map(e => ({ ...e, kind:'inverse' })),
+  ...REASON.extra.filter(e => e.from === id).map(e => ({ ...e, kind:'inferred' }))
+];
+
+/* ============================================================
+   The workspace
+   ============================================================ */
+(function buildOwlUI(){
+  const d = document.createElement('div');
+  d.className = 'modal'; d.id = 'owlx'; d.hidden = true;
+  d.setAttribute('role','dialog'); d.setAttribute('aria-modal','true'); d.setAttribute('aria-labelledby','owlxTitle');
+  d.innerHTML = `<div class="sheet owlsheet">
+    <div class="sheet-head">
+      <h2 id="owlxTitle">Ontology explorer</h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="reason-flag" id="owlConsist">consistent</span>
+        <button class="ctl" id="owlInfer" aria-pressed="true">Show inferred</button>
+        <button class="ctl" id="owlxClose">Close</button>
+      </div>
+    </div>
+    <div class="owl-tabs" role="tablist" aria-label="Entity kinds">
+      <button class="owl-tab" role="tab" aria-selected="true"  data-ok="classes">Classes</button>
+      <button class="owl-tab" role="tab" aria-selected="false" data-ok="props">Object properties</button>
+      <button class="owl-tab" role="tab" aria-selected="false" data-ok="inds">Individuals</button>
+    </div>
+    <div class="owl-bar">
+      <input id="owlSearch" type="search" placeholder="Search entities…" aria-label="Search ontology entities">
+      <span class="dlq">
+        <select id="dlA" aria-label="Class"></select>
+        <span>and</span>
+        <select id="dlP" aria-label="Property"></select>
+        <span>some</span>
+        <select id="dlB" aria-label="Filler class"></select>
+        <button class="ctl" id="dlRun">Run query</button>
+      </span>
+    </div>
+    <div class="owl-grid">
+      <div class="owl-col"><h4>Entities</h4><div id="owlTree"></div></div>
+      <div class="owl-col"><div id="owlDetail"></div></div>
+      <div class="owl-col"><h4>Usage</h4><div id="owlUsage"></div></div>
+    </div>
+  </div>`;
+  document.body.appendChild(d);
+})();
+
+const owlx = document.getElementById('owlx');
+let owlTab = 'classes', owlSel = 'Thing', owlShowInf = true, owlQ = '';
+
+const glyphFor = cls => {
+  const o = ONTOLOGY.find(x => x.id === cls);
+  return `<svg class="g" viewBox="0 0 15 15" aria-hidden="true"><path d="${shapePath(o ? o.shape : 'circle', 7.5, 7.5, 5)}"></path></svg>`;
+};
+const iri = e => `<span class="entity-head"></span>`;
+
+function owlTree(){
+  const box = document.getElementById('owlTree');
+  const match = s => !owlQ || s.toLowerCase().includes(owlQ.toLowerCase());
+
+  if (owlTab === 'classes'){
+    const branch = parent => {
+      const kids = ONTOLOGY.filter(o => o.parent === parent).filter(o => !owlQ || match(o.label) || descendantsOf(o.id).some(match));
+      if (!kids.length) return '';
+      return '<ul>' + kids.map(o =>
+        `<li><button class="owl-node${owlSel===o.id?' on':''}" data-e="${o.id}">${glyphFor(o.id)}<span>${esc(o.label)}</span>
+          <span class="n">${instancesOfClass(o.id).length}</span></button>${branch(o.id)}</li>`).join('') + '</ul>';
+    };
+    box.innerHTML = '<ul class="owl-tree">' + ONTOLOGY.filter(o => !o.parent).map(o =>
+      `<li><button class="owl-node${owlSel===o.id?' on':''}" data-e="${o.id}">${glyphFor(o.id)}<span>${esc(o.label)}</span>
+        <span class="n">${NODEREFS.length}</span></button>${branch(o.id)}</li>`).join('') + '</ul>';
+  }
+
+  else if (owlTab === 'props'){
+    box.innerHTML = '<ul class="owl-tree">' + PROPS.filter(p => match(p.id) || match(p.label)).map(p => {
+      const n = DECLARED.filter(e => e.prop === p.id).length;
+      return `<li><button class="owl-node${owlSel===p.id?' on':''}" data-e="${p.id}">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px">${esc(p.id)}</span>
+        <span class="n">${n}</span></button></li>`;
+    }).join('') + '</ul>';
+  }
+
+  else {
+    box.innerHTML = '<ul class="owl-tree">' + NODEREFS.filter(r => match(r.nd.t)).map(r => {
+      const id = key(r);
+      return `<li><button class="owl-node${owlSel===id?' on':''}" data-e="${id}">${glyphFor(CLSOF(id))}
+        <span>${esc(r.nd.t)}</span><span class="n">${esc(r.s.id)}</span></button></li>`;
+    }).join('') + '</ul>';
+  }
+
+  box.querySelectorAll('[data-e]').forEach(b => b.addEventListener('click', () => { owlSel = b.dataset.e; owlTree(); owlDetail(); }));
+}
+
+function ax(html, kind, tag){
+  return `<div class="ax ${kind||''}">${tag?`<span class="tag">${tag}</span>`:''}${html}</div>`;
+}
+
+function owlDetail(){
+  const det = document.getElementById('owlDetail'), use = document.getElementById('owlUsage');
+  const cls = ONTOLOGY.find(o => o.id === owlSel);
+  const prp = PROPS.find(p => p.id === owlSel);
+  const ind = byKey[owlSel];
+  let h = '', u = '';
+
+  if (cls){
+    const anc = ancestorsOf(cls.id).slice(1), kids = childrenOf(cls.id), inst = instancesOfClass(cls.id);
+    const direct = NODEREFS.filter(r => CLSOF(key(r)) === cls.id);
+    const dis = DISJOINT.filter(s => s.includes(cls.id)).flatMap(s => s.filter(x => x !== cls.id));
+    h = `<div class="entity-head"><div class="iri">${NS}${cls.id}</div><h3>${esc(cls.label)}</h3><p>${esc(cls.def)}</p></div>
+      <h4>Annotations</h4>
+      ${ax(`<b>rdfs:label</b> "${esc(cls.label)}"`)}
+      ${ax(`<b>rdfs:comment</b> "${esc(cls.def)}"`)}
+      ${ax(`<b>web:shape</b> "${esc(cls.shape)}" <span class="tag">visual encoding</span>`)}
+      <h4>SubClass of</h4>
+      ${cls.parent ? ax(`<i>${NS}${cls.parent}</i>`, '', 'asserted') : ax('<em>owl:Thing</em> — this is the root', '', 'asserted')}
+      ${owlShowInf ? anc.slice(1).map(a => ax(`<i>${NS}${a}</i>`, 'inf', 'inferred')).join('') : ''}
+      ${kids.length ? `<h4>Sub classes</h4>` + kids.map(k => ax(`<i>${NS}${k}</i>`)).join('') : ''}
+      ${dis.length ? `<h4>Disjoint with</h4>` + dis.map(k => ax(`<i>${NS}${k}</i>`, '', 'asserted')).join('') : ''}`;
+
+    const obs = REASON.observed.filter(o => o.cls === cls.id);
+    if (obs.length && owlShowInf){
+      h += `<h4>Observed necessary conditions</h4>
+        <p style="font-size:11.5px;color:var(--faint);margin:-4px 0 8px;line-height:1.5">True of every instance in this ontology, but never asserted. Induced from the data, not entailed by it.</p>` +
+        obs.map(o => ax(`${NS}${cls.id} \u2291 <i>${o.prop}</i> <b>some</b> <em>${o.fillers.join(' or ')}</em>`, 'obs', `${o.n}/${o.n} instances`)).join('');
+    }
+    h += `<h4>Instances \u00b7 ${inst.length}</h4>` + inst.map(r =>
+      `<button class="owl-jump" data-node="${key(r)}">${esc(r.nd.t)}
+        <span class="s">${esc(r.s.label)}${direct.includes(r) ? '' : ' \u00b7 via ' + CLSOF(key(r))}</span></button>`).join('');
+
+    u = `<p style="font-size:12px;color:var(--moth);line-height:1.55">Where <b style="color:var(--silk)">${esc(cls.label)}</b> appears in the axioms.</p>` +
+      PROPS.filter(p => PROP_META[p.id] && (PROP_META[p.id].dom === cls.id || PROP_META[p.id].rng === cls.id))
+        .map(p => ax(`<i>${p.id}</i> ${PROP_META[p.id].dom === cls.id ? 'domain' : 'range'} <b>${cls.id}</b>`)).join('') +
+      ONTOLOGY.filter(o => o.parent === cls.id).map(o => ax(`<i>${o.id}</i> subClassOf <b>${cls.id}</b>`)).join('');
+  }
+
+  else if (prp){
+    const meta = PROP_META[prp.id] || { dom:'Thing', rng:'Thing', chars:[] };
+    const list = DECLARED.filter(e => e.prop === prp.id);
+    const inf = REASON.extra.filter(e => e.prop === prp.id);
+    h = `<div class="entity-head"><div class="iri">${NS}${prp.id}</div><h3>${esc(prp.label)}</h3><p>${esc(prp.note)}</p></div>
+      <h4>Characteristics</h4>
+      ${meta.chars.length ? meta.chars.map(c => ax(`<b>${c}</b>`, '', 'asserted')).join('') : ax('<em>none declared</em>')}
+      ${prp.inv ? ax(`<b>owl:inverseOf</b> <i>${NS}${prp.inv}</i>`, '', 'asserted') : ''}
+      <h4>Domain and range</h4>
+      ${ax(`<b>rdfs:domain</b> <i>${NS}${meta.dom}</i>`)}
+      ${ax(`<b>rdfs:range</b> <i>${NS}${meta.rng}</i>`)}
+      <h4>Assertions \u00b7 ${list.length}${owlShowInf && inf.length ? ' asserted, ' + inf.length + ' inferred' : ''}</h4>` +
+      list.map(e => ax(`<b>${esc(nodeOf(e.from).nd.t)}</b> <i>${prp.id}</i> <b>${esc(nodeOf(e.to).nd.t)}</b>`, '', 'asserted')).join('') +
+      (owlShowInf ? inf.map(e => ax(`<b>${esc(nodeOf(e.from).nd.t)}</b> <i>${prp.id}</i> <b>${esc(nodeOf(e.to).nd.t)}</b>`, 'inf', 'inferred')).join('') : '');
+    u = `<p style="font-size:12px;color:var(--moth);line-height:1.55">Draw every <b style="color:var(--silk)">${esc(prp.id)}</b> assertion on the web.</p>
+      <button class="ctl" id="owlDraw">Draw on the web</button>`;
+  }
+
+  else if (ind){
+    const id = owlSel, asserted = CLSOF(id), infT = [...(REASON.inferredTypes[id]||[])];
+    const e2 = ENRICH[id] || {};
+    h = `<div class="entity-head"><div class="iri">${NS}${id.replace(':','_')}</div><h3>${esc(ind.nd.t)}</h3><p>${esc(ind.nd.b)}</p></div>
+      <h4>Types</h4>
+      ${ax(`<b>rdf:type</b> <i>${NS}${asserted}</i>`, '', 'asserted')}
+      ${owlShowInf ? infT.map(t => ax(`<b>rdf:type</b> <i>${NS}${t}</i>`, 'inf', 'inferred')).join('') : ''}
+      <h4>Annotations</h4>
+      ${ax(`<b>web:thread</b> "${esc(ind.s.label)}"`)}
+      ${ax(`<b>web:kilStage</b> "${esc((KIL.levels.find(l=>l.id===kilOf(id))||{}).label)}" <span class="tag">KIL \u00b7 canonical</span>`)}
+      ${e2.tax ? ax(`<b>web:purpose</b> "${esc(flatTax()[e2.tax])}"`) : ''}
+      ${e2.kisil ? ax(`<b>web:kslBand</b> "${esc((KISIL.levels.find(l=>l.id===e2.kisil)||{}).label)}" <span class="tag">KSL \u00b7 unratified</span>`) : ''}
+      ${(ind.nd.themes||[]).map(t => ax(`<b>web:crossing</b> "${esc((THEMES.find(x=>x.id===t)||{}).label)}"`)).join('')}
+      <h4>Property assertions</h4>`;
+    const asserts = assertionsOf(id);
+    h += asserts.filter(a => owlShowInf || a.kind === 'asserted').map(a =>
+      ax(`<i>${a.prop}</i> <b>${esc(nodeOf(a.to).nd.t)}</b>`, a.kind === 'asserted' ? '' : 'inf', a.kind)).join('')
+      || ax('<em>none</em>');
+    h += `<h4>On the web</h4><button class="owl-jump" data-node="${id}">Go to this bead \u2192<span class="s">${esc(ind.s.label)}</span></button>`;
+    u = `<p style="font-size:12px;color:var(--moth);line-height:1.55">Assertions pointing <b style="color:var(--silk)">at</b> this individual.</p>` +
+      (DECLARED.filter(e => e.to === id).map(e =>
+        ax(`<b>${esc(nodeOf(e.from).nd.t)}</b> <i>${e.prop}</i> <b>this</b>`)).join('') || ax('<em>nothing refers to it</em>'));
+  }
+
+  det.innerHTML = h; use.innerHTML = u;
+  det.querySelectorAll('[data-node]').forEach(b => b.addEventListener('click', () => {
+    const r = byKey[b.dataset.node]; closeOwlX(); selectNode(r.s.id, r.j);
+  }));
+  const dw = document.getElementById('owlDraw');
+  if (dw) dw.addEventListener('click', () => {
+    const list = DECLARED.filter(e => e.prop === owlSel);
+    closeOwlX(); toggleOwl(true);
+    selectSet([...new Set(list.flatMap(e => [e.from, e.to]))].map(nodeOf).filter(Boolean),
+      'Object property', PROPOF(owlSel).label, esc(PROPOF(owlSel).note));
+    drawEdges(list, { label:true, hi:true });
+  });
+}
+
+/* ---------- reasoner report + DL query ---------- */
+function owlHeaderState(){
+  const flag = document.getElementById('owlConsist');
+  flag.textContent = REASON.clashes.length ? REASON.clashes.length + ' clashes' : 'consistent';
+  flag.classList.toggle('bad', REASON.clashes.length > 0);
+  flag.title = REASON.notes.join(' ');
+}
+(function fillDL(){
+  const opts = ONTOLOGY.map(o => `<option value="${o.id}">${o.label}</option>`).join('');
+  document.getElementById('dlA').innerHTML = opts;
+  document.getElementById('dlB').innerHTML = opts;
+  document.getElementById('dlP').innerHTML = PROPS.filter(p => DECLARED.some(e => e.prop === p.id))
+    .map(p => `<option value="${p.id}">${p.id}</option>`).join('');
+  document.getElementById('dlA').value = 'Portal';
+  document.getElementById('dlP').value = 'derivedFrom';
+  document.getElementById('dlB').value = 'Method';
+})();
+document.getElementById('dlRun').addEventListener('click', () => {
+  const A = document.getElementById('dlA').value, P = document.getElementById('dlP').value, B = document.getElementById('dlB').value;
+  const hits = instancesOfClass(A).filter(r =>
+    EDGES.some(e => e.from === key(r) && e.prop === P && ancestorsOf(CLSOF(e.to)).includes(B)));
+  document.getElementById('owlUsage').innerHTML =
+    `<h4>Query result \u00b7 ${hits.length}</h4>
+     <div class="ax"><b>${A}</b> and <i>${P}</i> <b>some</b> <em>${B}</em></div>` +
+    (hits.map(r => `<button class="owl-jump" data-node="${key(r)}">${esc(r.nd.t)}<span class="s">${esc(r.s.label)}</span></button>`).join('')
+      || '<p style="font-size:12px;color:var(--faint);font-style:italic">Nothing satisfies that expression.</p>');
+  document.getElementById('owlUsage').querySelectorAll('[data-node]').forEach(b =>
+    b.addEventListener('click', () => { const r = byKey[b.dataset.node]; closeOwlX(); selectNode(r.s.id, r.j); }));
+  say(hits.length + ' individuals satisfy ' + A + ' and ' + P + ' some ' + B + '.');
+});
+
+document.querySelectorAll('.owl-tab').forEach(b => b.addEventListener('click', () => {
+  owlTab = b.dataset.ok;
+  document.querySelectorAll('.owl-tab').forEach(x => x.setAttribute('aria-selected', String(x === b)));
+  owlSel = owlTab === 'classes' ? 'Thing' : (owlTab === 'props' ? PROPS[0].id : key(NODEREFS[0]));
+  owlTree(); owlDetail();
+}));
+document.getElementById('owlSearch').addEventListener('input', e => { owlQ = e.target.value; owlTree(); });
+document.getElementById('owlInfer').addEventListener('click', e => {
+  owlShowInf = !owlShowInf;
+  e.target.setAttribute('aria-pressed', String(owlShowInf));
+  e.target.textContent = owlShowInf ? 'Show inferred' : 'Asserted only';
+  owlDetail();
+  say(owlShowInf ? 'Showing asserted and inferred axioms.' : 'Showing asserted axioms only.');
+});
+
+let owlLastFocus = null;
+function openOwlX(){
+  owlLastFocus = document.activeElement;
+  owlx.hidden = false; owlHeaderState(); owlTree(); owlDetail();
+  document.getElementById('owlSearch').focus();
+  say('Ontology explorer open. ' + ONTOLOGY.length + ' classes, ' + PROPS.length + ' properties, ' + NODEREFS.length + ' individuals. ' + REASON.notes[4]);
+}
+function closeOwlX(){ owlx.hidden = true; if (owlLastFocus) owlLastFocus.focus(); }
+document.getElementById('owlxClose').addEventListener('click', closeOwlX);
+owlx.addEventListener('click', e => { if (e.target === owlx) closeOwlX(); });
+</script>

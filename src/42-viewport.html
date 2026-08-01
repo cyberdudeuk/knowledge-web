@@ -1,0 +1,246 @@
+<script>
+/* ============================================================
+   Ways a spider actually moves.
+   Walking radii was only one of them.
+   ============================================================ */
+const VB = { x:-150, y:-80, w:1300, h:1160 };
+const KMIN = 0.55, KMAX = 9;
+
+/* declared up front: the viewport fires onChange the moment it attaches */
+const mm = document.getElementById('minimap'), mmSvg = document.getElementById('mmSvg'),
+      mmVp = document.getElementById('mmVp'), mmWhere = document.getElementById('mmWhere');
+let mmPinned = false, mmHidden = false;
+let POP = null, POPVP = null;
+
+/* ---------- a reusable viewport (used by the web and by its retreat) ---------- */
+function attachViewport(svg, vp, opts){
+  opts = opts || {};
+  const V = { k:1, tx:0, ty:0, rot:0 };
+  const doc = svg.ownerDocument;
+  const host = opts.host || svg.parentNode;
+
+  function metrics(){
+    const r = svg.getBoundingClientRect();
+    const sc = Math.min(r.width / VB.w, r.height / VB.h) || 1;
+    return { r, sc, ox:(r.width - VB.w*sc)/2, oy:(r.height - VB.h*sc)/2 };
+  }
+  function rotW(w){
+    if (!V.rot) return w;
+    const a = V.rot * Math.PI/180, dx = w.x - CX, dy = w.y - CY;
+    return { x:CX + dx*Math.cos(a) - dy*Math.sin(a), y:CY + dx*Math.sin(a) + dy*Math.cos(a) };
+  }
+  function unrotW(w){
+    if (!V.rot) return w;
+    const a = -V.rot * Math.PI/180, dx = w.x - CX, dy = w.y - CY;
+    return { x:CX + dx*Math.cos(a) - dy*Math.sin(a), y:CY + dx*Math.sin(a) + dy*Math.cos(a) };
+  }
+  function toWorld(px, py){
+    const m = metrics();
+    const ux = (px - m.r.left - m.ox) / m.sc + VB.x;
+    const uy = (py - m.r.top  - m.oy) / m.sc + VB.y;
+    return unrotW({ x:(ux - V.tx) / V.k, y:(uy - V.ty) / V.k });
+  }
+  function apply(instant){
+    vp.classList.toggle('now', !!instant);
+    vp.setAttribute('transform', `translate(${V.tx.toFixed(2)},${V.ty.toFixed(2)}) scale(${V.k.toFixed(4)}) rotate(${(V.rot||0).toFixed(2)} ${CX} ${CY})`);
+    if (opts.onChange) opts.onChange(V);
+  }
+  function zoomAt(px, py, factor, instant){
+    const w = toWorld(px, py);
+    const m = metrics();
+    const ux = (px - m.r.left - m.ox) / m.sc + VB.x;
+    const uy = (py - m.r.top  - m.oy) / m.sc + VB.y;
+    V.k = Math.max(KMIN, Math.min(KMAX, V.k * factor));
+    const rw = rotW(w);
+    V.tx = ux - rw.x * V.k;
+    V.ty = uy - rw.y * V.k;
+    apply(instant);
+  }
+  function zoomBy(factor){
+    const r = svg.getBoundingClientRect();
+    zoomAt(r.left + r.width/2, r.top + r.height/2, factor);
+  }
+  function centreOn(wx, wy, k){
+    if (k) V.k = Math.max(KMIN, Math.min(KMAX, k));
+    const rw = rotW({ x:wx, y:wy });
+    V.tx = (VB.x + VB.w/2) - rw.x * V.k;
+    V.ty = (VB.y + VB.h/2) - rw.y * V.k;
+    apply();
+  }
+  function fitBox(b, pad){
+    pad = pad || .84;
+    const k = Math.max(KMIN, Math.min(KMAX, Math.min(VB.w / Math.max(b.w, 60), VB.h / Math.max(b.h, 60)) * pad));
+    centreOn(b.x + b.w/2, b.y + b.h/2, k);
+  }
+  function reset(){ V.k = 1; V.tx = 0; V.ty = 0; V.rot = 0; apply(); if (typeof counterRotateText === 'function') counterRotateText(); }
+
+  /* wheel */
+  svg.addEventListener('wheel', e => {
+    e.preventDefault();
+    zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.16 : 1/1.16, true);
+  }, { passive:false });
+
+  /* drag + pinch */
+  const pts = new Map();
+  let last = null, pinch = null, moved = false;
+  svg.addEventListener('pointerdown', e => {
+    if (e.target.closest('.node')) return;
+    svg.setPointerCapture(e.pointerId);
+    pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
+    moved = false;
+    if (pts.size === 1) { last = { x:e.clientX, y:e.clientY }; host.classList.add('grabbing'); }
+    else if (pts.size === 2) { const a = [...pts.values()]; pinch = { d:Math.hypot(a[0].x-a[1].x, a[0].y-a[1].y) }; }
+  });
+  svg.addEventListener('pointermove', e => {
+    if (!pts.has(e.pointerId)) return;
+    pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
+    const m = metrics();
+    if (pts.size === 2 && pinch){
+      const a = [...pts.values()];
+      const d = Math.hypot(a[0].x-a[1].x, a[0].y-a[1].y);
+      if (pinch.d > 0) zoomAt((a[0].x+a[1].x)/2, (a[0].y+a[1].y)/2, d / pinch.d, true);
+      pinch.d = d; moved = true;
+    } else if (last){
+      V.tx += (e.clientX - last.x) / m.sc;
+      V.ty += (e.clientY - last.y) / m.sc;
+      last = { x:e.clientX, y:e.clientY };
+      if (Math.abs(e.movementX) + Math.abs(e.movementY) > 1) moved = true;
+      apply(true);
+    }
+  });
+  const up = e => {
+    pts.delete(e.pointerId);
+    if (pts.size < 2) pinch = null;
+    if (pts.size === 0){ last = null; host.classList.remove('grabbing'); }
+  };
+  svg.addEventListener('pointerup', up);
+  svg.addEventListener('pointercancel', up);
+  svg.addEventListener('dblclick', e => { if (!e.target.closest('.node')) zoomAt(e.clientX, e.clientY, 1.9); });
+
+  host.classList.add('grab');
+  apply(true);
+  return { V, apply, zoomBy, zoomAt, centreOn, fitBox, reset, toWorld, metrics, rotW, unrotW };
+}
+
+/* ---------- bird's eye strip ---------- */
+(function buildMinimap(){
+  const clone = document.getElementById('vp').cloneNode(true);
+  clone.removeAttribute('transform'); clone.removeAttribute('id');
+  clone.style.pointerEvents = 'none';
+  clone.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
+  clone.querySelectorAll('text, .halo, .chord, .pulse, .ripple').forEach(n => n.remove());
+  clone.querySelectorAll('[tabindex]').forEach(n => n.removeAttribute('tabindex'));
+  document.getElementById('mmContent').appendChild(clone);
+})();
+
+function syncMinimapState(){
+  document.querySelectorAll('#mmContent .node').forEach(n => {
+    const src = document.querySelector(`#gNodes .node[data-s="${n.dataset.s}"][data-j="${n.dataset.j}"]`);
+    if (src) n.setAttribute('class', src.getAttribute('class'));
+  });
+}
+function onView(V){
+  const c = document.querySelector('#mmContent > g');
+  if (c) c.setAttribute('transform', V.rot ? `rotate(${V.rot} ${CX} ${CY})` : '');
+  const x = (VB.x - V.tx) / V.k, y = (VB.y - V.ty) / V.k;
+  const w = VB.w / V.k, h = VB.h / V.k;
+  mmVp.setAttribute('x', x); mmVp.setAttribute('y', y);
+  mmVp.setAttribute('width', w); mmVp.setAttribute('height', h);
+  document.getElementById('zLevel').textContent = Math.round(V.k * 100) + '%';
+  const shouldShow = (V.k > 1.2 || mmPinned) && !mmHidden;
+  mm.classList.toggle('on', shouldShow);
+  document.getElementById('zMap').classList.toggle('on', shouldShow);
+  if (POP && !POP.closed) syncPopupView(V);
+}
+const svgEl2 = document.getElementById('web');
+const VPmain = attachViewport(svgEl2, document.getElementById('vp'), { host:document.getElementById('stage'), onChange:onView });
+
+function mmJump(e){
+  const r = mmSvg.getBoundingClientRect();
+  const sc = Math.min(r.width / VB.w, r.height / VB.h);
+  const ox = (r.width - VB.w*sc)/2, oy = (r.height - VB.h*sc)/2;
+  const w = VPmain.unrotW({ x:(e.clientX - r.left - ox)/sc + VB.x, y:(e.clientY - r.top - oy)/sc + VB.y });
+  VPmain.centreOn(w.x, w.y);
+}
+mmSvg.addEventListener('pointerdown', e => { mmSvg.setPointerCapture(e.pointerId); mmSvg.dataset.drag = '1'; mmJump(e); });
+mmSvg.addEventListener('pointermove', e => { if (mmSvg.dataset.drag) mmJump(e); });
+mmSvg.addEventListener('pointerup',   e => { delete mmSvg.dataset.drag; });
+document.getElementById('mmClose').addEventListener('click', () => { mmHidden = true; mmPinned = false; onView(VPmain.V); });
+document.getElementById('zMap').addEventListener('click', () => { mmHidden = false; mmPinned = !mmPinned; onView(VPmain.V); });
+document.getElementById('zIn').addEventListener('click',  () => VPmain.zoomBy(1.45));
+document.getElementById('zOut').addEventListener('click', () => VPmain.zoomBy(1/1.45));
+document.getElementById('zFit').addEventListener('click', () => { VPmain.reset(); mmWhere.textContent = 'whole web'; });
+
+/* ---------- full screen ---------- */
+const stageDiv = document.getElementById('stage'), fullBtn = document.getElementById('tFull');
+fullBtn.addEventListener('click', () => {
+  if (document.fullscreenElement) document.exitFullscreen();
+  else if (stageDiv.requestFullscreen) stageDiv.requestFullscreen().catch(() => note('Full screen was blocked here \u2014 open the file directly in a browser.'));
+  else note('This browser will not go full screen from here.');
+});
+document.addEventListener('fullscreenchange', () => {
+  fullBtn.classList.toggle('on', !!document.fullscreenElement);
+  fullBtn.textContent = document.fullscreenElement ? 'Exit full screen' : 'Full screen';
+  VPmain.apply(true);
+});
+
+/* ---------- the retreat: pop the web into its own window ---------- */
+function popOut(){
+  if (POP && !POP.closed) { POP.focus(); return; }
+  POP = window.open('', 'theWebRetreat', 'width=1280,height=920');
+  if (!POP) { note('Your browser blocked the pop-out. Allow pop-ups for this page, then try Retreat again.'); return; }
+  const css = [...document.querySelectorAll('style')].map(s => s.textContent).join('\n');
+  const fonts = [...document.querySelectorAll('link[rel="stylesheet"]')].map(l => `<link rel="stylesheet" href="${l.href}">`).join('');
+  POP.document.open();
+  POP.document.write(
+    `<!DOCTYPE html><html lang="en-GB"><head><meta charset="UTF-8"><title>The Web \u00b7 retreat</title>${fonts}<style>${css}
+     html,body{height:100%;overflow:hidden}
+     .stage{border:0;border-radius:0;height:100vh}
+     .stage svg{width:100%;height:100vh}
+     .signal{position:absolute;top:12px;left:12px;z-index:6;font-family:'JetBrains Mono',monospace;font-size:9.5px;
+       letter-spacing:.1em;text-transform:uppercase;color:var(--faint);background:rgba(16,20,29,.85);
+       border:1px solid var(--ridge);border-radius:2px;padding:6px 10px;backdrop-filter:blur(6px)}
+     .signal b{color:var(--amber);font-weight:500}
+     </style></head><body data-theme="${document.body.dataset.theme}" data-contrast="${document.body.dataset.contrast}" data-palette="${document.body.dataset.palette}" data-motion="${document.body.dataset.motion}" data-owl="${document.body.dataset.owl}"><div class="stage grab" id="stage">
+     <div class="signal">Retreat \u00b7 signal thread <b>open</b> \u2014 clicks here land in the main window</div>
+     ${document.getElementById('web').outerHTML}
+     <div class="zoomdock">
+       <button class="zbtn" id="pIn">+</button><button class="zbtn" id="pOut">\u2212</button>
+       <button class="zbtn" id="pFit">\u25a1</button><div class="zlevel" id="pLevel">100%</div>
+     </div></div></body></html>`);
+  POP.document.close();
+
+  const pSvg = POP.document.getElementById('web'), pVp = POP.document.getElementById('vp');
+  POPVP = attachViewport(pSvg, pVp, {
+    host: POP.document.getElementById('stage'),
+    onChange: V => { const l = POP.document.getElementById('pLevel'); if (l) l.textContent = Math.round(V.k*100) + '%'; }
+  });
+  POP.document.getElementById('pIn').onclick  = () => POPVP.zoomBy(1.45);
+  POP.document.getElementById('pOut').onclick = () => POPVP.zoomBy(1/1.45);
+  POP.document.getElementById('pFit').onclick = () => POPVP.reset();
+  POP.document.querySelectorAll('.node').forEach(n => {
+    n.addEventListener('click', () => { window.focus(); selectNode(n.dataset.s, +n.dataset.j); });
+  });
+  POP.addEventListener('beforeunload', () => { POP = null; POPVP = null; });
+  syncPopup();
+}
+function syncPopup(){
+  if (!POP || POP.closed) return;
+  POP.document.querySelectorAll('.node').forEach(n => {
+    const src = document.querySelector(`#gNodes .node[data-s="${n.dataset.s}"][data-j="${n.dataset.j}"]`);
+    if (src) n.setAttribute('class', src.getAttribute('class'));
+  });
+  const pc = POP.document.getElementById('gChords');
+  if (pc) pc.innerHTML = document.getElementById('gChords').innerHTML;
+  const pb = POP.document.getElementById('gBridge');
+  if (pb) pb.innerHTML = document.getElementById('gBridge').innerHTML;
+}
+function syncPopupView(){ /* the retreat keeps its own view; only state travels the signal thread */ }
+document.getElementById('tPop').addEventListener('click', popOut);
+window.addEventListener('beforeunload', () => { if (POP && !POP.closed) POP.close(); });
+
+function note(msg){
+  const d = document.getElementById('detailBody');
+  d.insertAdjacentHTML('afterbegin', `<p class="detail-body" style="color:var(--rust)">${esc(msg)}</p>`);
+}
+</script>

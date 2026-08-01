@@ -1,0 +1,184 @@
+<script>
+/* ============================================================
+   The formal layer: ontology, taxonomy, thesaurus, glossary,
+   data dictionary. Everything the web navigates by.
+   ============================================================ */
+
+/* --- OWL-style class hierarchy. `shape` is the visual encoding,
+       so class is never carried by colour alone. --- */
+const ONTOLOGY = [
+  { id:'Thing',        label:'Thing',            parent:null,     shape:'circle', def:'The root class. Everything on the web is one of these.' },
+  { id:'Capability',   label:'Capability',       parent:'Thing',  shape:'circle', def:'A whole body of work that delivers an outcome.' },
+  { id:'Concept',      label:'Concept',          parent:'Thing',  shape:'circle', def:'An idea, model or shared understanding rather than a thing you can open.' },
+  { id:'ProcessModel', label:'Process model',    parent:'Concept',shape:'circle', def:'An ordered set of stages with triggers and outputs.' },
+  { id:'RoleModel',    label:'Role model',       parent:'Concept',shape:'circle', def:'An allocation of accountability to named roles.' },
+  { id:'ScoringModel', label:'Scoring model',    parent:'Concept',shape:'diamond',def:'A method that turns evidence into a comparable number.' },
+  { id:'Artefact',     label:'Artefact',         parent:'Thing',  shape:'square', def:'Something produced and handed over.' },
+  { id:'Document',     label:'Document',         parent:'Artefact',shape:'square',def:'A written deliverable \u2014 manual, briefing, guide.' },
+  { id:'Deck',         label:'Deck',             parent:'Artefact',shape:'square',def:'A slide-based deliverable, usually for training.' },
+  { id:'Register',     label:'Register',         parent:'Artefact',shape:'square',def:'A live list maintained over time rather than published once.' },
+  { id:'Portal',       label:'Portal',           parent:'Artefact',shape:'hex',   def:'A single-file interactive interface over the rest.' },
+  { id:'Standard',     label:'Standard',         parent:'Thing',  shape:'diamond',def:'An external specification the work conforms to.' },
+  { id:'Source',       label:'Source',           parent:'Thing',  shape:'triangle',def:'An origin of real data outside the work itself.' },
+  { id:'Method',       label:'Method',           parent:'Thing',  shape:'cross',  def:'A way of building or verifying, reusable across projects.' },
+  { id:'Risk',         label:'Risk',             parent:'Thing',  shape:'circle', def:'An open loop, gap or hazard. Always drawn with a broken outline.' }
+];
+
+/* --- object properties, with inverses so the graph traverses both ways --- */
+const PROPS = [
+  { id:'hasPart',      label:'has part',       inv:'partOf',      note:'Composition. The Command Centre has the toolkit as a part.' },
+  { id:'partOf',       label:'is part of',     inv:'hasPart',     note:'The inverse of has part.' },
+  { id:'derivedFrom',  label:'derived from',   inv:'sourceOf',    note:'Provenance of design or content \u2014 what it descends from.' },
+  { id:'sourceOf',     label:'is source of',   inv:'derivedFrom', note:'The inverse of derived from.' },
+  { id:'measures',     label:'measures',       inv:'measuredBy',  note:'A scoring model applied to a register or asset.' },
+  { id:'measuredBy',   label:'is measured by', inv:'measures',    note:'The inverse of measures.' },
+  { id:'describes',    label:'describes',      inv:'describedBy', note:'Metadata expression of something else.' },
+  { id:'describedBy',  label:'is described by',inv:'describes',   note:'The inverse of describes.' },
+  { id:'governs',      label:'governs',        inv:'governedBy',  note:'Sets the rules another thing operates under.' },
+  { id:'governedBy',   label:'is governed by', inv:'governs',     note:'The inverse of governs.' },
+  { id:'evidences',    label:'evidences',      inv:'evidencedBy', note:'Provides the proof that something is actually operating.' },
+  { id:'evidencedBy',  label:'is evidenced by',inv:'evidences',   note:'The inverse of evidences.' },
+  { id:'alignsWith',   label:'aligns with',    inv:'alignsWith',  note:'Symmetric. Two things deliberately kept consistent.' },
+  { id:'equivalentTo', label:'equivalent to',  inv:'equivalentTo',note:'Symmetric. Same pattern doing the same job in another thread.' },
+  { id:'threatens',    label:'threatens',      inv:'threatenedBy',note:'An open risk against something that otherwise works.' },
+  { id:'threatenedBy', label:'is threatened by',inv:'threatens',  note:'The inverse of threatens.' }
+];
+
+/* --- taxonomy: what the work is FOR, independent of what it IS --- */
+const TAXONOMY = [
+  { id:'govern', label:'Govern', kids:[
+    { id:'govern/process', label:'Process & lifecycle' },
+    { id:'govern/roles',   label:'Roles & accountability' },
+    { id:'govern/policy',  label:'Policy & standards' },
+    { id:'govern/assure',  label:'Assurance & maturity' } ]},
+  { id:'desc', label:'Describe', kids:[
+    { id:'desc/metadata',  label:'Metadata & cataloguing' },
+    { id:'desc/vocab',     label:'Vocabulary & reference' } ]},
+  { id:'meas', label:'Measure', kids:[
+    { id:'meas/readiness', label:'Readiness & compliance' },
+    { id:'meas/value',     label:'Value & prioritisation' } ]},
+  { id:'del', label:'Deliver', kids:[
+    { id:'del/portal',     label:'Portals & interfaces' },
+    { id:'del/docs',       label:'Documents & training' },
+    { id:'del/method',     label:'Build method' } ]}
+];
+
+/* --- KISIL. NOTE: this expansion is inferred, not confirmed.
+       Your Observatory carries a KIL view; this reads KISIL as the
+       ladder that runs through it. Correct the labels and every
+       reading in the interface follows. --- */
+const KISIL = {
+  unconfirmed:true,
+  note:'Inferred expansion \u2014 confirm or correct and the whole dimension re-reads.',
+  levels:[
+    { id:'K', label:'Knowledge',   def:'Established understanding, written down and owned by someone.' },
+    { id:'I', label:'Information', def:'Structured facts in a register, catalogue or record.' },
+    { id:'S', label:'Skills',      def:'Capability held by people \u2014 training, guides, onboarding.' },
+    { id:'I2',label:'Insight',     def:'Interpretation: what the information means and what to do next.' },
+    { id:'L', label:'Learning',    def:'What gets fed back so the next cycle starts further forward.' }
+  ]
+};
+
+/* --- per-node enrichment: class, taxonomy, KISIL band, typed relations --- */
+const ENRICH = {
+  'gov:0':{ cls:'ProcessModel', tax:'govern/process', kisil:'K', rel:[['governs','gov:4'],['derivedFrom','cat:3']] },
+  'gov:1':{ cls:'RoleModel',    tax:'govern/roles',   kisil:'K', rel:[['derivedFrom','cat:3'],['governs','gov:4']] },
+  'gov:2':{ cls:'Document',     tax:'del/docs',       kisil:'K', rel:[['partOf','gov:6'],['alignsWith','cat:0']] },
+  'gov:3':{ cls:'Deck',         tax:'del/docs',       kisil:'S', rel:[['derivedFrom','cat:1'],['partOf','gov:6']] },
+  'gov:4':{ cls:'Register',     tax:'govern/assure',  kisil:'I', rel:[['evidences','gov:0'],['partOf','gov:6']] },
+  'gov:5':{ cls:'Document',     tax:'govern/process', kisil:'S', rel:[['alignsWith','gov:0']] },
+  'gov:6':{ cls:'Portal',       tax:'del/portal',     kisil:'I2',rel:[['hasPart','gov:2'],['hasPart','gov:3'],['hasPart','gov:4'],['hasPart','gov:5'],['derivedFrom','cat:2'],['equivalentTo','obs:0']] },
+
+  'cda:0':{ cls:'Register',     tax:'desc/metadata',  kisil:'I', rel:[['measuredBy','cda:5'],['describedBy','cda:3']] },
+  'cda:1':{ cls:'Source',       tax:'desc/metadata',  kisil:'I', rel:[['sourceOf','cda:0']] },
+  'cda:2':{ cls:'Source',       tax:'desc/metadata',  kisil:'I', rel:[['sourceOf','cda:0']] },
+  'cda:3':{ cls:'Standard',     tax:'desc/metadata',  kisil:'K', rel:[['describes','cda:0']] },
+  'cda:4':{ cls:'Method',       tax:'desc/metadata',  kisil:'I2',rel:[['derivedFrom','cda:0']] },
+  'cda:5':{ cls:'ScoringModel', tax:'meas/readiness', kisil:'I2',rel:[['measures','cda:0'],['equivalentTo','obs:2']] },
+  'cda:6':{ cls:'Portal',       tax:'desc/vocab',     kisil:'S', rel:[['hasPart','cda:3'],['hasPart','cda:4'],['derivedFrom','cat:2']] },
+
+  'obs:0':{ cls:'Portal',       tax:'del/portal',     kisil:'I2',rel:[['equivalentTo','gov:6'],['derivedFrom','cat:2']] },
+  'obs:1':{ cls:'Method',       tax:'del/method',     kisil:'L', rel:[['partOf','obs:0']] },
+  'obs:2':{ cls:'ScoringModel', tax:'meas/value',     kisil:'I2',rel:[['equivalentTo','cda:5'],['partOf','obs:0']] },
+  'obs:3':{ cls:'Concept',      tax:'desc/vocab',     kisil:'K', rel:[['partOf','obs:0']] },
+  'obs:4':{ cls:'Register',     tax:'govern/assure',  kisil:'I', rel:[['evidences','obs:0']] },
+  'obs:5':{ cls:'Risk',         tax:'govern/policy',  kisil:'L', rel:[['threatens','obs:0']] },
+
+  'cat:0':{ cls:'Capability',   tax:'del/docs',       kisil:'K', rel:[['sourceOf','gov:0']] },
+  'cat:1':{ cls:'Concept',      tax:'del/portal',     kisil:'K', rel:[['sourceOf','gov:3'],['sourceOf','cda:6'],['sourceOf','obs:0']] },
+  'cat:2':{ cls:'Method',       tax:'del/method',     kisil:'S', rel:[['sourceOf','gov:6'],['sourceOf','cda:6'],['sourceOf','obs:0']] },
+  'cat:3':{ cls:'Concept',      tax:'desc/vocab',     kisil:'K', rel:[['sourceOf','gov:0'],['sourceOf','gov:1']] },
+
+  'apps:0':{ cls:'Concept',     tax:'del/portal',     kisil:'L', rel:[] },
+  'apps:1':{ cls:'Risk',        tax:'del/portal',     kisil:'L', rel:[['threatens','apps:0']] }
+};
+
+/* --- thesaurus (SKOS-shaped). Alt labels feed the search, so plucking
+       "CDA" finds Critical Data Asset. --- */
+const THESAURUS = [
+  { pref:'Critical Data Asset', alt:['CDA','critical asset','key data asset'], broader:'Data asset', related:['Asset register','Enterprise Value Score'], node:'cda:0' },
+  { pref:'Data Asset Management Policy', alt:['DAM','DAM Policy','asset management policy'], broader:'Policy suite', related:['Tier 1 compliance','Data Owner'], node:'gov:4' },
+  { pref:'Data Owner', alt:['owner','information asset owner','IAO'], broader:'Governance role', related:['Data Steward','Data Custodian'], node:'gov:1' },
+  { pref:'Data Steward', alt:['steward','metadata steward'], broader:'Governance role', related:['Data Owner','Data Custodian'], node:'gov:1' },
+  { pref:'Data Custodian', alt:['custodian','technical custodian'], broader:'Governance role', related:['Data Owner'], node:'gov:1' },
+  { pref:'Barometer score', alt:['Observatory score','maturity barometer','barometer'], broader:'Scoring model', related:['Readiness score','Valuation Index'], node:'obs:2' },
+  { pref:'Readiness score', alt:['composite readiness','discovery readiness'], broader:'Scoring model', related:['Barometer score','Tier model'], node:'cda:5' },
+  { pref:'Tier model', alt:['tiers','tier compliance','three-tier ladder'], broader:'Scoring model', related:['Readiness score','DAM Policy'], node:'cda:5' },
+  { pref:'Metadata standard', alt:['DCAT','DCAT-AP-UK','Dublin Core','GEMINI','Croissant','DDI-Lite','schema.org'], broader:'Standard', related:['Interoperability'], node:'cda:3' },
+  { pref:'Governance recipe', alt:['recipe','five recipes','Mandate Frame Assign Operate Assure'], broader:'Process model', related:['Escalation ladder','Maturity assessment'], node:'gov:0' },
+  { pref:'Escalation ladder', alt:['escalation','escalation tiers','SLA ladder'], broader:'Process model', related:['RACI','Decision log'], node:'gov:1' },
+  { pref:'Maturity assessment', alt:['DMA','maturity model','self-assessment'], broader:'Assurance', related:['KPI catalogue','Governance Health Score'], node:'gov:4' },
+  { pref:'Evidence pack', alt:['evidence','assurance pack','traceability register'], broader:'Assurance', related:['Audit trail','Maturity assessment'], node:'obs:4' },
+  { pref:'Single-file portal', alt:['single file HTML','self-contained portal','command centre'], broader:'Delivery pattern', related:['Design system'], node:'cat:2' },
+  { pref:'Design system', alt:['GOV.UK styling','navy and yellow','house style'], broader:'Delivery pattern', related:['Single-file portal'], node:'cat:1' },
+  { pref:'Data lineage', alt:['lineage','provenance graph','relationship inference'], broader:'Metadata', related:['Knowledge graph'], node:'cda:4' }
+];
+
+/* --- glossary --- */
+const GLOSSARY = [
+  { t:'ATRS', d:'Algorithmic Transparency Recording Standard. The UK standard for publishing how an algorithmic tool is used in a public-sector decision.' },
+  { t:'CKAN', d:'The open-source data portal software behind data.gov.uk. Its API is what the CDA harvest queried directly.' },
+  { t:'Croissant', d:'A metadata format for machine-learning datasets, describing structure and provenance so a dataset can be loaded reproducibly.' },
+  { t:'DAMA-DMBOK2', d:'The Data Management Body of Knowledge, second edition. The reference framework governance capability is usually mapped against.' },
+  { t:'DCAM', d:'Data Capability Assessment Model. A maturity framework used alongside DMBOK for assessing data management capability.' },
+  { t:'DCAT / DCAT-AP-UK', d:'Data Catalog Vocabulary and its UK application profile \u2014 the W3C standard for describing datasets in a catalogue.' },
+  { t:'DEIA', d:'Diversity, Equity, Inclusion and Accessibility. Here it means the interface works for people regardless of sight, hearing, motor control, device or bandwidth.' },
+  { t:'DMA', d:'Data Maturity Assessment. The instrument scored 1\u20135 across governance dimensions to produce a maturity narrative.' },
+  { t:'Data Custodian', d:'The role operating the technical controls \u2014 storage, access enforcement, backup, disposal \u2014 on an owner\u2019s behalf.' },
+  { t:'Data Owner', d:'The senior role accountable for an asset\u2019s use, access and quality decisions.' },
+  { t:'Data Steward', d:'The day-to-day role maintaining quality, metadata and access requests for one or more assets.' },
+  { t:'GEMINI / ISO 19115', d:'The UK profile and international standard for geospatial metadata.' },
+  { t:'Governance handback', d:'The point where a programme hands an asset into business-as-usual governance. The most commonly skipped step.' },
+  { t:'KISIL', d:'A five-level knowledge ladder used as a dimension here. The expansion in this build is inferred and needs confirming \u2014 see the manual.' },
+  { t:'NDL', d:'National Data Library. The programme context behind valuation and readiness scoring in the CDA work.' },
+  { t:'OFFICIAL', d:'The baseline UK government security classification. Applied as a banner across the playbook family.' },
+  { t:'Ontology', d:'A formal description of the kinds of things in a domain and the relationships allowed between them. Here: fifteen classes and sixteen properties.' },
+  { t:'RACI', d:'Responsible, Accountable, Consulted, Informed. The matrix allocating decision rights across governance roles.' },
+  { t:'SKOS', d:'Simple Knowledge Organization System. The model behind the thesaurus: preferred labels, alternative labels, broader, narrower, related.' },
+  { t:'Taxonomy', d:'A hierarchy that classifies things by one dimension. Here: what a piece of work is for \u2014 govern, describe, measure, deliver.' },
+  { t:'Thesaurus', d:'A controlled vocabulary that links synonyms to one preferred term, so searching any of them finds the same thing.' },
+  { t:'UCD', d:'User-centred design. Decisions made from what people need to do, tested against real use, rather than from what is easy to build.' }
+];
+
+/* --- data dictionary: the fields the work actually carries --- */
+const DICTIONARY = [
+  { f:'Department',              ty:'Text',        src:'CDA register',        d:'Owning UK government department for the asset.' },
+  { f:'securityClassification',  ty:'Enum',        src:'CDA register',        d:'Handling classification, typically OFFICIAL or OFFICIAL-SENSITIVE.' },
+  { f:'Domain',                  ty:'Text',        src:'CDA register',        d:'Subject domain the asset belongs to.' },
+  { f:'Openness',                ty:'Enum',        src:'CDA register',        d:'How openly the asset can be published or shared.' },
+  { f:'Impact Level',            ty:'Ordinal',     src:'CDA register',        d:'Consequence if the asset is lost, wrong or disclosed.' },
+  { f:'DAM Compliance %',        ty:'Percent',     src:'CDA register',        d:'Conformance to the Data Asset Management policy minimum. Weighted 50% of readiness.' },
+  { f:'Discovery Readiness %',   ty:'Percent',     src:'CDA register',        d:'How findable, accessible and reusable the asset is. Weighted 30%.' },
+  { f:'NDL/Valuation Readiness %',ty:'Percent',    src:'CDA register',        d:'Readiness for valuation and National Data Library use. Weighted 20%.' },
+  { f:'Readiness (composite)',   ty:'Percent',     src:'Derived',             d:'DAM 50% + Discovery 30% + NDL 20%. The single number that drives prioritisation.' },
+  { f:'Valuation Index',         ty:'Decimal',     src:'CDA register',        d:'Relative economic value signal for the asset.' },
+  { f:'Observatory/Barometer Score',ty:'Decimal',  src:'CDA register',        d:'The Barometer measure carried as a column here and as a whole portal in the Observatory thread.' },
+  { f:'Enterprise Value Score',  ty:'Decimal',     src:'CDA register',        d:'Composite value score used to rank assets across the estate.' },
+  { f:'Strategic Archetype',     ty:'Enum',        src:'CDA register',        d:'Quadrant label placing an asset by value against readiness.' },
+  { f:'Priority Rank',           ty:'Integer',     src:'Derived',             d:'Ordered position for attention across all 136 assets.' },
+  { f:'Governance Health Score', ty:'0\u2013100',  src:'Command Centre',      d:'Composite of register completeness, policy currency and decision turnaround.' },
+  { f:'Maturity score',          ty:'1\u20135',    src:'Toolkit workbook',    d:'DMA-aligned self-assessment average across governance dimensions.' },
+  { f:'RAG',                     ty:'Enum',        src:'Toolkit workbook',    d:'Red / Amber / Green status, calculated against a stated target rather than typed by hand.' },
+  { f:'Confidence score',        ty:'Decimal',     src:'harvest.json',        d:'Strength of an asset-to-portal match made during the live harvest.' }
+];
+</script>

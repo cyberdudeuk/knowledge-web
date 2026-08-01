@@ -1,0 +1,246 @@
+<script>
+/* ============================================================
+   State, chords and the detail rail
+   ============================================================ */
+const gChords = document.getElementById('gChords');
+const detailBody = document.getElementById('detailBody');
+const detailHead = document.querySelector('#detail h2');
+
+function clearClasses(){
+  NODEREFS.forEach(r => r.g.classList.remove('sel','res','mute'));
+  STRANDS.forEach(s => s._radius.classList.remove('lit'));
+  gChords.innerHTML = '';
+}
+
+function drawChords(refs){
+  gChords.innerHTML = '';
+  if (refs.length < 2) return;
+  const sorted = refs.slice().sort((a,b) => a.s.angle - b.s.angle);
+  for (let i = 0; i < sorted.length; i++){
+    const a = sorted[i], b = sorted[(i + 1) % sorted.length];
+    if (sorted.length === 2 && i === 1) break;
+    if (a.s.id === b.s.id) continue;
+    const mx = (a.p.x + b.p.x) / 2, my = (a.p.y + b.p.y) / 2;
+    const cx = CX + (mx - CX) * 0.34, cy = CY + (my - CY) * 0.34;
+    gChords.appendChild(el('path', { d:`M${a.p.x},${a.p.y} Q${cx},${cy} ${b.p.x},${b.p.y}`, class:'chord show' }));
+  }
+}
+
+/* ---------- selection ---------- */
+function selectNode(sid, j){
+  S.strand = sid; S.node = j; S.theme = null; S.query = '';
+  document.getElementById('q').value = '';
+  syncChips(); syncStrandList();
+  clearClasses();
+
+  const ref = NODEREFS.find(r => r.s.id === sid && r.j === j);
+  const strand = STRANDS.find(s => s.id === sid);
+  strand._radius.classList.add('lit');
+
+  const themes = ref.nd.themes || [];
+  const kin = NODEREFS.filter(r => r !== ref && (r.nd.themes || []).some(t => themes.includes(t)));
+  NODEREFS.forEach(r => {
+    if (r === ref) r.g.classList.add('sel');
+    else if (kin.includes(r)) r.g.classList.add('res');
+    else if (r.s.id !== sid) r.g.classList.add('mute');
+  });
+  drawChords([ref, ...kin]);
+  vibrate(ref.p); walkTo(ref.p);
+  renderNode(ref, kin);
+}
+
+function selectStrand(sid){
+  S.strand = sid; S.node = null; S.theme = null; S.query = '';
+  document.getElementById('q').value = '';
+  syncChips(); syncStrandList();
+  clearClasses();
+  const strand = STRANDS.find(s => s.id === sid);
+  strand._radius.classList.add('lit');
+  NODEREFS.forEach(r => { if (r.s.id !== sid) r.g.classList.add('mute'); });
+  const tipNode = NODEREFS.filter(r => r.s.id === sid).pop();
+  vibrate(tipNode.p); walkTo(tipNode.p);
+  renderStrand(strand);
+}
+
+function selectTheme(tid){
+  if (S.theme === tid) return reset();
+  S.theme = tid; S.strand = null; S.node = null; S.query = '';
+  document.getElementById('q').value = '';
+  syncChips(); syncStrandList();
+  clearClasses();
+  const hits = NODEREFS.filter(r => (r.nd.themes || []).includes(tid));
+  NODEREFS.forEach(r => r.g.classList.add(hits.includes(r) ? 'res' : 'mute'));
+  hits.forEach(r => r.s._radius.classList.add('lit'));
+  drawChords(hits);
+  if (hits.length) { vibrate(hits[0].p); walkTo(hits[0].p); }
+  renderTheme(THEMES.find(t => t.id === tid), hits);
+}
+
+function reset(){
+  S.strand = S.node = S.theme = null; S.query = '';
+  document.getElementById('q').value = '';
+  syncChips(); syncStrandList(); clearClasses();
+  walkTo({ x:CX, y:CY });
+  renderHub();
+}
+
+/* ---------- search = vibration ---------- */
+function runQuery(v){
+  S.query = v.trim().toLowerCase();
+  S.theme = null; S.strand = null; S.node = null;
+  syncChips(); syncStrandList(); clearClasses();
+  if (!S.query) { walkTo({ x:CX, y:CY }); renderHub(); return; }
+  const hits = NODEREFS.filter(r => r.hay.includes(S.query));
+  NODEREFS.forEach(r => r.g.classList.add(hits.includes(r) ? 'res' : 'mute'));
+  hits.forEach(r => r.s._radius.classList.add('lit'));
+  if (hits.length) { vibrate(hits[0].p); walkTo(hits[0].p); }
+  renderQuery(hits);
+}
+
+/* ---------- detail rail ---------- */
+function xrefBlock(title, refs){
+  if (!refs.length) return '';
+  return `<div class="xref"><div class="xref-h">${esc(title)}</div>` +
+    refs.map(r => `<button class="xref-item" data-s="${r.s.id}" data-j="${r.j}">${esc(r.nd.t)}<span class="src">${esc(r.s.label)}</span></button>`).join('') +
+    '</div>';
+}
+function wire(){
+  detailBody.querySelectorAll('.xref-item').forEach(b =>
+    b.addEventListener('click', () => selectNode(b.dataset.s, +b.dataset.j)));
+}
+
+function renderHub(){
+  detailHead.textContent = 'At the hub';
+  const counts = STRANDS.map(s => `${s.label} \u2014 ${s.nodes.length}`).join(' \u00b7 ');
+  detailBody.innerHTML =
+    `<div class="detail-kicker" style="--strand-c:var(--amber)">The centre</div>
+     <h3 class="detail-title">Data &amp; metadata management for UK central government</h3>
+     <p class="detail-body">Every thread here is a different way of doing one job: making government data findable, governed, measurable and shareable. Five radial threads run out from this centre. The spiral between them is where the same ideas keep reappearing in different clothes.</p>
+     <p class="detail-body" style="color:var(--faint);font-size:12.5px">${esc(counts)}</p>
+     <div class="meta-row"><span class="pill">Click a bead to travel</span><span class="pill">Click the hub to come back</span></div>`;
+}
+
+function renderNode(ref, kin){
+  const nd = ref.nd, s = ref.s;
+  detailHead.textContent = 'On the thread';
+  const list = (nd.c || []).map(x => `<li>${esc(x)}</li>`).join('');
+  detailBody.innerHTML =
+    `<div class="detail-kicker" style="--strand-c:var(--sc-${s.id})">${esc(s.label)} \u00b7 ${esc(nd.k)}</div>
+     <h3 class="detail-title">${esc(nd.t)}</h3>
+     <p class="detail-body">${esc(nd.b)}</p>
+     ${list ? `<ul class="detail-body" style="padding-left:17px;margin-top:11px">${list}</ul>` : ''}
+     <div class="meta-row">
+       ${nd.open ? '<span class="pill open">Still open</span>' : '<span class="pill done">Built</span>'}
+       ${(nd.themes||[]).map(t => `<span class="pill">${esc((THEMES.find(x=>x.id===t)||{}).label||t)}</span>`).join('')}
+     </div>
+     ${xrefBlock('Resonates with', kin)}
+     ${s.url ? `<div class="xref"><a href="${s.url}" target="_blank" rel="noopener">Open the conversation \u2192</a></div>` : ''}`;
+  wire();
+}
+
+function renderStrand(s){
+  detailHead.textContent = 'Walking a radius';
+  const stateP = { complete:'done', 'in-flight':'open', reference:'', dormant:'open' }[s.state] || '';
+  detailBody.innerHTML =
+    `<div class="detail-kicker" style="--strand-c:var(--sc-${s.id})">${esc(s.meta)}</div>
+     <h3 class="detail-title">${esc(s.label)}</h3>
+     <p class="detail-body">${esc(s.summary)}</p>
+     <div class="meta-row"><span class="pill ${stateP}">${esc(s.state)}</span><span class="pill">${s.nodes.length} beads</span></div>
+     ${xrefBlock('Hub outward', NODEREFS.filter(r => r.s.id === s.id))}
+     ${s.url ? `<div class="xref"><a href="${s.url}" target="_blank" rel="noopener">Open the conversation \u2192</a></div>` : ''}`;
+  wire();
+}
+
+function renderTheme(t, hits){
+  detailHead.textContent = 'Crossing the spiral';
+  const strands = [...new Set(hits.map(r => r.s.label))];
+  detailBody.innerHTML =
+    `<div class="detail-kicker" style="--strand-c:var(--violet)">Spiral crossing \u00b7 ${hits.length} points on ${strands.length} threads</div>
+     <h3 class="detail-title">${esc(t.label)}</h3>
+     <p class="detail-body">${esc(t.note)}</p>
+     ${xrefBlock('Where it touches', hits)}`;
+  wire();
+}
+
+function renderQuery(hits){
+  detailHead.textContent = 'Vibration';
+  detailBody.innerHTML = hits.length
+    ? `<div class="detail-kicker" style="--strand-c:var(--dew)">${hits.length} strand${hits.length>1?'s':''} answered</div>
+       <h3 class="detail-title">\u201c${esc(S.query)}\u201d</h3>
+       <p class="detail-body">Everything still lit is connected to what you plucked.</p>
+       ${xrefBlock('Answering', hits)}`
+    : `<div class="detail-kicker" style="--strand-c:var(--rust)">Nothing answered</div>
+       <h3 class="detail-title">\u201c${esc(S.query)}\u201d</h3>
+       <p class="empty">The web is still. Nothing on these threads matches that \u2014 try a shorter word, or a name from a strand list.</p>`;
+  wire();
+}
+
+/* ---------- controls ---------- */
+function syncStrandList(){
+  document.querySelectorAll('.strand-btn').forEach(b =>
+    b.classList.toggle('on', b.dataset.s === S.strand));
+}
+function syncChips(){
+  document.querySelectorAll('.chip').forEach(c =>
+    c.classList.toggle('on', c.dataset.t === S.theme));
+}
+
+(function buildControls(){
+  const sl = document.getElementById('strandList');
+  STRANDS.forEach(s => {
+    const b = document.createElement('button');
+    b.className = 'strand-btn'; b.dataset.s = s.id;
+    b.style.setProperty('--strand-c', `var(--sc-${s.id})`);
+    b.innerHTML = `<span class="nm"><span class="dot"></span>${esc(s.label)}</span><span class="sub">${esc(s.key)} \u00b7 ${esc(s.meta)}</span>`;
+    b.addEventListener('click', () => selectStrand(s.id));
+    sl.appendChild(b);
+  });
+
+  const ch = document.getElementById('themeChips');
+  THEMES.forEach(t => {
+    const n = NODEREFS.filter(r => (r.nd.themes||[]).includes(t.id)).length;
+    const b = document.createElement('button');
+    b.className = 'chip'; b.dataset.t = t.id;
+    b.innerHTML = `${esc(t.label)}<span class="ct">${n}</span>`;
+    b.addEventListener('click', () => selectTheme(t.id));
+    ch.appendChild(b);
+  });
+
+  const rl = document.getElementById('repairList');
+  REPAIRS.forEach(r => {
+    const li = document.createElement('li');
+    li.innerHTML = `<b>${esc(r.t)}</b>${esc(r.d)}`;
+    if (r.s) { li.style.cursor = 'pointer'; li.addEventListener('click', () => selectStrand(r.s)); }
+    rl.appendChild(li);
+  });
+
+  document.getElementById('tStrands').textContent = STRANDS.length;
+  document.getElementById('tNodes').textContent = NODEREFS.length;
+  document.getElementById('tThemes').textContent = THEMES.length;
+  document.getElementById('tOpen').textContent = REPAIRS.length;
+  document.getElementById('builtOn').textContent =
+    'Web spun ' + new Date().toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }) +
+    ' \u00b7 ' + NODEREFS.length + ' beads on ' + STRANDS.length + ' radii \u00b7 ' + THEMES.length + ' spiral crossings.';
+})();
+
+document.getElementById('q').addEventListener('input', e => runQuery(e.target.value));
+document.getElementById('tLabels').addEventListener('click', e => {
+  S.labels = !S.labels; e.target.classList.toggle('on', !S.labels);
+  document.querySelectorAll('.node .lbl').forEach(l => l.style.display = S.labels ? '' : 'none');
+});
+document.getElementById('tSpiral').addEventListener('click', e => {
+  S.spiral = !S.spiral; e.target.classList.toggle('on', !S.spiral);
+  document.querySelector('.spiral').style.display = S.spiral ? '' : 'none';
+});
+
+document.addEventListener('keydown', e => {
+  const inField = /input|textarea/i.test(e.target.tagName);
+  if (e.key === '/' && !inField) { e.preventDefault(); document.getElementById('q').focus(); }
+  else if (e.key === 'Escape') { document.getElementById('q').blur(); reset(); }
+  else if (!inField && /^[1-5]$/.test(e.key)) {
+    const s = STRANDS.find(x => x.key === e.key); if (s) selectStrand(s.id);
+  }
+});
+
+renderHub();
+</script>

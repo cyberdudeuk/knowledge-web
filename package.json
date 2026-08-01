@@ -1,0 +1,16 @@
+{
+  "name": "the-web",
+  "version": "2.0.0",
+  "private": true,
+  "description": "A navigable, ontology-backed map of a body of work. Single-file HTML prototype.",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "verify": "node scripts/verify.mjs",
+    "check": "npm run build && npm run verify",
+    "serve": "node scripts/serve.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.0"
+  }
+}

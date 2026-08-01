@@ -1,0 +1,189 @@
+<style>
+/* ============================================================
+   The spider mark — a demonstrator, not an ornament
+   ============================================================ */
+.mark-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.spider-mark{
+  width:216px;height:150px;flex:0 0 auto;overflow:visible;
+  border:1px solid var(--ridge);border-radius:var(--r);background:
+    radial-gradient(ellipse at 50% 30%, var(--amber-wash), transparent 70%), var(--deep);
+}
+.sm-silk{stroke:var(--spiralc);fill:none;stroke-width:.8}
+.sm-drag{stroke:var(--amber-dim);fill:none;stroke-width:.9;stroke-dasharray:2 3}
+.sm-body{fill:var(--amber)}
+.sm-leg{stroke:var(--amber);fill:none;stroke-width:1.5;stroke-linecap:round}
+.sm-ripple{fill:none;stroke:var(--dew);stroke-width:1.2;opacity:0}
+.sm-balloon{stroke:var(--dew);fill:none;stroke-width:.9;opacity:0}
+.sm-caption{
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;
+  fill:var(--faint);
+}
+
+#smRig{transform-box:view-box}
+[data-move="walk"]   #smRig{animation:smWalk 3.4s ease-in-out infinite}
+[data-move="pluck"]  #smRig{animation:smPluck 1.5s ease-in-out infinite}
+[data-move="drop"]   #smRig{animation:smDrop 3.2s cubic-bezier(.5,0,.3,1) infinite}
+[data-move="balloon"]#smRig{animation:smBalloon 3.8s ease-in infinite}
+[data-move="bridge"] #smRig{animation:smBridge 3.6s ease-in-out infinite}
+[data-move="crawl"]  #smRig{animation:smCrawl 4.2s ease-in-out infinite}
+[data-move="turn"]   #smRig{animation:smTurn 3.6s ease-in-out infinite}
+
+@keyframes smWalk   {0%{transform:translate(-52px,0)}50%{transform:translate(52px,0)}100%{transform:translate(-52px,0)}}
+@keyframes smPluck  {0%,100%{transform:translate(0,0)}25%{transform:translate(-2px,1px)}75%{transform:translate(2px,-1px)}}
+@keyframes smDrop   {0%{transform:translate(0,-30px)}45%{transform:translate(0,34px)}55%{transform:translate(0,34px)}100%{transform:translate(0,-30px)}}
+@keyframes smBalloon{0%{transform:translate(0,10px) scale(1);opacity:1}70%{transform:translate(46px,-34px) scale(.72);opacity:.85}100%{transform:translate(78px,-56px) scale(.5);opacity:0}}
+@keyframes smBridge {0%{transform:translate(-56px,6px)}35%{transform:translate(-56px,6px)}100%{transform:translate(56px,-6px)}}
+@keyframes smCrawl  {0%{transform:translate(-46px,18px)}33%{transform:translate(0,-14px)}66%{transform:translate(44px,14px)}100%{transform:translate(-46px,18px)}}
+@keyframes smTurn   {0%,100%{transform:rotate(0deg)}50%{transform:rotate(200deg)}}
+
+.sm-leg{animation:none}
+[data-move]:not([data-move="still"]):not([data-move="pluck"]) .sm-leg{animation:smStride .46s ease-in-out infinite alternate}
+[data-move="pluck"] .sm-leg-f{animation:smTap .38s ease-in-out infinite alternate}
+.sm-leg:nth-of-type(2){animation-delay:.06s}.sm-leg:nth-of-type(3){animation-delay:.12s}
+.sm-leg:nth-of-type(4){animation-delay:.18s}.sm-leg:nth-of-type(5){animation-delay:.24s}
+.sm-leg:nth-of-type(6){animation-delay:.30s}.sm-leg:nth-of-type(7){animation-delay:.36s}
+.sm-leg:nth-of-type(8){animation-delay:.42s}
+@keyframes smStride{from{transform:rotate(-7deg)}to{transform:rotate(7deg)}}
+@keyframes smTap{from{transform:rotate(-14deg)}to{transform:rotate(6deg)}}
+.sm-leg{transform-box:fill-box;transform-origin:0% 50%}
+
+[data-move="drop"] .sm-drag,[data-move="bridge"] .sm-drag{opacity:1}
+[data-move="pluck"] .sm-ripple{animation:smRip 1.5s ease-out infinite}
+[data-move="pluck"] .sm-ripple:nth-of-type(2){animation-delay:.35s}
+@keyframes smRip{0%{r:6;opacity:.8}100%{r:44;opacity:0}}
+[data-move="balloon"] .sm-balloon{animation:smSilk 3.8s ease-in infinite}
+@keyframes smSilk{0%{opacity:0}25%{opacity:.9}100%{opacity:0}}
+
+.move-pills{display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end;max-width:236px}
+.mpill{
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.07em;text-transform:uppercase;
+  background:transparent;border:1px solid var(--ridge);color:var(--moth);border-radius:100px;
+  padding:4px 9px;cursor:pointer;
+}
+.mpill:hover{color:var(--silk);border-color:var(--faint)}
+.mpill.on{background:var(--amber-wash);border-color:var(--amber-dim);color:var(--amber)}
+@media(max-width:860px){.mark-wrap{align-items:flex-start}.move-pills{justify-content:flex-start}}
+
+/* ============================================================
+   OWL explorer — Protégé-shaped workspace
+   ============================================================ */
+.owlsheet{max-width:1240px;width:100%}
+.owl-grid{display:grid;grid-template-columns:270px minmax(0,1fr) 300px;gap:0;min-height:520px}
+@media(max-width:1000px){.owl-grid{grid-template-columns:1fr}}
+.owl-col{border-right:1px solid var(--ridge);padding:14px 15px;overflow-y:auto;max-height:62vh}
+.owl-col:last-child{border-right:0}
+.owl-col h4{
+  font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--faint);margin:0 0 10px;display:flex;align-items:center;gap:8px;
+}
+.owl-col h4::after{content:'';flex:1;height:1px;background:var(--ridge)}
+.owl-col h4 + h4{margin-top:20px}
+
+.owl-tabs{display:flex;gap:4px;padding:11px 15px 0}
+.owl-tab{
+  font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;
+  background:transparent;border:1px solid var(--ridge);border-bottom:0;border-radius:2px 2px 0 0;
+  color:var(--moth);padding:7px 12px;cursor:pointer;
+}
+.owl-tab[aria-selected="true"]{background:var(--dusk);color:var(--amber);border-color:var(--amber-dim)}
+.owl-bar{
+  display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:10px 15px;
+  border-top:1px solid var(--ridge);border-bottom:1px solid var(--ridge);background:var(--night);
+}
+.owl-bar input{
+  flex:1;min-width:150px;background:var(--deep);border:1px solid var(--ridge);border-radius:var(--r);
+  color:var(--silk);font-family:'Archivo',sans-serif;font-size:12.5px;padding:6px 9px;
+}
+.owl-bar select{
+  background:var(--deep);border:1px solid var(--ridge);border-radius:var(--r);color:var(--silk);
+  font-family:'Archivo',sans-serif;font-size:12px;padding:6px 8px;
+}
+.reason-flag{
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;
+  padding:4px 8px;border-radius:2px;border:1px solid var(--ok);color:var(--ok);
+}
+.reason-flag.bad{border-color:var(--rust);color:var(--rust)}
+
+.owl-tree,.owl-tree ul{list-style:none;margin:0;padding:0}
+.owl-tree ul{margin-left:9px;padding-left:10px;border-left:1px dotted var(--ridge)}
+.owl-node{
+  display:flex;align-items:center;gap:7px;width:100%;text-align:left;background:none;border:0;
+  padding:4px 5px;cursor:pointer;border-radius:2px;color:var(--moth);font-family:'Archivo',sans-serif;font-size:12.5px;
+}
+.owl-node:hover{background:rgba(255,255,255,.045);color:var(--silk)}
+.owl-node.on{background:var(--amber-wash);color:var(--amber)}
+.owl-node .g{width:15px;height:15px;flex:0 0 15px}
+.owl-node .g *{fill:none;stroke:currentColor;stroke-width:1.6}
+.owl-node .n{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--faint);margin-left:auto}
+.owl-node.inferred{font-style:italic}
+.owl-node.inferred::after{content:'inferred';font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.08em;color:var(--amber);margin-left:6px;text-transform:uppercase}
+
+.ax{
+  font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.7;padding:5px 9px;margin-bottom:3px;
+  border-left:2px solid var(--ridge);color:var(--moth);
+}
+.ax.inf{border-left-color:var(--amber);background:var(--amber-wash)}
+.ax.obs{border-left-color:var(--violet);background:var(--violet-wash)}
+.ax b{color:var(--silk);font-weight:500}
+.ax i{color:var(--dew);font-style:normal}
+.ax em{color:var(--violet);font-style:normal}
+.ax .tag{
+  float:right;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);
+}
+.entity-head{border-bottom:1px solid var(--ridge);padding-bottom:12px;margin-bottom:14px}
+.entity-head .iri{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--faint);letter-spacing:.03em}
+.entity-head h3{font-family:'Newsreader',serif;font-weight:400;font-size:26px;margin:5px 0 6px;color:var(--silk)}
+.entity-head p{font-size:13px;color:var(--moth);margin:0;line-height:1.55}
+.owl-jump{
+  display:block;width:100%;text-align:left;background:none;border:0;padding:6px 0 6px 13px;cursor:pointer;
+  position:relative;color:var(--moth);font-size:12.5px;font-family:'Archivo',sans-serif;
+}
+.owl-jump::before{content:'';position:absolute;left:0;top:12px;width:7px;height:1px;background:var(--dew)}
+.owl-jump:hover{color:var(--silk)}
+.owl-jump .s{display:block;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--faint);text-transform:uppercase;letter-spacing:.06em}
+.dlq{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--faint)}
+.dlq select{font-size:11px}
+
+/* ============================================================
+   Strata — the web tilted into layers
+   ============================================================ */
+.plane{fill:none;stroke:var(--ridge);stroke-width:.8;opacity:.5;vector-effect:non-scaling-stroke}
+.plane-fill{fill:var(--glass);opacity:.14;stroke:none}
+.plane-lbl{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;fill:var(--faint)}
+.riser{stroke:var(--violet);stroke-width:1;opacity:.5;stroke-dasharray:2 4;vector-effect:non-scaling-stroke;fill:none}
+.riser.hi{stroke:var(--amber);opacity:.95;stroke-dasharray:none}
+
+.strata-dock{
+  position:absolute;left:12px;top:12px;z-index:5;display:none;flex-direction:column;gap:7px;
+  background:var(--glass);border:1px solid var(--ridge);border-radius:var(--r);padding:11px 12px;
+  backdrop-filter:blur(8px);width:196px;
+}
+.strata-dock.on{display:flex}
+.strata-dock label{
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--faint);display:flex;justify-content:space-between;gap:8px;
+}
+.strata-dock label b{color:var(--amber);font-weight:500}
+.strata-dock input[type=range]{width:100%;accent-color:var(--amber);height:18px}
+.strata-dock select{
+  width:100%;background:var(--deep);border:1px solid var(--ridge);border-radius:2px;color:var(--silk);
+  font-family:'Archivo',sans-serif;font-size:11.5px;padding:5px 6px;
+}
+
+/* in the tilted view labels can drift across other layers' beads,
+   so they stop intercepting clicks and step back until wanted */
+[data-strata="on"] .node .lbl{pointer-events:none;opacity:.5}
+[data-strata="on"] .node:hover .lbl,
+[data-strata="on"] .node.sel .lbl,
+[data-strata="on"] .node.step .lbl,
+[data-strata="on"] .node.res .lbl{opacity:1}
+[data-strata="on"] .node .halo{r:11}
+
+/* ============================================================
+   Eagle lens
+   ============================================================ */
+.lens-ring{fill:none;stroke:var(--amber);stroke-width:1.6;vector-effect:non-scaling-stroke}
+.lens-dim{fill:var(--night);opacity:.55}
+#lensGroup{pointer-events:none;display:none}
+#lensGroup.on{display:block}
+</style>

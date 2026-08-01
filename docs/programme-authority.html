@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Web — Programme &amp; Architecture Authority · WEB-2.0</title>
+<meta name="description" content="Decoupled governance record for The Web prototype: doctrine, information architecture assessment, architecture decisions, standing backlog, RAID log and traceability.">
+<style>
+:root{
+  --night:#10141d; --deep:#161c28; --dusk:#1d2533; --ridge:#2b3547;
+  --silk:#dfe7ee; --moth:#8e9aad; --faint:#77839a;
+  --dew:#79d6cf; --amber:#e3a044; --amber-dim:#8a6428; --rust:#c96f4c;
+  --violet:#9a8ada; --ok:#6fbf8e; --r:3px;
+}
+@media (prefers-color-scheme: light){
+  :root{ --night:#f4f1e9; --deep:#fbfaf6; --dusk:#eae5d9; --ridge:#cfc7b6;
+    --silk:#1d2128; --moth:#4e5665; --faint:#646c7a; --dew:#0e6f6a; --amber:#9a5c07;
+    --amber-dim:#d9a95e; --rust:#a63d1c; --violet:#5b46a8; --ok:#2c7048; }
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--night);color:var(--silk);
+  font:15px/1.6 ui-sans-serif,system-ui,"Segoe UI",Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px 90px}
+a{color:var(--dew)}
+header.top{padding:46px 0 26px;border-bottom:1px solid var(--ridge)}
+.eyebrow{font:500 10.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+h1{font:300 clamp(30px,4.6vw,50px)/1.05 Georgia,"Times New Roman",serif;margin:10px 0 0;letter-spacing:-.01em}
+h1 em{font-style:italic;color:var(--dew)}
+.sub{font:italic 300 18px/1.5 Georgia,serif;color:var(--moth);max-width:64ch;margin:14px 0 0}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+.badge{font:500 9.5px/1 ui-monospace,monospace;letter-spacing:.11em;text-transform:uppercase;border:1px solid var(--ridge);border-radius:2px;padding:6px 9px;color:var(--moth)}
+.badge.warn{border-color:var(--rust);color:var(--rust)}
+.badge.ok{border-color:var(--ok);color:var(--ok)}
+.badge.amber{border-color:var(--amber-dim);color:var(--amber)}
+
+h2{font:400 27px/1.15 Georgia,serif;margin:52px 0 6px;color:var(--silk);padding-top:14px;border-top:1px solid var(--ridge)}
+h2 .num{font:500 10px/1 ui-monospace,monospace;letter-spacing:.14em;color:var(--amber);display:block;margin-bottom:9px;text-transform:uppercase}
+h3{font:600 15px/1.3 ui-sans-serif,system-ui,sans-serif;margin:26px 0 8px;color:var(--silk)}
+h4{font:500 10.5px/1 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin:22px 0 8px}
+p{margin:0 0 12px;color:var(--moth);max-width:82ch}
+p b,li b,td b{color:var(--silk);font-weight:600}
+ul,ol{margin:0 0 14px;padding-left:20px;color:var(--moth);max-width:82ch}
+li{margin:5px 0}
+code{font:12.5px ui-monospace,monospace;background:var(--dusk);border:1px solid var(--ridge);border-radius:2px;padding:1px 5px;color:var(--dew)}
+
+table{width:100%;border-collapse:collapse;margin:6px 0 20px;font-size:13px}
+th{
+  text-align:left;font:500 9.5px/1.3 ui-monospace,monospace;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--faint);border-bottom:1px solid var(--ridge);padding:9px 10px 9px 0;vertical-align:bottom;
+}
+td{padding:9px 10px 9px 0;border-bottom:1px solid var(--ridge);color:var(--moth);vertical-align:top}
+tr:hover td{color:var(--silk)}
+td.id,th.id{width:96px;font:12px ui-monospace,monospace;color:var(--amber);white-space:nowrap}
+td.pri{width:52px;font:12px ui-monospace,monospace}
+td.ph{width:64px;font:12px ui-monospace,monospace;color:var(--faint)}
+td.tr{width:150px;font:11.5px ui-monospace,monospace;color:var(--faint)}
+.p1{color:var(--rust)} .p2{color:var(--amber)} .p3{color:var(--faint)}
+
+.panel{border:1px solid var(--ridge);border-left-width:3px;border-radius:var(--r);padding:15px 17px;margin:0 0 18px;background:var(--deep)}
+.panel.warn{border-left-color:var(--rust)}
+.panel.ok{border-left-color:var(--ok)}
+.panel.note{border-left-color:var(--violet)}
+.panel h3{margin-top:0}
+.panel p:last-child{margin-bottom:0}
+
+pre{
+  background:var(--deep);border:1px solid var(--ridge);border-radius:var(--r);padding:15px 17px;
+  overflow-x:auto;font:12px/1.6 ui-monospace,monospace;color:var(--moth);margin:0 0 18px;
+}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-bottom:18px}
+.tile{border:1px solid var(--ridge);border-radius:var(--r);padding:15px 16px;background:var(--deep)}
+.tile .k{font:500 9.5px/1 ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--amber)}
+.tile h3{margin:8px 0 6px}
+.tile p{font-size:12.5px;margin:0}
+.rag{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:0}
+.rag.r{background:var(--rust)} .rag.a{background:var(--amber)} .rag.g{background:var(--ok)}
+nav.toc{border:1px solid var(--ridge);border-radius:var(--r);padding:16px 18px;margin:26px 0 0;background:var(--deep)}
+nav.toc ol{columns:2;column-gap:30px;padding-left:18px;margin:0}
+@media(max-width:640px){nav.toc ol{columns:1}}
+nav.toc a{text-decoration:none}
+nav.toc a:hover{text-decoration:underline}
+footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--ridge);font-size:12px;color:var(--faint)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="eyebrow">WEB-2.0 · Decoupled governance record · OFFICIAL</div>
+  <h1>Programme &amp;<br><em>Architecture Authority</em></h1>
+  <p class="sub">The governance record for <b>The Web</b> — a navigable, ontology-backed map of a body of work. Held separately from the operational prototype, because a governance record that lives inside the thing it governs is load-bearing on it.</p>
+  <div class="badges">
+    <span class="badge amber">Status · AMBER by design</span>
+    <span class="badge">Version 2.0</span>
+    <span class="badge">Owner · Emanuel Silva, OCDO Data Management Lead</span>
+    <span class="badge warn">Prototype · synthetic and self-supplied data only</span>
+    <span class="badge ok">Renders with JavaScript disabled</span>
+  </div>
+
+  <nav class="toc" aria-label="Contents">
+    <ol>
+      <li><a href="#charter">Charter and rationale</a></li>
+      <li><a href="#doctrine">Foundational doctrine</a></li>
+      <li><a href="#ia">Information architecture assessment</a></li>
+      <li><a href="#ea">Architecture views</a></li>
+      <li><a href="#adr">Architecture decision records</a></li>
+      <li><a href="#aug">Augmentation register</a></li>
+      <li><a href="#maturity">Capability maturity</a></li>
+      <li><a href="#backlog">Standing backlog</a></li>
+      <li><a href="#nnl">Now, Next, Later</a></li>
+      <li><a href="#raid">RAID log</a></li>
+      <li><a href="#trace">Traceability matrix</a></li>
+      <li><a href="#align">Alignment register</a></li>
+      <li><a href="#release">Release history</a></li>
+      <li><a href="#conv">Build and validation conventions</a></li>
+    </ol>
+  </nav>
+</header>
+
+<h2 id="charter"><span class="num">Section 1</span>Charter and rationale</h2>
+<p><b>Purpose.</b> The Web is a prototype interface that renders a body of work as a navigable orb web, backed by an ontology, a taxonomy, a thesaurus and a reasoner. It exists to reduce the cost of re-finding, connecting, explaining and handing over accumulated knowledge — and to make <b>absence</b> visible, not only presence.</p>
+
+<h3>Why this record is decoupled</h3>
+<div class="cols">
+  <div class="tile"><div class="k">Separation of concerns</div><h3>Governance is not a feature</h3><p>The operational prototype should carry no obligation to render its own backlog. Embedding governance couples release cadence to documentation cadence.</p></div>
+  <div class="tile"><div class="k">Independent lifecycle</div><h3>Different clocks</h3><p>The prototype changes per build session. This authority changes per decision. Neither should force a version bump in the other.</p></div>
+  <div class="tile"><div class="k">Artefact custody</div><h3>Survives environment reset</h3><p>The operational code line has, to date, existed only as build-session output with no durable version control. This record is self-contained and portable — it survives exactly the conditions that threaten the code line. See <b>R-02</b>.</p></div>
+  <div class="tile"><div class="k">Doctrinal consistency</div><h3>Applied to itself</h3><p>The programme holds that AI must be augmentation, never load-bearing infrastructure. The same structural-resilience principle is applied to documentation.</p></div>
+</div>
+
+<div class="panel note">
+  <h3>The alignment contract</h3>
+  <p>This authority and the operational prototype are <b>siblings, not parent and child</b>. Reference, not derivation: this record references the prototype's capabilities and gaps; it does not generate them, and the prototype does not read from it. Where they disagree, the prototype is the statement of what exists and this record is the statement of what was decided.</p>
+</div>
+
+<h2 id="doctrine"><span class="num">Section 2</span>Foundational doctrine</h2>
+<p>Adopted from the Whitehall Connect GOV-2.8 Programme &amp; Architecture Authority, because the same constraints apply and doctrine that differs between sibling artefacts is not doctrine.</p>
+
+<h3>The four tenets</h3>
+<table>
+  <tr><th class="id">Tenet</th><th>Statement</th><th>How this prototype holds it</th></tr>
+  <tr><td class="id">T-01</td><td><b>Augmentation, not dependency.</b> AI accelerates human work; it never becomes the only path to an outcome.</td><td>Held. Every reading the interface offers — class, purpose, ladder band, route — is also reachable through the text version and the reference tables.</td></tr>
+  <tr><td class="id">T-02</td><td><b>Registered fallback.</b> No AI capability ships without its manual counterpart logged in the Augmentation Register.</td><td>Partially held. Register created at Section 6; three entries still lack a documented manual counterpart.</td></tr>
+  <tr><td class="id">T-03</td><td><b>Degraded-mode completeness.</b> With every service unavailable, the artefact still performs its core function end to end.</td><td><b>Not held.</b> The prototype is entirely JavaScript-rendered and fetches web fonts from a CDN. See <b>BL-WEB-01</b> and <b>BL-WEB-02</b>.</td></tr>
+  <tr><td class="id">T-04</td><td><b>Human-in-the-loop on consequence.</b> Anything that drafts, decides or acts on the user's behalf surfaces for explicit human review.</td><td>Held. The prototype asserts nothing on the user's behalf. Inferred axioms are visually separated from asserted ones and can be switched off; induced patterns are separated again from both.</td></tr>
+</table>
+
+<h3>Honesty and data posture</h3>
+<ul>
+  <li>All content is either the user's own conversation history or workbooks the user supplied. <b>No live government system is contacted.</b> No external data is fetched at runtime other than typography.</li>
+  <li>Nothing is stored, transmitted or persisted. Preferences and navigation history exist in memory for the session only.</li>
+  <li><b>Honest prototype labelling is maintained throughout and never obscured.</b> The home page carries it above the fold.</li>
+  <li>UK English exclusively — artefact, behaviour, centre, organised, prioritise.</li>
+  <li>Where a reading is <b>inferred</b> it says so. Where a scheme is <b>unconfirmed</b> it stays unconfirmed until confirmed by its owner.</li>
+</ul>
+
+<div class="panel warn">
+  <h3>Doctrine self-test, applied to this prototype</h3>
+  <p>Three honest failures. <b>One:</b> the operational prototype renders nothing with JavaScript disabled, so it fails degraded-mode completeness outright. <b>Two:</b> it loads Google Fonts from a CDN, so it is not self-contained on first paint and will not render as designed on an air-gapped or egress-restricted desktop. <b>Three:</b> it has been tested by automation only — never with a user, and never with a screen-reader user. Accessibility here is <b>built to</b> WCAG 2.1 AA intent and <b>verified against</b> contrast and keyboard criteria; it is not assured. All three are carried as P1 backlog items rather than caveated away.</p>
+</div>
+
+<h2 id="ia"><span class="num">Section 3</span>Information architecture assessment</h2>
+<p>Conducted against the pre-portal build (v0.9, single page). Findings are ordered by severity. Six were addressed in v1.0. The remaining five — IA-03, IA-07 and IA-10 among them — were closed in v2.0. All eleven are now fixed.</p>
+
+<table>
+  <tr><th class="id">Finding</th><th>Problem</th><th>Assessment</th><th class="ph">v1.0</th></tr>
+  <tr><td class="id">IA-01</td><td><b>No entry point.</b> The user landed in the middle of a tool with no orientation layer.</td><td>The single most damaging finding. There was nothing that answered "what is this, what can I do, where do I start" before the interface demanded a decision. Portals need a threshold.</td><td class="ph">Fixed</td></tr>
+  <tr><td class="id">IA-02</td><td><b>One page, fourteen regions.</b> Masthead, controls, three rail tabs, stage, six overlay controls, tour bar, dragline, legend, text version, nine orientation cards, detail rail, torn strands, two modals.</td><td>This is the cognitive-load problem in miniature — the same problem the workbooks have. Everything was permanently present because there was nowhere else to put it.</td><td class="ph">Fixed</td></tr>
+  <tr><td class="id">IA-03</td><td><b>Control types were undifferentiated.</b> Appearance toggles, view modes and destinations sat in one flat row of eleven buttons.</td><td>Three distinct interaction classes rendered identically. A user cannot form a mental model when "Light", "Owl view" and "Manual" look like siblings.</td><td class="ph">Fixed</td></tr>
+  <tr><td class="id">IA-04</td><td><b>Reference material was squeezed into a 258px rail.</b> Glossary, thesaurus and data dictionary rendered in a column narrower than a phone.</td><td>Reference content is scanned, compared and read — all width-hungry behaviours. It was in the worst possible container.</td><td class="ph">Fixed</td></tr>
+  <tr><td class="id">IA-05</td><td><b>Orientation content held prime real estate permanently.</b> Nine "how a spider moves" cards sat directly below the visualisation forever.</td><td>Onboarding content should decay. After the second visit it is furniture.</td><td class="ph">Fixed</td></tr>
+  <tr><td class="id">IA-06</td><td><b>Single-collection assumption.</b> Every structure was hard-wired to one dataset.</td><td>Fatal to the portal ambition. Without a collection concept there is no product, only an artefact.</td><td class="ph">Fixed</td></tr>
+  <tr><td class="id">IA-07</td><td><b>No addressable state.</b> No routing, so no deep links, no browser back, nothing shareable.</td><td>In a government context this also means nothing citable in a governance pack.</td><td class="ph">Fixed</td></tr>
+  <tr><td class="id">IA-08</td><td><b>Two competing modals</b> with separate shells, separate focus traps and separate close semantics.</td><td>Modal proliferation is a symptom of missing pages.</td><td class="ph">Fixed</td></tr>
+  <tr><td class="id">IA-09</td><td><b>The spider mark occupied its own block</b>, breaking the flow from title to content.</td><td>A demonstrator is a secondary control. It should sit in slack space beside the title, not interrupt the reading order.</td><td class="ph">Fixed</td></tr>
+  <tr><td class="id">IA-10</td><td><b>No search across the whole portal.</b> Search only ever meant "vibrate the current web".</td><td>With multiple pages and collections this becomes acute — a user who remembers a glossary term has no way to reach it except by guessing the tab.</td><td class="ph">Fixed</td></tr>
+  <tr><td class="id">IA-11</td><td><b>Terminology carried three meanings for KIL.</b></td><td>Genuine governance defect, not a UI one. See Section 12.</td><td class="ph">Fixed</td></tr>
+</table>
+
+<h3>Recommended target architecture</h3>
+<pre>PORTAL SHELL  (persistent)
+  ├── identity + collection selector + global search        [search: BL-WEB-10]
+  └── primary navigation
+        │
+        ├── HOME          threshold. what this is, what it holds, where to start
+        ├── EXPLORE       the visualisation. one collection at a time
+        │                   modes: flat · owl · strata          (stage-local)
+        │                   lenses: bird's eye · eagle lens     (stage-local)
+        ├── ONTOLOGY      classes · properties · individuals · reasoner · DL query
+        ├── REFERENCE     taxonomy · thesaurus · glossary · dictionary · ladders
+        ├── TOURS         narrated routes
+        ├── COLLECTIONS   what the interface can be pointed at
+        └── MANUAL        controls, keys, doctrine, limits
+
+DISPLAY SETTINGS  (cross-cutting, one popover)               [BL-WEB-11]
+  theme · contrast · palette · text scale · motion · voice</pre>
+
+<div class="panel">
+  <h3>The organising principle</h3>
+  <p><b>Destinations become pages. Modes stay with the thing they modify. Preferences collapse into one place.</b> The previous build mixed all three in one row, which is why it read as complicated rather than capable. Owl view, strata and the lens correctly remain on the stage, because they change what the stage shows and nothing else. Theme and text scale correctly leave the stage, because they change everything.</p>
+</div>
+
+<h3>On the compendium ambition</h3>
+<p>The multipage shell makes the playbook-compendium use case tractable, and it is the strongest of the candidate directions. The Data Governance Playbook becomes one <b>collection</b> among many across the end-to-end data and lifecycle management discipline — cataloguing, governance, quality, architecture, ethics, sharing, retention, records, mastering, valuation. Each playbook is a web; the compendium is the collection registry; the shared ontology, taxonomy and thesaurus are what make cross-playbook navigation possible rather than merely adjacent.</p>
+<p>The condition is <b>BL-WEB-03</b>: until collections can be authored from a source file rather than hand-written, the compendium cannot grow past the pace of hand-authoring. That single item is the difference between a demonstrator and a platform.</p>
+
+<h2 id="ea"><span class="num">Section 4</span>Architecture views</h2>
+
+<h3>Level 1 — system context</h3>
+<pre>┌──────────────┐        supplies workbooks,        ┌─────────────────────┐
+│  Data        │  ───── conversation history ────► │                     │
+│  practitioner│                                   │      THE WEB        │
+│  (single     │  ◄──── navigable map, ontology ── │  single-file HTML   │
+│   user)      │        reference, tours           │  prototype          │
+└──────────────┘                                   └──────────┬──────────┘
+                                                              │ reads (build time only)
+                              ┌───────────────────────────────┴──────────────┐
+                              │  Conversation search · uploaded .xlsx/.docx  │
+                              │  NO runtime connection to any system         │
+                              └──────────────────────────────────────────────┘</pre>
+
+<h3>Level 2 — containers</h3>
+<pre>THE WEB  (one HTML file, ~266 KB, no build step, no runtime dependency but fonts)
+ ├── Portal shell ......... routing, collection registry, preferences
+ ├── Collection model ..... strands · beads · themes · enrichment · repairs
+ ├── Geometry engine ...... radial layout · projection · strata · minimap
+ ├── Semantic layer ....... ontology · properties · reasoner · DL query
+ ├── Vocabulary layer ..... taxonomy · thesaurus · glossary · dictionary · ladders
+ ├── Interaction layer .... nine movements · routes · crawl · lens · stoop
+ └── Assurance layer ...... text version · voice · live region · doctrine labels</pre>
+
+<h3>Level 3 — the collection contract</h3>
+<p>Any collection must supply: <code>strands[]</code> each with <code>nodes[]</code>; <code>themes[]</code> for cross-thread crossings; <code>enrich{}</code> giving each node a class, taxonomy path, ladder band and typed relations; and <code>repairs[]</code> — the torn strands. The last of these is not optional. <b>A collection that declares no gaps is not trusted by this system</b>, because every real body of work has them and a claim of completeness is itself a finding.</p>
+
+<h2 id="adr"><span class="num">Section 5</span>Architecture decision records</h2>
+<table>
+  <tr><th class="id">ADR</th><th>Decision</th><th>Rationale</th><th class="ph">Status</th></tr>
+  <tr><td class="id">ADR-W01</td><td>Single self-contained HTML file, no build step</td><td>Matches the delivery pattern already proven across the Observatory, the CDA dashboard and the Command Centre. Survives environment reset, opens on any desktop, needs no platform approval.</td><td class="ph">Accepted</td></tr>
+  <tr><td class="id">ADR-W02</td><td>Encode ontology class as <b>shape</b>, never as colour</td><td>Colour-only encoding fails colour-blind users and fails in monochrome print. Shape is the only channel that survives both.</td><td class="ph">Accepted</td></tr>
+  <tr><td class="id">ADR-W03</td><td>Separate asserted, inferred and induced axioms visually and switchably</td><td>Induction is not entailment. Presenting an observed regularity as an axiom would be a category error with governance consequences.</td><td class="ph">Accepted</td></tr>
+  <tr><td class="id">ADR-W04</td><td>Manual projection for the stratified view rather than CSS 3D</td><td>Keeps zoom, pan, the minimap and the lens working unchanged, and keeps the whole scene in one SVG for export and print.</td><td class="ph">Accepted</td></tr>
+  <tr><td class="id">ADR-W05</td><td>Destinations become pages; modes stay on the stage</td><td>See IA-03. Three interaction classes rendered identically prevented mental-model formation.</td><td class="ph">Accepted</td></tr>
+  <tr><td class="id">ADR-W06</td><td>Adopt the canonical KISIL/KIL naming; rename the invented ladder to KSL</td><td>The specification is authoritative. A prototype must never overwrite an owner's vocabulary with one it inferred.</td><td class="ph">Accepted</td></tr>
+  <tr><td class="id">ADR-W07</td><td>Torn strands are a mandatory part of the collection contract</td><td>Making absence first-class is the system's distinctive claim. Optional gap declaration would let it degrade into another graph viewer.</td><td class="ph">Accepted</td></tr>
+  <tr><td class="id">ADR-W08</td><td>No persistence of any kind in the prototype</td><td>Avoids data-protection questions entirely at prototype stage and keeps the artefact honestly stateless. Revisit at <b>BL-WEB-06</b>.</td><td class="ph">Accepted</td></tr>
+  <tr><td class="id">ADR-W09</td><td>Defer a real reasoner; ship a small explicit one and export to Protégé</td><td>Imitating OWL DL badly is worse than doing a defined subset well and being explicit about the boundary.</td><td class="ph">Proposed</td></tr>
+  <tr><td class="id">ADR-W10</td><td>Federate, do not ingest: collections reference sources rather than copy them</td><td>Directly adopted from the Memory Grid principle — <i>centralise discovery, not ownership</i>. Applies identically here.</td><td class="ph">Proposed</td></tr>
+</table>
+
+<h2 id="aug"><span class="num">Section 6</span>Augmentation register</h2>
+<p>Per tenet T-02, no assistive capability ships without a logged manual counterpart.</p>
+<table>
+  <tr><th class="id">AUG</th><th>Assisted capability</th><th>Manual counterpart</th><th class="ph">State</th></tr>
+  <tr><td class="id">AUG-01</td><td>Inferred class membership and subsumption closure</td><td>Asserted-only toggle in the explorer; every asserted axiom listed separately</td><td class="ph"><span class="rag g"></span>Logged</td></tr>
+  <tr><td class="id">AUG-02</td><td>Induced necessary conditions ("observed patterns")</td><td>Instance list per class, countable by hand</td><td class="ph"><span class="rag g"></span>Logged</td></tr>
+  <tr><td class="id">AUG-03</td><td>Shortest-route bridging and alternative routes</td><td>Full relation list per bead; text version renders all threads and beads</td><td class="ph"><span class="rag g"></span>Logged</td></tr>
+  <tr><td class="id">AUG-04</td><td>Thesaurus-expanded search</td><td>Thesaurus page lists every preferred and alternative label</td><td class="ph"><span class="rag g"></span>Logged</td></tr>
+  <tr><td class="id">AUG-05</td><td>Voiceover narration</td><td>Identical text written on screen and to the live region simultaneously</td><td class="ph"><span class="rag g"></span>Logged</td></tr>
+  <tr><td class="id">AUG-06</td><td>Duplicate detection (planned, BL-WEB-24)</td><td>Not yet defined</td><td class="ph"><span class="rag r"></span>Missing</td></tr>
+  <tr><td class="id">AUG-07</td><td>Automated collection generation from source files (planned, BL-WEB-03)</td><td>Not yet defined — must include a reviewable mapping report</td><td class="ph"><span class="rag r"></span>Missing</td></tr>
+  <tr><td class="id">AUG-08</td><td>Change-impact propagation (planned, BL-WEB-27)</td><td>Not yet defined</td><td class="ph"><span class="rag r"></span>Missing</td></tr>
+</table>
+
+<h2 id="maturity"><span class="num">Section 7</span>Capability maturity</h2>
+<table>
+  <tr><th>Capability</th><th class="pri">Level</th><th>Evidence and limit</th></tr>
+  <tr><td>Visualisation and navigation</td><td class="pri">4</td><td>Nine movement modes, three views, tested across three collections. Limit: occlusion in the stratified view at some stratifications.</td></tr>
+  <tr><td>Semantic layer</td><td class="pri">3</td><td>15 classes, 16 properties, working subset reasoner, DL query. Limit: no OWL round-trip, no explanation of inferences.</td></tr>
+  <tr><td>Vocabulary</td><td class="pri">3</td><td>Taxonomy, SKOS-shaped thesaurus, glossary, data dictionary. Limit: hand-authored, no governance workflow, no versioning.</td></tr>
+  <tr><td>Accessibility</td><td class="pri">3</td><td>AA contrast verified in both themes, full keyboard reach, text version, live region, motion controls. Limit: never tested with a user of assistive technology.</td></tr>
+  <tr><td>Collection model</td><td class="pri">3</td><td>Five collections, switchable at runtime, contract defined; four generated from supplied workbooks by extraction script. Limit: extraction is bespoke per workbook, not yet a declared mapping (BL-WEB-03).</td></tr>
+  <tr><td>Persistence and state</td><td class="pri">1</td><td>Deliberately none. Routing exists; nothing else survives a reload.</td></tr>
+  <tr><td>Assurance and provenance</td><td class="pri">1</td><td>Doctrine labels and gap declarations exist. Limit: no provenance record per node, no quality assessment, no audit log.</td></tr>
+  <tr><td>Multi-user and federation</td><td class="pri">0</td><td>Not started. Single-user, single-file, no sharing beyond passing the file.</td></tr>
+</table>
+
+<h2 id="backlog"><span class="num">Section 8</span>Standing backlog</h2>
+<p>Fifty-eight items, three of them now closed. <b>Trace</b> cites the source that demands the item: <code>T-0n</code> doctrine tenets, <code>IA-nn</code> this assessment, <code>KISIL</code> the Knowledge Integration &amp; Semantic Interoperability Layer specification, <code>MG-*</code> the Memory Grid PRD/FTIRS, <code>DCAT</code> the Purview mapping specification, <code>GDS</code> the Products &amp; Services Catalogue, <code>STD</code> the Data Standards Classification, <code>SELF</code> a defect found in this build.</p>
+
+<h4>Doctrine and assurance</h4>
+<table>
+  <tr><th class="id">ID</th><th>Item</th><th class="pri">Pri</th><th class="ph">Phase</th><th class="tr">Trace</th></tr>
+  <tr><td class="id">BL-WEB-01</td><td><b>Degraded-mode render.</b> Emit a static, semantic HTML rendering of every collection — headings, lists, tables, relation triples — that displays with JavaScript disabled. The interactive web becomes progressive enhancement over it.</td><td class="pri p1">P1</td><td class="ph">1</td><td class="tr">T-03, SELF</td></tr>
+  <tr><td class="id">BL-WEB-02</td><td><b>Remove the external font dependency.</b> Ship a system-font stack with an optional embedded subset, so the artefact renders correctly on an air-gapped or egress-restricted desktop.</td><td class="pri p1">P1</td><td class="ph">1</td><td class="tr">T-03, SELF</td></tr>
+  <tr><td class="id">BL-WEB-04</td><td><b>Assisted-usability testing with five participants</b>, at least one screen-reader user and one keyboard-only user. UCD means tested, not designed-to.</td><td class="pri p1">P1</td><td class="ph">1</td><td class="tr">MG-NFR-002</td></tr>
+  <tr><td class="id">BL-WEB-05</td><td><b>Version control the code line.</b> The prototype exists only as build-session output. Establish a repository and tagged releases.</td><td class="pri p1">P1</td><td class="ph">0</td><td class="tr">R-02</td></tr>
+  <tr><td class="id">BL-WEB-07</td><td><b>Complete the augmentation register.</b> Define manual counterparts for AUG-06, 07 and 08 before those capabilities ship.</td><td class="pri p1">P1</td><td class="ph">2</td><td class="tr">T-02</td></tr>
+  <tr><td class="id">BL-WEB-08</td><td><b>Accessibility statement</b> in the artefact, naming what has been verified, what has not, and how to report a barrier.</td><td class="pri p2">P2</td><td class="ph">1</td><td class="tr">MG-NFR-002</td></tr>
+  <tr><td class="id">BL-WEB-09</td><td><b>Print and PDF stylesheet.</b> Governance packs are still circulated on paper; the web currently prints as a dark rectangle.</td><td class="pri p2">P2</td><td class="ph">2</td><td class="tr">MG-FR-015</td></tr>
+</table>
+
+<h4>Collections, ingest and scale</h4>
+<table>
+  <tr><th class="id">ID</th><th>Item</th><th class="pri">Pri</th><th class="ph">Phase</th><th class="tr">Trace</th></tr>
+  <tr><td class="id">BL-WEB-03</td><td><b>Collection authoring pipeline.</b> Generate a collection from a source file — xlsx, csv, JSON-LD, a register export — through a declared mapping, with a reviewable mapping report. <b>The single item that turns a demonstrator into a platform.</b></td><td class="pri p1">P1</td><td class="ph">1</td><td class="tr">IA-06, GDS, STD</td></tr>
+  <tr><td class="id">BL-WEB-12</td><td><b>Layout that scales past ~60 beads.</b> Rings currently truncate: Data Standards category 5 shows 9 of 15 topics. Needs growth, clustering or level-of-detail.</td><td class="pri p1">P1</td><td class="ph">2</td><td class="tr">STD, SELF</td></tr>
+  <tr><td class="id">BL-WEB-13</td><td><b>Third taxonomy tier.</b> The classification defines Category &gt; Topic &gt; Subject; Subject is modelled but unpopulated. Support the depth so it is visibly empty rather than silently absent.</td><td class="pri p2">P2</td><td class="ph">2</td><td class="tr">STD</td></tr>
+  <tr><td class="id">BL-WEB-14</td><td><b>Drill-in from an aggregate bead to its members.</b> A GDS bead currently says "Guidance · 17 items" without listing the seventeen.</td><td class="pri p1">P1</td><td class="ph">2</td><td class="tr">GDS</td></tr>
+  <tr><td class="id">BL-WEB-15</td><td><b>Mapping confidence as a first-class visual channel.</b> 120 of 173 GDS mappings are inferred and 26 flagged for review; the web should encode that, not just report it.</td><td class="pri p1">P1</td><td class="ph">2</td><td class="tr">GDS, ADR-W03</td></tr>
+  <tr><td class="id">BL-WEB-16</td><td><b>Controlled-list validation on ingest.</b> Free-text status fields ("Published", "Published ", "Up to date") cannot be counted. Flag uncontrolled fields at collection build.</td><td class="pri p2">P2</td><td class="ph">2</td><td class="tr">GDS</td></tr>
+  <tr><td class="id">BL-WEB-17</td><td><b>Compendium collection set</b> — the Data Governance Playbook plus siblings across the end-to-end discipline, sharing one ontology and thesaurus.</td><td class="pri p2">P2</td><td class="ph">3</td><td class="tr">IA target</td></tr>
+  <tr><td class="id">BL-WEB-18</td><td><b>Cross-collection navigation.</b> Bridge, search and the ontology should reach across loaded collections, not only within one.</td><td class="pri p2">P2</td><td class="ph">3</td><td class="tr">MG-G6</td></tr>
+  <tr><td class="id">BL-WEB-56</td><td><b>Scheduled link revalidation.</b> Live checking found 12 of 71 GDS product links now redirect and 3 are broken, while the workbook's own audit column still records them as verified. A verification stamp records when a link was checked, not whether it still resolves to the same place.</td><td class="pri p1">P1</td><td class="ph">1</td><td class="tr">GDS, SELF</td></tr>
+  <tr><td class="id">BL-WEB-57</td><td><b>Mission and priority fields in the source registers.</b> The alignment map in this build is asserted, not evidenced. Until the classification and the CDA register carry mission, GDS-priority and NDL-kickstarter fields, it cannot be validated or maintained.</td><td class="pri p1">P1</td><td class="ph">2</td><td class="tr">Alignment</td></tr>
+  <tr><td class="id">BL-WEB-58</td><td><b>SDR findings need owners in the classification.</b> The six systemic challenges from the State of Digital Government Review map to no standards domain that would evidence progress against them.</td><td class="pri p2">P2</td><td class="ph">2</td><td class="tr">SDR</td></tr>
+  <tr><td class="id">BL-WEB-53</td><td><b>Entity resolution on ingest.</b> The CDA register carries 115 distinct department strings for a far smaller set of organisations — ONS and Office for National Statistics, DfE and Department for Education, DEFRA and Defra all count separately. Any departmental figure drawn from it today is wrong. Resolve on ingest and show what was merged.</td><td class="pri p1">P1</td><td class="ph">1</td><td class="tr">CDA</td></tr>
+  <tr><td class="id">BL-WEB-54</td><td><b>Endorsement and consultation state as a visual channel.</b> v5.0 carries Endorsed, Partially Endorsed and Draft per topic, and is out for consultation. A reader should see the maturity gradient without reading a status column.</td><td class="pri p1">P1</td><td class="ph">2</td><td class="tr">STD5, DSA brief</td></tr>
+  <tr><td class="id">BL-WEB-55</td><td><b>Load the Rosetta Stone as the shared concept layer</b> rather than as one collection among five — 61 canonical concepts across ten profiles is the natural bridge between every other collection.</td><td class="pri p2">P2</td><td class="ph">3</td><td class="tr">Crosswalks</td></tr>
+  <tr><td class="id">BL-WEB-19</td><td><b>Collection provenance block</b> — source file, extraction date, row counts, what was truncated and why.</td><td class="pri p1">P1</td><td class="ph">2</td><td class="tr">MG-NFR-004</td></tr>
+</table>
+
+<h4>Semantic layer</h4>
+<table>
+  <tr><th class="id">ID</th><th>Item</th><th class="pri">Pri</th><th class="ph">Phase</th><th class="tr">Trace</th></tr>
+  <tr><td class="id">BL-WEB-20</td><td><b>OWL round-trip.</b> Import and export Turtle and JSON-LD so the ontology meets real vocabularies and returns to Protégé.</td><td class="pri p1">P1</td><td class="ph">2</td><td class="tr">DCAT, ADR-W09</td></tr>
+  <tr><td class="id">BL-WEB-21</td><td><b>Explanation of inference.</b> "Why is this inferred?" showing the axiom chain. Without it the reasoner asks for trust it has not earned.</td><td class="pri p1">P1</td><td class="ph">2</td><td class="tr">T-04</td></tr>
+  <tr><td class="id">BL-WEB-22</td><td><b>Adopt DCAT-UK-AP as an ontology import</b> — dcat:Dataset, Distribution, DataService, Catalog — so a collection can be expressed in the profile government actually mandates.</td><td class="pri p1">P1</td><td class="ph">2</td><td class="tr">DCAT, MG-IR005</td></tr>
+  <tr><td class="id">BL-WEB-23</td><td><b>SKOS export of the thesaurus</b>, with the taxonomy as a concept scheme.</td><td class="pri p2">P2</td><td class="ph">2</td><td class="tr">MG 2.3.4</td></tr>
+  <tr><td class="id">BL-WEB-24</td><td><b>Duplicate and near-duplicate detection</b> across and within collections, presented as "possible match", never as judgement.</td><td class="pri p2">P2</td><td class="ph">3</td><td class="tr">MG-FR-009</td></tr>
+  <tr><td class="id">BL-WEB-25</td><td><b>Cardinality and property-chain axioms</b>, plus equivalent-class definitions, taking the reasoner beyond its current subset.</td><td class="pri p3">P3</td><td class="ph">3</td><td class="tr">ADR-W09</td></tr>
+  <tr><td class="id">BL-WEB-26</td><td><b>SHACL validation</b> of a collection against a shape file, mirroring the DCAT-UK-AP validation step.</td><td class="pri p2">P2</td><td class="ph">3</td><td class="tr">DCAT §6</td></tr>
+</table>
+
+<h4>KISIL and KIL alignment</h4>
+<table>
+  <tr><th class="id">ID</th><th>Item</th><th class="pri">Pri</th><th class="ph">Phase</th><th class="tr">Trace</th></tr>
+  <tr><td class="id">BL-WEB-30</td><td><b>Adopt the KIL entity model natively</b> — Workstream, Artefact, Insight, Signal, Decision as first-class collection entities rather than a derived reading of ontology class.</td><td class="pri p1">P1</td><td class="ph">2</td><td class="tr">KISIL §2</td></tr>
+  <tr><td class="id">BL-WEB-31</td><td><b>Many-to-many linking tables.</b> Implement workstream_artefacts, artefact_insights, insight_signals, insight_decisions, artefact_decisions as the relation substrate.</td><td class="pri p1">P1</td><td class="ph">2</td><td class="tr">KISIL §3</td></tr>
+  <tr><td class="id">BL-WEB-32</td><td><b>Decision traceability view.</b> Given a Decision, walk back through insights to artefacts to workstream — the KISIL <code>GET /decisions/{id}/traceability</code> rendered as a lit route on the web.</td><td class="pri p1">P1</td><td class="ph">2</td><td class="tr">KISIL §4</td></tr>
+  <tr><td class="id">BL-WEB-33</td><td><b>Quantified metadata drives the visual.</b> impact and confidence (1–5) and severity should set bead weight and route prominence, so high-impact low-confidence findings surface automatically.</td><td class="pri p1">P1</td><td class="ph">2</td><td class="tr">KISIL §2</td></tr>
+  <tr><td class="id">BL-WEB-34</td><td><b>Impact-analysis propagation.</b> When an artefact is superseded or redacted, flag every downstream insight and decision that relied on it.</td><td class="pri p2">P2</td><td class="ph">3</td><td class="tr">KISIL §3</td></tr>
+  <tr><td class="id">BL-WEB-35</td><td><b>Signal promotion.</b> Allow an insight to be promoted to a signal with severity, and render signals distinctly.</td><td class="pri p2">P2</td><td class="ph">3</td><td class="tr">KISIL §2</td></tr>
+  <tr><td class="id">BL-WEB-36</td><td><b>Confirm or correct the KSL ladder</b> with its owner, or retire it now that the canonical KISIL is known.</td><td class="pri p2">P2</td><td class="ph">1</td><td class="tr">ADR-W06</td></tr>
+  <tr><td class="id">BL-WEB-37</td><td><b>Resolve the three-way KIL collision</b> across DSIT/GDS artefacts: Knowledge Integration Layer, Keystone Up the Chain, and the Observatory view. One wins; the others are renamed.</td><td class="pri p1">P1</td><td class="ph">0</td><td class="tr">IA-11</td></tr>
+</table>
+
+<h4>Memory Grid alignment</h4>
+<table>
+  <tr><th class="id">ID</th><th>Item</th><th class="pri">Pri</th><th class="ph">Phase</th><th class="tr">Trace</th></tr>
+  <tr><td class="id">BL-WEB-40</td><td><b>Separate discovery metadata from access decisions.</b> A bead should be discoverable while its content is not, with an access route rather than the content.</td><td class="pri p1">P1</td><td class="ph">2</td><td class="tr">MG-FR-006</td></tr>
+  <tr><td class="id">BL-WEB-41</td><td><b>Provenance record per node</b> — source URI, created-by role, version, lineage, review status.</td><td class="pri p1">P1</td><td class="ph">2</td><td class="tr">MG-NFR-004</td></tr>
+  <tr><td class="id">BL-WEB-42</td><td><b>Quality assessment</b> — clarity, evidence and reuse scores with reviewer role, rendered as a visible state on each bead.</td><td class="pri p2">P2</td><td class="ph">3</td><td class="tr">MG-FR-008</td></tr>
+  <tr><td class="id">BL-WEB-43</td><td><b>Access request routing.</b> Where a bead is restricted, route the user to the owning team rather than to a dead end.</td><td class="pri p2">P2</td><td class="ph">3</td><td class="tr">MG-FR-007</td></tr>
+  <tr><td class="id">BL-WEB-44</td><td><b>Evidence pack export</b> — a collated, citable pack of selected beads, their relations and their provenance, for governance and business-case reuse.</td><td class="pri p1">P1</td><td class="ph">2</td><td class="tr">MG-FR-015</td></tr>
+  <tr><td class="id">BL-WEB-45</td><td><b>Change Impact Radar view</b> — recurring blockers, capability gaps and restructure risk across collections.</td><td class="pri p3">P3</td><td class="ph">4</td><td class="tr">MG 1.9</td></tr>
+  <tr><td class="id">BL-WEB-46</td><td><b>Reusable pattern lifecycle</b> — reusable, deprecated, superseded, under review — visible in search and on the bead.</td><td class="pri p3">P3</td><td class="ph">4</td><td class="tr">MG-FR-014</td></tr>
+  <tr><td class="id">BL-WEB-47</td><td><b>Audit log</b> of curation, publication and export actions once any write capability exists.</td><td class="pri p2">P2</td><td class="ph">3</td><td class="tr">MG-NFR-007</td></tr>
+</table>
+
+<div class="panel ok"><h3>Closed in v2.0</h3><p><b>BL-WEB-06</b> shareable state — collection, page, selection, view mode and stratification now encode in the URL, with a Copy view control. <b>BL-WEB-10</b> global search — one index across beads, threads, glossary, thesaurus, dictionary, ontology classes and properties, taxonomy, ladders, collections, tours, pages and declared gaps. <b>BL-WEB-11</b> display preferences collapsed into one popover, separating them from modes and destinations. All three IA findings that were partial or open are now fixed.</p></div>
+
+<h4>Interaction, state and platform</h4>
+<table>
+  <tr><th class="id">ID</th><th>Item</th><th class="pri">Pri</th><th class="ph">Phase</th><th class="tr">Trace</th></tr>
+  <tr><td class="id">BL-WEB-06</td><td><b>Shareable state.</b> Encode collection, selection, view mode and zoom in the URL so a view can be cited in a governance pack.</td><td class="pri" style="color:var(--ok)">DONE</td><td class="ph">1</td><td class="tr">IA-07</td></tr>
+  <tr><td class="id">BL-WEB-10</td><td><b>Global search</b> across beads, glossary, thesaurus, dictionary, ontology and manual — not only the current web.</td><td class="pri" style="color:var(--ok)">DONE</td><td class="ph">1</td><td class="tr">IA-10</td></tr>
+  <tr><td class="id">BL-WEB-11</td><td><b>Collapse display preferences into one popover</b>, separating them from modes and destinations.</td><td class="pri" style="color:var(--ok)">DONE</td><td class="ph">1</td><td class="tr">IA-03</td></tr>
+  <tr><td class="id">BL-WEB-27</td><td><b>Write-back.</b> Annotate a bead, mark a torn strand mended, add a node. A read-only map ages out of date.</td><td class="pri p1">P1</td><td class="ph">3</td><td class="tr">SELF</td></tr>
+  <tr><td class="id">BL-WEB-28</td><td><b>Import and export collection JSON</b>, so work survives a reload without any storage API.</td><td class="pri p1">P1</td><td class="ph">1</td><td class="tr">ADR-W08</td></tr>
+  <tr><td class="id">BL-WEB-29</td><td><b>Occlusion mitigation in the stratified view</b> — auto-nudge coincident beads, or offer an exploded layout.</td><td class="pri p2">P2</td><td class="ph">2</td><td class="tr">SELF</td></tr>
+  <tr><td class="id">BL-WEB-48</td><td><b>Multi-user.</b> Comments, shared selections, a shared collection registry.</td><td class="pri p3">P3</td><td class="ph">4</td><td class="tr">MG 1.5</td></tr>
+  <tr><td class="id">BL-WEB-49</td><td><b>Supabase-then-Azure backing</b> for any persisted collection, mirroring the KISIL scaling path rather than inventing another.</td><td class="pri p3">P3</td><td class="ph">4</td><td class="tr">KISIL §6</td></tr>
+  <tr><td class="id">BL-WEB-50</td><td><b>Project-scope collections.</b> Conversations held inside a project are invisible to the current build; those radii are missing rather than absent.</td><td class="pri p2">P2</td><td class="ph">1</td><td class="tr">SELF</td></tr>
+  <tr><td class="id">BL-WEB-51</td><td><b>Performance budget.</b> Declare and test a ceiling — first paint, interaction latency at N beads, memory.</td><td class="pri p2">P2</td><td class="ph">2</td><td class="tr">SELF</td></tr>
+  <tr><td class="id">BL-WEB-52</td><td><b>Content review of every string</b> against GDS content design standards. Written to intent, never reviewed by a content designer.</td><td class="pri p2">P2</td><td class="ph">2</td><td class="tr">MG-NFR-001</td></tr>
+</table>
+
+<h2 id="nnl"><span class="num">Section 9</span>Now, Next, Later</h2>
+<div class="cols">
+  <div class="tile"><div class="k">Now · Phase 0–1</div><h3>Make it honest and durable</h3>
+    <p><b>BL-WEB-05</b> version control · <b>01</b> degraded render · <b>02</b> drop the font CDN · <b>03</b> collection pipeline · <b>04</b> user testing · <b>06</b> shareable state · <b>10</b> global search · <b>28</b> import/export · <b>37</b> resolve the KIL collision.</p></div>
+  <div class="tile"><div class="k">Next · Phase 2</div><h3>Make it mean something</h3>
+    <p><b>30–33</b> KIL entities, linking tables, decision traceability, quantified metadata · <b>20–22</b> OWL round-trip, inference explanation, DCAT-UK-AP · <b>14–15</b> drill-in and confidence encoding · <b>41</b> provenance · <b>44</b> evidence packs.</p></div>
+  <div class="tile"><div class="k">Later · Phase 3–4</div><h3>Make it shared</h3>
+    <p><b>17–18</b> the playbook compendium and cross-collection navigation · <b>24</b> duplicate detection · <b>27</b> write-back · <b>45–46</b> change radar and pattern lifecycle · <b>48–49</b> multi-user and a persisted backend.</p></div>
+</div>
+
+<h2 id="raid"><span class="num">Section 10</span>RAID log</h2>
+<table>
+  <tr><th class="id">ID</th><th>Type</th><th>Item</th><th>Why it matters</th></tr>
+  <tr><td class="id">R-01</td><td>Risk</td><td>Scope outruns assurance</td><td>Capability has grown faster than testing. The build is verified by automation against itself, which cannot find the things a user would.</td></tr>
+  <tr><td class="id">R-02</td><td>Risk</td><td>No durable version control</td><td>The code line exists only as build-session output and is vulnerable to environment reset. Directly inherited from the sibling programme's identical finding.</td></tr>
+  <tr><td class="id">R-03</td><td>Risk</td><td>Doctrine failure on degraded mode</td><td>A prototype that fails its own stated doctrine erodes the doctrine's authority elsewhere.</td></tr>
+  <tr><td class="id">R-04</td><td>Risk</td><td>Hand-authored ontology is mistaken for an agreed one</td><td>The classes and properties here were authored by the tool, not agreed by a vocabulary owner. Reuse without that step would embed an unratified model.</td></tr>
+  <tr><td class="id">A-01</td><td>Assumption</td><td>Single-file delivery remains acceptable</td><td>Consistent with the Observatory, CDA dashboard and Command Centre. If platform policy changes, ADR-W01 must be revisited.</td></tr>
+  <tr><td class="id">A-02</td><td>Assumption</td><td>Collections stay under roughly 60 beads until BL-WEB-12</td><td>Above that the radial layout truncates rather than degrades gracefully.</td></tr>
+  <tr><td class="id">I-01</td><td>Issue</td><td>KSL ladder unconfirmed</td><td>Retained under a non-conflicting name, but still an inferred scheme presented alongside a canonical one.</td></tr>
+  <tr><td class="id">I-02</td><td>Issue</td><td>No Decision entities exist in any current collection</td><td>The estate captures artefacts and insights but not the decisions they informed — the exact gap the Memory Grid Decision Traceability Layer is specified to close. A finding, not a defect.</td></tr>
+  <tr><td class="id">I-03</td><td>Issue</td><td>No asset in the CDA estate reaches Tier 3</td><td>NDL and valuation readiness averages 39% and peaks at 63% across all 499 assets. Tier 3 is not lagging; it is unstarted. This is an estate-level finding, not a data defect.</td></tr>
+  <tr><td class="id">I-04</td><td>Issue</td><td>74% of the CDA estate is Invest to Unlock</td><td>371 of 499 assets are high value and low readiness; 12% are Flagship and 4% quick wins. The portfolio is almost entirely potential.</td></tr>
+  <tr><td class="id">I-05</td><td>Issue</td><td>The two new v5.0 domains are the least complete</td><td>Governance, Ethics &amp; Trust sits at 25% and AI/ML &amp; Emerging Technologies at 22%, against 100% for domains 1 and 4. The consultation is asking hardest about the thinnest material.</td></tr>
+  <tr><td class="id">I-06</td><td>Issue</td><td>No NDL kickstarter serves Safer Streets</td><td>Four of five national missions have at least one kickstarter. Safer Streets has none, despite justice and law-enforcement data existing in both the classification and the CDA estate.</td></tr>
+  <tr><td class="id">I-07</td><td>Issue</td><td>Catalogue link rot is invisible to its own audit column</td><td>12 of 71 GDS product links now redirect and 3 are broken, while the audit column records them as verified. Secure by Design has moved wholesale from /guidance/ to /policy-and-guidance/; DDaT capability has left GOV.UK entirely.</td></tr>
+  <tr><td class="id">D-01</td><td>Dependency</td><td>Vocabulary ownership</td><td>BL-WEB-20 and 22 require an agreed metadata profile and a named taxonomy owner, as MG RAID-005 also records.</td></tr>
+  <tr><td class="id">D-02</td><td>Dependency</td><td>Source access for ingest</td><td>BL-WEB-03 needs approved read access to the registers and repositories it would index, as MG RAID-006 records.</td></tr>
+</table>
+
+<h2 id="trace"><span class="num">Section 11</span>Traceability matrix</h2>
+<table>
+  <tr><th>Source</th><th>What it demanded</th><th>Backlog</th></tr>
+  <tr><td><b>Whitehall Connect GOV-2.8</b></td><td>Four tenets, honesty and data posture, decoupled governance, augmentation register, build conventions</td><td>BL-WEB-01, 02, 05, 07 · this document</td></tr>
+  <tr><td><b>KISIL specification</b></td><td>Workstream/Artefact/Insight/Signal/Decision entities, M2M linking, decision traceability, quantified metadata, Supabase→Azure path</td><td>BL-WEB-30, 31, 32, 33, 34, 35, 49</td></tr>
+  <tr><td><b>Memory Grid PRD/FTIRS</b></td><td>Federated discovery, discovery/access separation, provenance, quality scoring, duplicate detection, evidence packs, audit log, DCAT/MEM mapping</td><td>BL-WEB-19, 24, 40, 41, 42, 43, 44, 45, 46, 47</td></tr>
+  <tr><td><b>Purview → DCAT-UK-AP</b></td><td>DCAT v3 as base standard, JSON-LD output, SHACL validation, SKOS vocabulary resolution</td><td>BL-WEB-20, 22, 23, 26</td></tr>
+  <tr><td><b>GDS Products &amp; Services Catalogue</b></td><td>Aggregate drill-in, confidence encoding, controlled lists, unmapped-item surfacing</td><td>BL-WEB-14, 15, 16</td></tr>
+  <tr><td><b>Data Standards Classification v5.0</b></td><td>Deeper hierarchy, third tier, layouts that grow rather than truncate, endorsement status as a visual state</td><td>BL-WEB-12, 13, 54</td></tr>
+  <tr><td><b>CDA Live Register (499 assets)</b></td><td>Entity resolution on ingest, measure-driven visual weight, drill-in from aggregate to asset</td><td>BL-WEB-14, 33, 53</td></tr>
+  <tr><td><b>Standards &amp; Tooling Crosswalks</b></td><td>Machine-readable crosswalk export, SKOS concept scheme, tool-neutral concept layer</td><td>BL-WEB-23, 55</td></tr>
+  <tr><td><b>DSA Consultation Brief v5.0</b></td><td>Consultation state visible on the artefact under review</td><td>BL-WEB-54</td></tr>
+  <tr><td><b>Plan for Change · GDS blueprint · SDR · NDL</b></td><td>Mission alignment, GDS six priorities, SDR systemic challenges, five kickstarter projects</td><td>Alignment collection · BL-WEB-57, 58</td></tr>
+  <tr><td><b>Live link validation</b></td><td>Scheduled revalidation; canonical URL drift detection</td><td>BL-WEB-56</td></tr>
+  <tr><td><b>IA assessment</b></td><td>Entry point, page separation, control differentiation, routing, global search</td><td>BL-WEB-06, 10, 11 · v1.0 shell</td></tr>
+</table>
+
+<h2 id="align"><span class="num">Section 12</span>Alignment register</h2>
+<div class="panel warn">
+  <h3>Terminology finding: three meanings for KIL</h3>
+  <p><b>KIL</b> currently denotes at least three different things across DSIT/GDS artefacts: the <b>Knowledge Integration Layer</b> (KISIL specification, section 1); <b>Keystone Up the Chain</b> (Whitehall Connect relocated working views); and a named <b>view in the Data Sharing Observatory</b>. This prototype adopts the KISIL definition as canonical and renames its own inferred ladder to <b>KSL</b>. The wider collision is carried as <b>BL-WEB-37</b> and is a governance matter, not a UI one — an acronym with three referents inside one directorate will eventually cause a real misunderstanding in a real decision.</p>
+</div>
+<table>
+  <tr><th>Term</th><th>Adopted meaning here</th><th>Authority</th></tr>
+  <tr><td><b>KISIL</b></td><td>Knowledge Integration &amp; Semantic Interoperability Layer</td><td>Technical Specification, uploaded</td></tr>
+  <tr><td><b>KIL</b></td><td>Knowledge Integration Layer — the data architecture within KISIL: Workstream → Artefact → Insight → Signal → Decision</td><td>KISIL specification §1–4</td></tr>
+  <tr><td><b>KSL</b></td><td>Knowledge State Ladder — the five-band scheme this prototype inferred. Local, unconfirmed, renamed to avoid collision.</td><td>This prototype. Unratified.</td></tr>
+  <tr><td><b>Memory Grid</b></td><td>Working short name for the DSIT/GDS Organisational Memory and Change Intelligence Platform</td><td>PRD v0.2 §1.1</td></tr>
+  <tr><td><b>SDR</b></td><td>State of Digital Government Review — the case-for-change publication issued alongside the blueprint on 21 January 2025</td><td>DSIT / GDS</td></tr>
+  <tr><td><b>Kickstarter</b></td><td>One of the National Data Library early-delivery projects announced January 2026, not a crowdfunding term</td><td>DSIT NDL progress update</td></tr>
+  <tr><td><b>DCAT-UK-AP</b></td><td>The UK application profile of DCAT v3, the mandated base metadata standard under the DAM Policy</td><td>Purview mapping specification §1</td></tr>
+</table>
+
+<h2 id="release"><span class="num">Section 13</span>Release history</h2>
+<table>
+  <tr><th class="id">Version</th><th>Change</th><th>Validation</th></tr>
+  <tr><td class="id">v0.1</td><td>Orb web: hub, radii, capture spiral, five threads, twenty-six beads, torn strands</td><td>Node syntax check · headless render · 26/26 beads clickable</td></tr>
+  <tr><td class="id">v0.2</td><td>Zoom, pan, pinch, full screen, pop-out retreat, bird's eye minimap, dragline, balloon, bridge</td><td>Interaction sweep · hub caption occlusion defect found and fixed</td></tr>
+  <tr><td class="id">v0.3</td><td>Light/dark, high contrast, colour-safe palette, text scale, voice, tours, manual, text version, ontology, taxonomy, thesaurus, glossary, dictionary</td><td>WCAG AA contrast verified both themes · faint-text and strand-colour defects found and fixed</td></tr>
+  <tr><td class="id">v0.9</td><td>Spider demonstrator, Protégé-shaped explorer with reasoner, stratified 3D view, eagle lens and stoop</td><td>Illegal-invocation defect found and fixed · label occlusion in strata found and mitigated</td></tr>
+  <tr><td class="id">v1.0</td><td>Portal shell, hash routing, home landing, collection registry with three collections, KISIL/KIL/KSL reconciliation, spider relocated to the title row</td><td>Routing across 7 pages · collection switching across 3 collections · zero console errors</td></tr>
+  <tr><td class="id">v1.1</td><td>Classification upgraded v4.4 → v5.0 (7 domains, 57 topics, endorsement status). CDA Live Register added (499 assets, 116 fields, 130 sheets). Standards &amp; Tooling Crosswalks added (61 concepts, 212 terms). Five collections total.</td><td>All 5 collections switched, selected, stratified and reasoned over · malformed template literal caught by generator syntax check · zero console errors</td></tr>
+  <tr><td class="id">v2.0</td><td>Global search across the whole portal; display preferences popover; full view state in the URL with Copy view; Applications page with 11 worked cases; Mission alignment collection; live validation of all 71 GDS product links; KISIL/KIL/KSL naming made coherent throughout.</td><td>All 8 pages × 6 collections × 2 themes · cold URL restore verified · three defects found and fixed: footer selector collision, hashchange dropping query state, mobile table overflow</td></tr>
+</table>
+
+<h2 id="conv"><span class="num">Section 14</span>Build and validation conventions</h2>
+<ul>
+  <li><b>Assembly.</b> Authored as ordered chunks, concatenated to a single file. Every inline script extracted and passed through <code>node --check</code> before the build is considered valid.</li>
+  <li><b>Validation.</b> Headless browser render with console and page-error capture; interaction sweep across every control; contrast measured programmatically against the painted background, not the declared one.</li>
+  <li><b>Defect handling.</b> Defects found during validation are named in the release history rather than quietly fixed. Four have been recorded so far.</li>
+  <li><b>Typography.</b> UK English exclusively. Literal <code>·</code> (U+00B7) and <code>—</code> (U+2014) in prose; JS escapes inside template strings, to avoid anchor mismatch during patch runs.</li>
+  <li><b>Paths.</b> Outputs to <code>/mnt/user-data/outputs/</code>. Uploads are read-only.</li>
+  <li><b>No storage APIs.</b> <code>localStorage</code> and <code>sessionStorage</code> are not used anywhere, by decision ADR-W08.</li>
+</ul>
+
+<footer>
+  <p>The Web · Programme &amp; Architecture Authority · WEB-2.0 · OFFICIAL · Emanuel Silva, Office of the Government Chief Data Officer · Decoupled from the operational prototype by design. This document renders completely with JavaScript disabled and loads no external resource.</p>
+</footer>
+
+</div>
+</body>
+</html>

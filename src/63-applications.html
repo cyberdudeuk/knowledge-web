@@ -1,0 +1,228 @@
+<style>
+/* global search */
+.gsearch{position:relative;flex:1 1 260px;max-width:400px}
+.gsearch input{
+  width:100%;background:var(--deep);border:1px solid var(--ridge);border-radius:var(--r);
+  color:var(--silk);font-family:'Archivo',sans-serif;font-size:13px;padding:7px 11px;
+}
+.gsearch input:focus{border-color:var(--dew-dim);outline:none;box-shadow:0 0 0 3px rgba(121,214,207,.09)}
+.gres{
+  position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:60;max-height:430px;overflow-y:auto;
+  background:var(--glass-solid);border:1px solid var(--ridge);border-radius:var(--r);
+  box-shadow:var(--shadow);backdrop-filter:blur(10px);padding:5px;
+}
+.ggroup{
+  font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--amber);padding:8px 9px 4px;
+}
+.ghit{
+  display:block;width:100%;text-align:left;background:none;border:0;border-radius:2px;padding:7px 9px;cursor:pointer;
+  font-family:'Archivo',sans-serif;color:var(--moth);
+}
+.ghit:hover,.ghit.on,.ghit:focus{background:rgba(255,255,255,.05);color:var(--silk);outline:none}
+.ghit b{display:block;font-size:13px;font-weight:600;color:var(--silk);line-height:1.3}
+.ghit span{display:block;font-size:11.5px;color:var(--faint);line-height:1.45;margin-top:2px}
+.gempty{padding:14px;font-family:'Newsreader',serif;font-style:italic;font-size:13px;color:var(--faint)}
+
+/* display preferences popover */
+.mast-controls{position:relative}
+.prefpop{
+  position:absolute;top:calc(100% + 7px);left:0;z-index:55;display:flex;flex-wrap:wrap;gap:6px;
+  background:var(--glass-solid);border:1px solid var(--ridge);border-radius:var(--r);
+  padding:11px;box-shadow:var(--shadow);backdrop-filter:blur(10px);max-width:430px;
+}
+.prefpop[hidden]{display:none}
+
+/* applications */
+.appfilter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.appcase{
+  border:1px solid var(--ridge);border-radius:var(--r);background:var(--deep);margin-bottom:14px;overflow:hidden;
+}
+.appcase > summary{
+  padding:16px 18px;cursor:pointer;list-style:none;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+}
+.appcase > summary::-webkit-details-marker{display:none}
+.appcase > summary::before{content:'+';font-family:'JetBrains Mono',monospace;color:var(--amber);font-size:15px;line-height:1}
+.appcase[open] > summary::before{content:'\2212'}
+.appcase > summary:hover{background:rgba(255,255,255,.03)}
+.appcase .band{
+  font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--amber);border:1px solid var(--amber-dim);border-radius:100px;padding:3px 8px;
+}
+.appcase .band.far{color:var(--violet);border-color:var(--violet)}
+.appcase h3{font-family:'Newsreader',serif;font-weight:400;font-size:20px;margin:0;color:var(--silk);flex:1 1 240px}
+.appcase .who{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.appbody{padding:0 18px 18px;border-top:1px solid var(--ridge)}
+.appbody > p:first-child{margin-top:14px}
+.appbody p{font-size:13.5px;color:var(--moth);line-height:1.65;max-width:80ch}
+.appgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;background:var(--ridge);border:1px solid var(--ridge);border-radius:var(--r);margin:14px 0;overflow:hidden}
+.appgrid > div{background:var(--night);padding:13px 14px}
+.appgrid .k{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);display:block;margin-bottom:5px}
+.appgrid .v{font-size:12.5px;color:var(--silk);line-height:1.5}
+.reveal{border-left:2px solid var(--dew);padding:3px 0 3px 14px;margin:14px 0}
+.reveal b{color:var(--dew);display:block;font-size:11px;font-family:'JetBrains Mono',monospace;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px}
+.reveal p{margin:0;font-size:13px}
+.firstmove{font-size:12.5px;color:var(--faint);border-top:1px dashed var(--ridge);padding-top:11px;margin-top:14px}
+.firstmove b{color:var(--amber)}
+
+/* link validation table */
+.lvwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:12px 0}
+.lvtab{width:100%;border-collapse:collapse;font-size:12.5px;min-width:520px}
+.lvtab code{word-break:break-all}
+@media(max-width:640px){.lvtab{font-size:11.5px}}
+.lvtab th{text-align:left;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--ridge);padding:8px 10px 8px 0}
+.lvtab td{padding:8px 10px 8px 0;border-bottom:1px solid var(--ridge);color:var(--moth);vertical-align:top}
+.lvtab td b{color:var(--silk)}
+.lvtab code{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dew)}
+</style>
+<script>
+/* ============================================================
+   Applications — worked cases, not a wish list
+   ============================================================ */
+const CASES = [
+  { band:'Adjacent', who:'OCDO · departmental data teams', h:'The DAM Policy evidence trail',
+    p:'The Data Asset Management Policy requires departments to identify, record and report critical data assets against minimum metadata standards. Today that evidence lives in a 130-sheet workbook, and an assurance reviewer has no way to walk from a policy clause to the artefact that satisfies it.',
+    grid:[['Threads','One per DAM policy requirement'],['Beads','The register field, control or artefact that evidences it'],['Relations','evidences · governedBy · measuredBy'],['Torn strands','Requirements with no evidencing artefact']],
+    reveal:'Run against the current estate it would show immediately that Tier 3 readiness has no evidence anywhere, because no asset has reached it. That is a policy-level finding surfaced by structure rather than by reading 499 rows.',
+    move:'Load the DAM Assurance Tracker sheet as a collection and declare its torn strands.' },
+
+  { band:'Adjacent', who:'DSIT · GDS · change teams', h:'Machinery of Government continuity',
+    p:'DSIT has been through seven Machinery of Government changes. Each one moves people before it moves knowledge, and the Memory Grid PRD names this as the core risk: valuable knowledge lost, duplicated or disconnected across teams and boundaries.',
+    grid:[['Threads','One per team or function being moved'],['Beads','Decisions, open risks, handover notes, key contacts'],['Relations','supersedes · handedTo · threatens'],['Torn strands','Everything unresolved at the point of transfer']],
+    reveal:'The value is not the map of what exists — it is the island detection. A team whose work shares no thread with anything else is either genuinely novel or genuinely forgotten, and only one of those is fine.',
+    move:'Spin a web per directorate at the point of a MoG announcement, not after it.' },
+
+  { band:'Adjacent', who:'GDS · spend control · portfolio', h:'Duplication across the estate',
+    p:'The GDS catalogue already proves this one. Nine 2026 areas, 173 items, and the spiral immediately shows which delivery types recur across areas that do not talk to each other.',
+    grid:[['Threads','Delivery areas or directorates'],['Beads','Products, services and pipeline items by type'],['Relations','alignsWith · supersedes · duplicates'],['Torn strands','Unmapped items and uncontrolled status fields']],
+    reveal:'Live validation against GOV.UK found 12 of 71 product links now redirect and 3 are broken. Not one page was withdrawn — but the Secure by Design section has moved wholesale from /guidance/ to /policy-and-guidance/, and the DDaT capability framework has left GOV.UK for its own service domain. A catalogue that is not re-validated decays quietly.',
+    move:'Already done — see the link validation panel below.' },
+
+  { band:'Adjacent', who:'DSA · consultation respondents', h:'Navigating a live consultation',
+    p:'The v5.0 classification is out for consultation with 7 domains and 57 topics. A respondent is being asked to comment on a structure they must first hold entirely in their head.',
+    grid:[['Threads','The seven domains'],['Beads','Topics, with endorsement status'],['Relations','partOf · supersedes · alignsWith'],['Torn strands','Domains below completion threshold']],
+    reveal:'The two domains introduced in v5.0 — Governance, Ethics & Trust and AI/ML & Emerging Technologies — are also the two least complete, at 25% and 22% against 100% for Metadata and Lifecycle. A respondent who cannot see that asymmetry will comment on the wrong things.',
+    move:'Publish the web alongside the consultation brief as the navigational front end.' },
+
+  { band:'Adjacent', who:'NDL programme · mission delivery', h:'Mission-to-data alignment',
+    p:'Five national missions, six GDS priorities, six SDR findings, five NDL kickstarters, 57 standards topics and 499 critical data assets. No artefact currently connects them, so nobody can answer "what data serves this mission" without assembling it by hand.',
+    grid:[['Threads','The five national missions plus digital foundations'],['Beads','Kickstarters, standards topics, CDA estate segments'],['Relations','serves · evidences · dependsOn'],['Torn strands','Missions with no data programme behind them']],
+    reveal:'Safer Streets has no NDL kickstarter. Justice and law enforcement data exists in both the classification and the CDA estate, but nothing in the National Data Library programme currently connects it to the mission it would serve.',
+    move:'Load the Mission alignment collection — it is already in this build.' },
+
+  { band:'Further afield', who:'Legal · regulatory · policy', h:'Statute, regulation and guidance corpora',
+    p:'A regulatory corpus is a graph pretending to be a library. Statute amends statute, regulation implements statute, guidance interprets regulation, and case law disturbs all three. Practitioners navigate it by memory and by asking the person who knows.',
+    grid:[['Threads','Regulatory regimes or statutory instruments'],['Beads','Provisions, regulations, guidance notes, precedents'],['Relations','amends · revokes · implements · cites · interprets'],['Torn strands','Provisions with no implementing guidance']],
+    reveal:'This is where the DL query stops being a demonstration and starts being the point. "Guidance and interprets some Regulation that implements some RepealedProvision" is a genuine compliance question that no keyword search can answer.',
+    move:'Start with one regime and its full amendment chain — the typed relations are the whole value.' },
+
+  { band:'Further afield', who:'NICE · trusts · clinical networks', h:'Clinical guidelines and their evidence base',
+    p:'A clinical guideline is a recommendation with a graded evidence chain behind it. Clinicians need the recommendation; reviewers need the chain; both currently get a PDF.',
+    grid:[['Threads','Condition or care pathway'],['Beads','Recommendations, evidence reviews, trials'],['Relations','supportedBy · supersedes · contradicts'],['Strata','Evidence grade as the vertical axis']],
+    reveal:'Stratified by evidence grade, a pathway that looks authoritative can turn out to rest almost entirely on the lowest tier. That is invisible in a document and unmissable as a shape.',
+    move:'One pathway, with GRADE as the stratification dimension.' },
+
+  { band:'Further afield', who:'Engineering · architecture', h:'Service estates and decision records',
+    p:'Every mature engineering estate has services, dependencies and a pile of architecture decision records nobody reads. C4 diagrams show structure but not why, and ADRs record why but not where.',
+    grid:[['Threads','Domains or bounded contexts'],['Beads','Services, datastores, ADRs'],['Relations','dependsOn · supersedes · implements'],['Strata','C4 level as the vertical axis']],
+    reveal:'Bridging from a service to a decision shows which ADRs are actually load-bearing. Most estates discover that a decision they had forgotten is holding up a third of the graph.',
+    move:'Generate the collection from the service catalogue and the ADR directory — both already machine-readable.' },
+
+  { band:'Further afield', who:'Curriculum · capability · L&D', h:'Learning pathways and prerequisites',
+    p:'A curriculum is a dependency graph rendered as a list of modules. Learners experience it linearly and then discover they were missing a prerequisite three modules back.',
+    grid:[['Threads','Subject areas'],['Beads','Topics and learning outcomes'],['Relations','requires · builds on · assesses'],['Strata','Cognitive level as the vertical axis']],
+    reveal:'The bridge becomes a learning path: shortest route from what someone knows to what they need. The alternative routes matter here more than anywhere — a second-best path may suit a different learner better.',
+    move:'Map one professional capability framework, prerequisites first.' },
+
+  { band:'Further afield', who:'Research offices · funders', h:'Grant and research portfolios',
+    p:'A funder holds hundreds of awards across themes, institutions and technology readiness levels, and is repeatedly asked which parts of the portfolio are thin.',
+    grid:[['Threads','Research themes or challenge areas'],['Beads','Awards, outputs, facilities'],['Relations','buildsOn · sharesFacility · citesOutput'],['Strata','Technology readiness level']],
+    reveal:'Stratified by TRL, the shape of the portfolio becomes an investment argument. Clustering at low TRL with nothing above it is exactly the pattern the CDA estate shows — high value, low readiness, everywhere.',
+    move:'One challenge area, stratified by TRL, with declared gaps.' },
+
+  { band:'Further afield', who:'Archives · museums · libraries', h:'GLAM collections and their thesauri',
+    p:'The sector already has SKOS thesauri, controlled vocabularies and rich provenance. It is the one domain where the semantic layer arrives ready-made and the navigation layer is what is missing.',
+    grid:[['Threads','Collections or fonds'],['Beads','Series, items, agents'],['Relations','partOf · createdBy · relatedTo'],['Vocabulary','Existing SKOS scheme, imported directly']],
+    reveal:'Almost nothing needs building. The blocker is BL-WEB-20 — OWL and SKOS round-trip — after which an archive could point this at its own catalogue with no modelling work at all.',
+    move:'Close BL-WEB-20, then import an existing SKOS scheme unchanged.' }
+];
+
+(function applicationsPage(){
+  PAGES.splice(6, 0, { id:'applications', nav:'Applications', title:'Applications',
+    kicker:'Where else this works',
+    lede:'Eleven worked cases. Each states the collection shape, what the shape would reveal that a document does not, and the first concrete move \u2014 not a wish list.' });
+
+  const footer = document.querySelector('.shell > footer');
+  const d = document.createElement('section');
+  d.className = 'page'; d.id = 'pg-applications';
+  d.innerHTML = `<div class="page-head"><div class="eyebrow">Where else this works</div>
+    <h2>Applications</h2>
+    <p>Eleven worked cases. Each states the collection shape, what the shape would reveal that a document does not, and the first concrete move \u2014 not a wish list.</p></div>
+    <div class="appfilter" id="appFilter">
+      <button class="chip on" data-band="all">All \u00b7 11</button>
+      <button class="chip" data-band="Adjacent">Adjacent \u00b7 5</button>
+      <button class="chip" data-band="Further afield">Further afield \u00b7 6</button>
+    </div>
+    <div id="appList"></div>
+    <div class="page-head" style="margin-top:38px"><div class="eyebrow">Evidence</div>
+      <h2 style="font-size:24px">Live link validation \u00b7 GDS Products &amp; Services</h2>
+      <p>Every product link in the catalogue checked directly against its published location on ${esc(GDS_LINKCHECK.date)}. Nine returned 503 under concurrent load and were re-checked serially \u2014 all nine resolved, so they were rate limiting, not failures.</p></div>
+    <div class="strip">
+      <div><div class="n">${GDS_LINKCHECK.checked}</div><div class="k">Links checked</div></div>
+      <div><div class="n">${GDS_LINKCHECK.reachable}</div><div class="k">Reachable</div></div>
+      <div><div class="n">${GDS_LINKCHECK.redirected}</div><div class="k">Now redirect</div></div>
+      <div><div class="n">${GDS_LINKCHECK.withdrawn}</div><div class="k">Withdrawn</div></div>
+      <div><div class="n">${GDS_LINKCHECK.broken}</div><div class="k">Broken</div></div>
+    </div>
+    <h3 style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--faint);margin:22px 0 8px">Canonical URL has moved</h3>
+    <div class="lvwrap"><table class="lvtab"><tr><th>Product</th><th>Recorded</th><th>Now resolves to</th></tr>
+      ${GDS_LINKCHECK.moved.map(m => `<tr><td><b>${esc(m[0])}</b></td><td><code>${esc(m[1])}</code></td><td><code>${esc(m[2])}</code></td></tr>`).join('')}</table></div>
+    <h3 style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--faint);margin:22px 0 8px">Broken or not a URL</h3>
+    <div class="lvwrap"><table class="lvtab"><tr><th>Product</th><th>Finding</th></tr>
+      ${GDS_LINKCHECK.brokenList.map(m => `<tr><td><b>${esc(m[0])}</b></td><td>${esc(m[1])}</td></tr>`).join('')}</table></div>
+    <p style="font-size:12.5px;color:var(--faint);line-height:1.6;max-width:80ch">The catalogue's own audit column records these as verified in July 2026 and mostly still says <code>[OK] GOV.UK link</code>. That is the finding: a verification stamp records <i>when</i> a link was checked, not whether it still resolves to the same place. Twelve now redirect.</p>`;
+  footer.parentNode.insertBefore(d, footer);
+
+  const list = document.getElementById('appList');
+  function render(band){
+    list.innerHTML = CASES.filter(c => band === 'all' || c.band === band).map(c => `
+      <details class="appcase">
+        <summary><span class="band${c.band==='Further afield'?' far':''}">${esc(c.band)}</span>
+          <h3>${esc(c.h)}</h3><span class="who">${esc(c.who)}</span></summary>
+        <div class="appbody">
+          <p>${esc(c.p)}</p>
+          <div class="appgrid">${c.grid.map(g => `<div><span class="k">${esc(g[0])}</span><span class="v">${esc(g[1])}</span></div>`).join('')}</div>
+          <div class="reveal"><b>What the shape reveals</b><p>${esc(c.reveal)}</p></div>
+          <div class="firstmove"><b>First move \u00b7</b> ${esc(c.move)}</div>
+        </div>
+      </details>`).join('');
+  }
+  render('all');
+  document.querySelectorAll('#appFilter .chip').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#appFilter .chip').forEach(x => x.classList.toggle('on', x === b));
+    render(b.dataset.band);
+  }));
+
+  /* nav gains the page; the picker gains any collection registered after the shell was built */
+  document.getElementById('pnav').innerHTML = PAGES.map(p =>
+    `<a href="#/${p.id}" data-p="${p.id}">${p.nav}</a>`).join('');
+  const pick = document.getElementById('colPick');
+  pick.innerHTML = Object.values(COLLECTIONS).map(c => `<option value="${c.id}">${esc(c.label)}</option>`).join('');
+  pick.value = CURRENT;
+})();
+
+/* home gains cards for what is new */
+(function homeExtras(){
+  const deck = document.getElementById('homeDeck');
+  if (!deck) return;
+  deck.insertAdjacentHTML('beforeend',
+    `<button class="card" data-go="applications"><span class="k">Apply</span><h3>Applications</h3>
+      <p>Eleven worked cases across government and beyond, each with a collection shape, a finding and a first move.</p>
+      <span class="n">11 cases \u00b7 live link validation</span></button>`);
+  deck.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
+})();
+
+readState();
+</script>
+</body>
+</html>

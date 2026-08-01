@@ -1,0 +1,92 @@
+<script>
+/* ============================================================
+   Final wiring
+   ============================================================ */
+(function addControls(){
+  const man = document.getElementById('cManual');
+  const b = document.createElement('button');
+  b.className = 'ctl'; b.id = 'cOwlX'; b.textContent = 'Ontology explorer';
+  man.parentNode.insertBefore(b, man);
+  b.addEventListener('click', openOwlX);
+})();
+
+document.addEventListener('keydown', e => {
+  if (/input|textarea|select/i.test(e.target.tagName)) return;
+  if (e.key === 't' || e.key === 'T') toggleStrata();
+  else if (e.key === 'l' || e.key === 'L') toggleLens();
+  else if (e.key === 'e' || e.key === 'E') { owlx.hidden ? openOwlX() : closeOwlX(); }
+  else if (e.key === 's' || e.key === 'S') { const r = byKey[TRAIL[TRAIL.length-1]]; if (r) stoop(r); }
+  else if (e.key === 'Escape') { if (!owlx.hidden) closeOwlX(); }
+});
+
+/* ---------- two more tours ---------- */
+TOURS.push(
+  { id:'moves', name:'Every way of moving', blurb:'Eight stops. The spider mark demonstrates each movement while the web performs it.', stops:[
+    { s:'Watch the mark in the top right. This is walking: the non-sticky radial thread, hub outward, one bead at a time. The web is walking the governance thread alongside it.', run:() => demo('walk') },
+    { s:'Plucking. The spider does not wait for prey, it probes. Search here vibrates the whole web at once so you see where an idea recurs rather than where it lives.', run:() => demo('pluck') },
+    { s:'Crawling a route. Each bead lights as the spider reaches it, which is why paths here are lit in sequence rather than revealed all at once.', run:() => demo('crawl') },
+    { s:'The dragline. A spider trails silk everywhere it goes and can drop instantly, then climb back up the same line. That is your history, and backspace climbs it.', run:() => demo('drop') },
+    { s:'Ballooning. Spiderlings cast silk into the air and let the wind decide. Press B for the same thing: somewhere you have not opened yet.', run:() => demo('balloon') },
+    { s:'The bridge line. Every web starts with one thread flung across a gap. Here it finds the shortest route between two beads and lights the runners-up behind it.', run:() => demo('bridge') },
+    { s:'And the owl turn: the web rotates, the words stay upright. Try the pills under the mark yourself — each one runs the real thing, not a cartoon of it.', run:() => demo('turn') },
+    { s:'That is the full repertoire. Every pill under the spider is live. Press question mark for the manual, or E for the ontology explorer.', run:() => { demo('still'); reset(); } }
+  ]},
+  { id:'strata', name:'Tilt it into layers', blurb:'Five stops through the stratified view and the eagle lens.', stops:[
+    { s:'Knowledge is rarely flat. Press T, or the Strata button, and the web tilts. Every bead lifts onto the layer it belongs to.', run:() => { toggleStrata(true); } },
+    { s:'This is stratified by KISIL band. Information sits low, insight sits higher, learning higher still. The dashed risers are every relation that crosses a level.', run:() => { document.getElementById('stBy').value = 'kisil'; STRATA.by = 'kisil'; relayout(); syncStrandLines(); } },
+    { s:'Change the dimension and the same content restacks. By purpose, by ontology depth, by distance from the hub, or by thread. The web does not change, only the axis you read it against.', run:() => { document.getElementById('stBy').value = 'tax'; STRATA.by = 'tax'; relayout(); syncStrandLines(); } },
+    { s:'Now the eagle. Press L for the lens: three times magnification following your pointer without giving up the wide view. Hold shift and scroll to change the power.', run:() => { toggleStrata(false); toggleLens(true); } },
+    { s:'And the stoop. In owl view, opening a bead dives onto it the way a falcon drops. Press S at any time to stoop onto wherever you last were.', run:() => { toggleLens(false); toggleOwl(true); selectNode('cda', 5); } }
+  ]}
+);
+document.getElementById('tourPick').innerHTML = TOURS.map(t =>
+  `<button class="tour-btn" data-t="${t.id}"><b>${esc(t.name)}</b><span>${esc(t.blurb)}</span></button>`).join('');
+document.querySelectorAll('.tour-btn').forEach(b => b.addEventListener('click', () => startTour(b.dataset.t)));
+
+/* ---------- manual additions ---------- */
+document.getElementById('manBody').insertAdjacentHTML('beforeend', `
+<h3>The spider mark</h3>
+<p>Top right, and it works. Each pill under it animates the mark <b>and</b> performs that movement on the real web at the zoom that shows it best. It idles through the repertoire until you touch anything, then stops and stays out of your way.</p>
+
+<h3>Ontology explorer</h3>
+<p>Press <kbd>E</kbd>. A three-column browser in the shape Protégé users expect: entity tree, axioms, usage. Tabs for <b>classes</b>, <b>object properties</b> and <b>individuals</b>.</p>
+<ul>
+  <li><b>Asserted versus inferred.</b> Inferred axioms are highlighted and labelled, and can be switched off entirely.</li>
+  <li><b>The reasoner</b> materialises inverses, closes symmetric and transitive properties, infers class membership from property domains and ranges, and runs a disjointness consistency check.</li>
+  <li><b>Observed necessary conditions</b> are induced from the data — true of every instance but never asserted. They are marked separately from entailments, because induction is not entailment.</li>
+  <li><b>DL query</b>: build an expression like <i>Portal and derivedFrom some Method</i> and run it.</li>
+</ul>
+<p>The reasoner reports honestly when it finds nothing. Transitivity currently adds no assertions, because no part chain in this ontology runs more than one step — that is a fact about your estate, not a broken feature.</p>
+
+<h3>Strata — the tilted web</h3>
+<p>Press <kbd>T</kbd>. The web tilts and every bead lifts onto its layer. Stratify by KISIL band, purpose, ontology depth, ring, or thread; adjust tilt, turn and layer spacing. Threads become polylines climbing through the levels, and <b>risers</b> mark every relation that crosses one. Set tilt to zero and it flattens back to the plan view without leaving the mode.</p>
+
+<h3>The eagle</h3>
+<p><b>Lens</b> (<kbd>L</kbd>) magnifies around your pointer without giving up the wide view — shift-scroll changes the power. <b>Stoop</b> (<kbd>S</kbd>) dives from wherever you are onto your last target, and happens automatically when you open a bead in owl view.</p>
+
+<h3>The three views, and when to use each</h3>
+<ul>
+  <li><b>Web</b> — proximity and shared ideas. Best for "what is near this?"</li>
+  <li><b>Owl</b> — typed relations. Best for "how exactly is this connected?"</li>
+  <li><b>Strata</b> — levels. Best for "what sits above or below this?"</li>
+</ul>`);
+
+/* ---------- keys table gains the new bindings ---------- */
+document.querySelectorAll('#manBody .keytable').forEach(t => {
+  if (!t.textContent.includes('Focus the search')) return;
+  t.insertAdjacentHTML('beforeend', `
+    <tr><td><kbd>E</kbd></td><td>Ontology explorer</td></tr>
+    <tr><td><kbd>T</kbd></td><td>Strata — tilt into layers</td></tr>
+    <tr><td><kbd>L</kbd></td><td>Eagle lens</td></tr>
+    <tr><td><kbd>S</kbd></td><td>Stoop onto the last target</td></tr>`);
+});
+
+document.getElementById('pluckHint').innerHTML =
+  'Matching strands light up; the rest fall slack. Synonyms count. ' +
+  '<kbd>/</kbd> search \u00b7 <kbd>1</kbd>\u2013<kbd>5</kbd> walk \u00b7 <kbd>+</kbd><kbd>\u2212</kbd><kbd>0</kbd> zoom \u00b7 <kbd>M</kbd> bird\u2019s eye \u00b7 ' +
+  '<kbd>B</kbd> balloon \u00b7 <kbd>X</kbd> bridge \u00b7 <kbd>O</kbd> owl \u00b7 <kbd>T</kbd> strata \u00b7 <kbd>L</kbd> lens \u00b7 <kbd>E</kbd> explorer \u00b7 ' +
+  '<kbd>R</kbd> turn \u00b7 <kbd>V</kbd> voice \u00b7 <kbd>F</kbd> full screen \u00b7 <kbd>?</kbd> manual';
+
+say('Web ready. ' + NODEREFS.length + ' beads, ' + DECLARED.length + ' typed relations, ' + ONTOLOGY.length +
+    ' ontology classes. Press E for the explorer, T to tilt into layers, or open the Tours tab.');
+</script>

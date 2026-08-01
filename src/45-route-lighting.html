@@ -1,0 +1,175 @@
+<script>
+/* ============================================================
+   Lighting the way.
+   The spider does not illuminate a destination; it feels its way
+   along, one anchor at a time. The main route lights bead by bead
+   as it crawls, the dominant thread breathes, and the runner-up
+   routes sit behind in quieter colours.
+   ============================================================ */
+let crawlTimer = null;
+
+function clearRoutes(){
+  if (crawlTimer) { clearTimeout(crawlTimer); crawlTimer = null; }
+  ['gRoute','gAlt'].forEach(id => document.getElementById(id).innerHTML = '');
+  NODEREFS.forEach(r => r.g.classList.remove('step','alt1','alt2','alt3','onpath'));
+  STRANDS.forEach(s => s._radius.classList.remove('dominant'));
+}
+
+function glowAt(p){
+  if (document.body.dataset.motion === 'still') return;
+  const g = document.getElementById('gRoute');
+  const c = el('circle', { cx:p.x, cy:p.y, r:7, class:'step-glow' });
+  g.appendChild(c);
+  setTimeout(() => c.remove(), 900);
+}
+
+/* the thread carrying most of the current selection breathes slowly */
+function markDominant(refs){
+  STRANDS.forEach(s => s._radius.classList.remove('dominant'));
+  if (!refs || refs.length < 2) return;
+  const tally = {};
+  refs.forEach(r => tally[r.s.id] = (tally[r.s.id] || 0) + 1);
+  const top = Object.entries(tally).sort((a,b) => b[1] - a[1]);
+  if (top.length && top[0][1] >= 2 && (top.length === 1 || top[0][1] > top[1][1])){
+    const s = STRANDS.find(x => x.id === top[0][0]);
+    if (s) s._radius.classList.add('dominant');
+  }
+}
+
+/* light each bead in turn, as if feeling along the silk */
+function crawl(path){
+  const gR = document.getElementById('gRoute');
+  gR.innerHTML = '';
+  NODEREFS.forEach(r => r.g.classList.remove('step'));
+  const segs = [];
+  for (let i = 0; i < path.length - 1; i++){
+    const s = el('path', { d:`M${path[i].p.x},${path[i].p.y} L${path[i+1].p.x},${path[i+1].p.y}`, class:'route-seg' });
+    gR.appendChild(s); segs.push(s);
+  }
+  if (document.body.dataset.motion === 'still'){
+    segs.forEach(s => s.classList.add('on'));
+    path.forEach(r => r.g.classList.add('step'));
+    walkTo(path[path.length - 1].p);
+    syncMinimapState(); syncPopup();
+    return;
+  }
+  let i = 0;
+  (function stepOn(){
+    if (i >= path.length){
+      segs.forEach(s => s.classList.add('flow'));
+      syncMinimapState(); syncPopup();
+      crawlTimer = null; return;
+    }
+    const r = path[i];
+    r.g.classList.add('step');
+    glowAt(r.p);
+    walkTo(r.p);
+    if (i > 0) segs[i-1].classList.add('on');
+    i++;
+    crawlTimer = setTimeout(stepOn, 430);
+  })();
+}
+
+/* ---------- routes, with banned edges so we can find runners-up ---------- */
+function routeBetween(a, b, ban){
+  ban = ban || new Set();
+  const prev = { [key(a)]:null }, q = [a];
+  while (q.length){
+    const cur = q.shift();
+    if (cur === b) break;
+    neighbours(cur).forEach(n => {
+      if (ban.has(key(cur) + '>' + key(n)) || ban.has(key(n) + '>' + key(cur))) return;
+      if (!(key(n) in prev)) { prev[key(n)] = cur; q.push(n); }
+    });
+  }
+  if (!(key(b) in prev)) return null;
+  const path = []; let c = b;
+  while (c) { path.unshift(c); c = prev[key(c)]; }
+  return path;
+}
+const samePath = (p, q) => p.length === q.length && p.every((r,i) => r === q[i]);
+
+function altRoutes(a, b, main, k){
+  const out = [];
+  for (let i = 0; i < main.length - 1 && out.length < k; i++){
+    const p = routeBetween(a, b, new Set([key(main[i]) + '>' + key(main[i+1])]));
+    if (p && !samePath(p, main) && !out.some(o => samePath(o, p))) out.push(p);
+  }
+  return out;
+}
+
+function drawAlts(alts){
+  const g = document.getElementById('gAlt');
+  g.innerHTML = '';
+  alts.forEach((p, n) => {
+    const bow = 0.72 - n * 0.1;
+    let d = `M${p[0].p.x},${p[0].p.y}`;
+    for (let i = 1; i < p.length; i++){
+      const a = p[i-1].p, b = p[i].p;
+      const mx = (a.x + b.x)/2, my = (a.y + b.y)/2;
+      d += ` Q${(CX + (mx - CX) * bow).toFixed(1)},${(CY + (my - CY) * bow).toFixed(1)} ${b.x},${b.y}`;
+    }
+    g.appendChild(el('path', { d, class:'alt-seg alt-' + (n+1) }));
+    p.forEach(r => { if (!r.g.classList.contains('step')) r.g.classList.add('alt' + (n+1)); });
+  });
+}
+
+/* ---------- the bridge, now lit rather than just drawn ---------- */
+drawRoute = function(path){
+  clearRoutes();
+  document.getElementById('gBridge').innerHTML = '';
+  NODEREFS.forEach(r => { r.g.classList.remove('sel','res'); r.g.classList.add('mute'); });
+  path.forEach(r => { r.g.classList.remove('mute'); r.g.classList.add('onpath'); });
+  path.forEach(r => r.s._radius.classList.add('lit'));
+
+  const a = path[0], b = path[path.length - 1];
+  const alts = altRoutes(a, b, path, 3);
+  alts.forEach(p => p.forEach(r => r.g.classList.remove('mute')));
+  drawAlts(alts);
+  markDominant(path);
+  VPmain.fitBox(boundsOf(path.concat(...alts)), .78);
+  crawl(path);
+
+  const hops = path.length - 1;
+  const threads = new Set(path.map(r => r.s.id)).size;
+  document.querySelector('#detail h2').textContent = 'Bridge line';
+  document.getElementById('detailBody').innerHTML =
+    `<div class="detail-kicker" style="--strand-c:var(--amber)">${hops} hop${hops===1?'':'s'} across ${threads} thread${threads===1?'':'s'}</div>
+     <h3 class="detail-title">${esc(a.nd.t)} \u2192 ${esc(b.nd.t)}</h3>
+     <p class="detail-body">The shortest silk between them, lit bead by bead in the order a spider would feel its way along. Each step is either the next bead on the same radius, or an idea the two share.</p>
+     ${alts.length ? `<p class="detail-body" style="font-size:12.5px;color:var(--faint)">${alts.length} other route${alts.length===1?'':'s'} exist${alts.length===1?'s':''}. They are drawn behind, dimmer and dashed, so they stay available without competing with the main line.</p>
+     <div class="alt-key">${alts.map((p,n)=>`<span style="color:var(--alt${n+1})"><i></i>route ${n+2} \u00b7 ${p.length-1} hops</span>`).join('')}</div>` : ''}
+     <div class="xref"><div class="xref-h">The main route</div>` +
+     path.map(r => `<button class="xref-item" data-s="${r.s.id}" data-j="${r.j}">${esc(r.nd.t)}<span class="src">${esc(r.s.label)} \u00b7 ${esc(CLSOF(key(r)))}</span></button>`).join('') +
+     '</div>';
+  document.getElementById('detailBody').querySelectorAll('.xref-item').forEach(x =>
+    x.addEventListener('click', () => { disarm(); selectNode(x.dataset.s, +x.dataset.j); }));
+  say('Route found. ' + hops + ' hops from ' + a.nd.t + ' to ' + b.nd.t + '. ' + alts.length + ' alternative routes shown behind.');
+};
+
+/* ---------- when you pick one bead, light the way out to it from the hub ---------- */
+const _selNode3 = selectNode, _selStrand3 = selectStrand, _reset3 = reset;
+selectNode = function(sid, j){
+  const wasArmed = armed;
+  if (!wasArmed) clearRoutes();
+  _selNode3(sid, j);
+  if (wasArmed) return;
+  const r = byKey[sid + ':' + j];
+  if (!r) return;
+  if (r.j > 0){
+    const path = NODEREFS.filter(x => x.s.id === sid && x.j <= r.j).sort((x,y) => x.j - y.j);
+    crawl(path);
+  }
+  /* the thread you are actually on is the predominant one — it breathes */
+  r.s._radius.classList.add('dominant');
+  if (owlOn) drawEdges(edgesOf(sid + ':' + j).map(e => ({ from:e.from, to:e.to, prop:e.prop })), { label:true, hi:true });
+};
+selectStrand = function(sid){
+  clearRoutes(); _selStrand3(sid);
+  const path = NODEREFS.filter(x => x.s.id === sid).sort((a,b) => a.j - b.j);
+  crawl(path);
+  const s = STRANDS.find(x => x.id === sid);
+  if (s) s._radius.classList.add('dominant');
+};
+reset = function(){ clearRoutes(); clearOnto(); _reset3(); if (owlOn) drawEdges(DECLARED, { label:true }); };
+</script>
