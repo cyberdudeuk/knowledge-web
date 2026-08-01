@@ -131,8 +131,10 @@ function renderNode(ref, kin){
      ${list ? `<ul class="detail-body" style="padding-left:17px;margin-top:11px">${list}</ul>` : ''}
      <div class="meta-row">
        ${nd.open ? '<span class="pill open">Still open</span>' : '<span class="pill done">Built</span>'}
+       ${epPill(((NODEREFS.find(r => r.s === s && r.nd === nd)||{}).ep) || nd.ep || 'asserted')}
        ${(nd.themes||[]).map(t => `<span class="pill">${esc((THEMES.find(x=>x.id===t)||{}).label||t)}</span>`).join('')}
      </div>
+     ${(nd.impact || nd.conf) ? `<div class="meta-row" style="--strand-c:var(--sc-${s.id})">${nd.impact ? pips('Impact', nd.impact) : ''}${nd.conf ? pips('Confidence', nd.conf) : ''}</div>` : ''}
      ${xrefBlock('Resonates with', kin)}
      ${s.url ? `<div class="xref"><a href="${s.url}" target="_blank" rel="noopener">Open the conversation \u2192</a></div>` : ''}`;
   wire();

@@ -286,17 +286,20 @@ function buildGeom(col){
     s.nodes.forEach((nd, j) => {
       const r = 100 + j * step, p = pt(s.angle, r), nid = s.id + ':' + j;
       const cls = (col.enrich[nid] || {}).cls || 'Concept';
-      const g = el('g', { class:'node' + (nd.open ? ' open' : ''), tabindex:'0', role:'button' });
+      const ep = (function(){ const e = nd.ep || (col.enrich[nid]||{}).ep || 'asserted'; return EP_STATES.includes(e) ? e : 'asserted'; })();
+      const g = el('g', { class:'node' + (nd.open ? ' open' : '') + (ep !== 'asserted' ? ' ep-' + ep : ''), tabindex:'0', role:'button' });
       g.dataset.s = s.id; g.dataset.j = j;
       g.style.setProperty('--strand-c', `var(--sc-${s.id})`);
       g.appendChild(el('circle', { class:'halo', cx:p.x, cy:p.y, r:17, fill:'transparent', 'pointer-events':'all' }));
       g.appendChild(el('path', { class:'bead', d:shapePath(SHAPEOF(cls), p.x, p.y, j === 0 ? 6.6 : 5.4) }));
-      g.setAttribute('aria-label', `${nd.t}. ${s.label}. Class ${cls}. ${nd.b}`);
+      g.setAttribute('aria-label', `${nd.t}. ${s.label}. Class ${cls}.${ep !== 'asserted' ? ' Epistemic state ' + ep + '.' : ''} ${nd.b}`);
+      const clsTx = el('text', { class:'cls-lbl', x:p.x + px*off, y:p.y + py*off - 7.5, 'text-anchor':lAnchor });
+      clsTx.textContent = cls; g.appendChild(clsTx);
       const tx = el('text', { class:'lbl', x:p.x + px*off, y:p.y + py*off + 3.5, 'text-anchor':lAnchor });
       tx.textContent = nd.t; g.appendChild(tx); gN.appendChild(g);
 
       const ref = { s, si, nd, j, p, p0:{ x:p.x, y:p.y }, rad:r, size:j === 0 ? 6.6 : 5.4, shape:SHAPEOF(cls),
-        g, bead:g.querySelector('.bead'), lblEl:tx,
+        g, bead:g.querySelector('.bead'), lblEl:tx, clsEl:clsTx, ep,
         hay:(s.label + ' ' + nd.t + ' ' + nd.k + ' ' + nd.b + ' ' + (nd.c||[]).join(' ')).toLowerCase() };
       NODEREFS.push(ref); byKey[nid] = ref;
       const meta = () => { const e2 = col.enrich[nid] || {}; return [s.label, e2.cls, flatTax()[e2.tax]].filter(Boolean).join(' \u00b7 '); };

@@ -214,6 +214,28 @@ h1 em{font-style:italic;color:var(--dew)}
 .node.mute .lbl{opacity:0;pointer-events:none}
 .node.open .bead{stroke-dasharray:2.5 2.5}
 
+/* epistemic outline grammar — dash style carries the state, hue stays
+   taxonomic, and the word travels in the aria-label, tooltip and pill */
+.node.ep-inferred .bead{stroke-dasharray:5 2.5}
+.node.ep-induced .bead{stroke-dasharray:1.1 2.6;stroke-linecap:round}
+.node.ep-stub .bead{stroke-dasharray:8 4;opacity:.8}
+.cls-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;fill:var(--faint);opacity:0;transition:opacity .2s;pointer-events:none}
+.node:hover .cls-lbl,.node.sel .cls-lbl,.node:focus-visible .cls-lbl{opacity:1}
+
+/* epistemic pill — word always present, border style mirrors the outline */
+.ep-pill{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;border:1px solid;border-radius:100px;padding:2px 8px;display:inline-block}
+.ep-pill.asserted{color:var(--ep-asserted);border-color:var(--ep-asserted)}
+.ep-pill.inferred{color:var(--ep-inferred);border-color:var(--ep-inferred);border-style:dashed}
+.ep-pill.induced{color:var(--ep-induced);border-color:var(--ep-induced);border-style:dotted}
+.ep-pill.stub{color:var(--ep-stub);border-color:var(--ep-stub);border-style:dashed}
+
+/* pip meter — discrete 1–5, labelled, never a lone colour */
+.pips{display:inline-flex;gap:3px;align-items:center;margin-right:10px}
+.pips i{width:9px;height:9px;border-radius:2px;background:var(--dusk);border:1px solid var(--ridge)}
+.pips i.on{background:var(--strand-c,var(--dew));border-color:transparent}
+.pips .pl{font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-right:3px}
+.pips .pv{font-family:var(--mono);font-size:9px;color:var(--moth);margin-left:3px}
+
 .hub-ring{fill:none;stroke:var(--amber-dim);stroke-width:1}
 .hub-core{fill:var(--night);stroke:var(--amber);stroke-width:1.6}
 .hub-lbl{font-family:var(--display);font-style:italic;font-size:17px;fill:var(--amber);text-anchor:middle;pointer-events:none}
@@ -1531,6 +1553,24 @@ function flatTax(){
 }
 const CLSOF = id => (ENRICH[id]||{}).cls || 'Concept';
 const SHAPEOF = cls => (ONTOLOGY.find(o => o.id === cls)||{}).shape || 'circle';
+
+/* epistemic state of a node: stated on the node or its enrichment, defaulting
+   to asserted. Nothing is ever marked inferred or induced unless the data
+   says so — the mechanism never invents a state. */
+const EP_STATES = ['asserted','inferred','induced','stub','gated'];
+function epOf(nd, nid){
+  const e = nd.ep || (ENRICH[nid]||{}).ep || 'asserted';
+  return EP_STATES.includes(e) ? e : 'asserted';
+}
+const epPill = ep => `<span class="ep-pill ${ep}">${ep}</span>`;
+/* discrete 1–5 pip meter: labelled, value stated, never a lone colour */
+function pips(label, n, max = 5){
+  const m = Math.max(1, max), v = Math.max(0, Math.min(m, n|0));
+  let dots = '';
+  for (let i = 0; i < m; i++) dots += `<i${i < v ? ' class="on"' : ''}></i>`;
+  return `<span class="pips" role="img" aria-label="${label} ${v} of ${m}">` +
+         `<span class="pl">${label}</span>${dots}<span class="pv">${v}/${m}</span></span>`;
+}
 function shapePath(shape, x, y, r){
   const P = (a,rr) => [x + rr*Math.cos(a*Math.PI/180), y + rr*Math.sin(a*Math.PI/180)];
   switch(shape){
@@ -1641,20 +1681,24 @@ STRANDS.forEach((s, si) => {
   s.nodes.forEach((nd, j) => {
     const r = R0 + j * RSTEP;
     const p = pt(s.angle, r);
-    const g = el('g', { class:'node' + (nd.open ? ' open' : ''), tabindex:'0', role:'button' });
+    const nid = s.id + ':' + j, cls = CLSOF(nid);
+    const ep = epOf(nd, nid);
+    const g = el('g', { class:'node' + (nd.open ? ' open' : '') + (ep !== 'asserted' ? ' ep-' + ep : ''), tabindex:'0', role:'button' });
     g.dataset.s = s.id; g.dataset.j = j;
     g.style.setProperty('--strand-c', `var(--sc-${s.id})`);
-    const nid = s.id + ':' + j, cls = CLSOF(nid);
     g.appendChild(el('circle', { class:'halo', cx:p.x, cy:p.y, r:17, fill:'transparent', 'pointer-events':'all' }));
     g.appendChild(el('path', { class:'bead', d: shapePath(SHAPEOF(cls), p.x, p.y, j === 0 ? 6.6 : 5.4) }));
-    g.setAttribute('aria-label', `${nd.t}. ${s.label}. Class ${cls}. ${nd.b}`);
+    g.setAttribute('aria-label', `${nd.t}. ${s.label}. Class ${cls}.${ep !== 'asserted' ? ' Epistemic state ' + ep + '.' : ''} ${nd.b}`);
+    const clsTx = el('text', { class:'cls-lbl', x:p.x + px*off, y:p.y + py*off - 7.5, 'text-anchor':lAnchor });
+    clsTx.textContent = cls;
+    g.appendChild(clsTx);
     const tx = el('text', { class:'lbl', x:p.x + px*off, y:p.y + py*off + 3.5, 'text-anchor':lAnchor });
     tx.textContent = nd.t;
     g.appendChild(tx);
     gN.appendChild(g);
 
     const ref = { s, si, nd, j, p, p0:{ x:p.x, y:p.y }, rad:r, size:(j === 0 ? 6.6 : 5.4), shape:SHAPEOF(cls),
-      g, bead:g.querySelector('.bead'), lblEl:tx, hay:
+      g, bead:g.querySelector('.bead'), lblEl:tx, clsEl:clsTx, ep, hay:
       (s.label + ' ' + nd.t + ' ' + nd.k + ' ' + nd.b + ' ' + (nd.c||[]).join(' ') + ' ' + (nd.themes||[]).join(' ')).toLowerCase() };
     NODEREFS.push(ref);
 
@@ -1868,8 +1912,10 @@ function renderNode(ref, kin){
      ${list ? `<ul class="detail-body" style="padding-left:17px;margin-top:11px">${list}</ul>` : ''}
      <div class="meta-row">
        ${nd.open ? '<span class="pill open">Still open</span>' : '<span class="pill done">Built</span>'}
+       ${epPill(((NODEREFS.find(r => r.s === s && r.nd === nd)||{}).ep) || nd.ep || 'asserted')}
        ${(nd.themes||[]).map(t => `<span class="pill">${esc((THEMES.find(x=>x.id===t)||{}).label||t)}</span>`).join('')}
      </div>
+     ${(nd.impact || nd.conf) ? `<div class="meta-row" style="--strand-c:var(--sc-${s.id})">${nd.impact ? pips('Impact', nd.impact) : ''}${nd.conf ? pips('Confidence', nd.conf) : ''}</div>` : ''}
      ${xrefBlock('Resonates with', kin)}
      ${s.url ? `<div class="xref"><a href="${s.url}" target="_blank" rel="noopener">Open the conversation \u2192</a></div>` : ''}`;
   wire();
@@ -3730,6 +3776,8 @@ function relayout(){
       r.bead.setAttribute('d', shapePath(r.shape, r.p.x, r.p.y, r.size));
       r.lblEl.setAttribute('x', r.p.x + r.s._lab.px * r.s._lab.off);
       r.lblEl.setAttribute('y', r.p.y + r.s._lab.py * r.s._lab.off + 3.5);
+      if (r.clsEl){ r.clsEl.setAttribute('x', r.p.x + r.s._lab.px * r.s._lab.off);
+                    r.clsEl.setAttribute('y', r.p.y + r.s._lab.py * r.s._lab.off - 7.5); }
     });
     const gN0 = document.getElementById('gNodes');
     NODEREFS.slice().sort((a,b) => (a.si - b.si) || (a.j - b.j)).forEach(r => gN0.appendChild(r.g));
@@ -3746,6 +3794,8 @@ function relayout(){
     r.bead.setAttribute('d', shapePath(r.shape, r.p.x, r.p.y, r.size));
     r.lblEl.setAttribute('x', r.p.x + r.s._lab.px * r.s._lab.off);
     r.lblEl.setAttribute('y', r.p.y + r.s._lab.py * r.s._lab.off + 3.5);
+    if (r.clsEl){ r.clsEl.setAttribute('x', r.p.x + r.s._lab.px * r.s._lab.off);
+                  r.clsEl.setAttribute('y', r.p.y + r.s._lab.py * r.s._lab.off - 7.5); }
   });
 
   flatOnly.forEach(id => document.getElementById(id).style.display = 'none');
@@ -4311,17 +4361,20 @@ function buildGeom(col){
     s.nodes.forEach((nd, j) => {
       const r = 100 + j * step, p = pt(s.angle, r), nid = s.id + ':' + j;
       const cls = (col.enrich[nid] || {}).cls || 'Concept';
-      const g = el('g', { class:'node' + (nd.open ? ' open' : ''), tabindex:'0', role:'button' });
+      const ep = (function(){ const e = nd.ep || (col.enrich[nid]||{}).ep || 'asserted'; return EP_STATES.includes(e) ? e : 'asserted'; })();
+      const g = el('g', { class:'node' + (nd.open ? ' open' : '') + (ep !== 'asserted' ? ' ep-' + ep : ''), tabindex:'0', role:'button' });
       g.dataset.s = s.id; g.dataset.j = j;
       g.style.setProperty('--strand-c', `var(--sc-${s.id})`);
       g.appendChild(el('circle', { class:'halo', cx:p.x, cy:p.y, r:17, fill:'transparent', 'pointer-events':'all' }));
       g.appendChild(el('path', { class:'bead', d:shapePath(SHAPEOF(cls), p.x, p.y, j === 0 ? 6.6 : 5.4) }));
-      g.setAttribute('aria-label', `${nd.t}. ${s.label}. Class ${cls}. ${nd.b}`);
+      g.setAttribute('aria-label', `${nd.t}. ${s.label}. Class ${cls}.${ep !== 'asserted' ? ' Epistemic state ' + ep + '.' : ''} ${nd.b}`);
+      const clsTx = el('text', { class:'cls-lbl', x:p.x + px*off, y:p.y + py*off - 7.5, 'text-anchor':lAnchor });
+      clsTx.textContent = cls; g.appendChild(clsTx);
       const tx = el('text', { class:'lbl', x:p.x + px*off, y:p.y + py*off + 3.5, 'text-anchor':lAnchor });
       tx.textContent = nd.t; g.appendChild(tx); gN.appendChild(g);
 
       const ref = { s, si, nd, j, p, p0:{ x:p.x, y:p.y }, rad:r, size:j === 0 ? 6.6 : 5.4, shape:SHAPEOF(cls),
-        g, bead:g.querySelector('.bead'), lblEl:tx,
+        g, bead:g.querySelector('.bead'), lblEl:tx, clsEl:clsTx, ep,
         hay:(s.label + ' ' + nd.t + ' ' + nd.k + ' ' + nd.b + ' ' + (nd.c||[]).join(' ')).toLowerCase() };
       NODEREFS.push(ref); byKey[nid] = ref;
       const meta = () => { const e2 = col.enrich[nid] || {}; return [s.label, e2.cls, flatTax()[e2.tax]].filter(Boolean).join(' \u00b7 '); };

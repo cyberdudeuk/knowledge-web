@@ -214,6 +214,28 @@ h1 em{font-style:italic;color:var(--dew)}
 .node.mute .lbl{opacity:0;pointer-events:none}
 .node.open .bead{stroke-dasharray:2.5 2.5}
 
+/* epistemic outline grammar — dash style carries the state, hue stays
+   taxonomic, and the word travels in the aria-label, tooltip and pill */
+.node.ep-inferred .bead{stroke-dasharray:5 2.5}
+.node.ep-induced .bead{stroke-dasharray:1.1 2.6;stroke-linecap:round}
+.node.ep-stub .bead{stroke-dasharray:8 4;opacity:.8}
+.cls-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;fill:var(--faint);opacity:0;transition:opacity .2s;pointer-events:none}
+.node:hover .cls-lbl,.node.sel .cls-lbl,.node:focus-visible .cls-lbl{opacity:1}
+
+/* epistemic pill — word always present, border style mirrors the outline */
+.ep-pill{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;border:1px solid;border-radius:100px;padding:2px 8px;display:inline-block}
+.ep-pill.asserted{color:var(--ep-asserted);border-color:var(--ep-asserted)}
+.ep-pill.inferred{color:var(--ep-inferred);border-color:var(--ep-inferred);border-style:dashed}
+.ep-pill.induced{color:var(--ep-induced);border-color:var(--ep-induced);border-style:dotted}
+.ep-pill.stub{color:var(--ep-stub);border-color:var(--ep-stub);border-style:dashed}
+
+/* pip meter — discrete 1–5, labelled, never a lone colour */
+.pips{display:inline-flex;gap:3px;align-items:center;margin-right:10px}
+.pips i{width:9px;height:9px;border-radius:2px;background:var(--dusk);border:1px solid var(--ridge)}
+.pips i.on{background:var(--strand-c,var(--dew));border-color:transparent}
+.pips .pl{font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-right:3px}
+.pips .pv{font-family:var(--mono);font-size:9px;color:var(--moth);margin-left:3px}
+
 .hub-ring{fill:none;stroke:var(--amber-dim);stroke-width:1}
 .hub-core{fill:var(--night);stroke:var(--amber);stroke-width:1.6}
 .hub-lbl{font-family:var(--display);font-style:italic;font-size:17px;fill:var(--amber);text-anchor:middle;pointer-events:none}
