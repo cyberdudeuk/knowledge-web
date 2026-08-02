@@ -494,6 +494,60 @@ function loadCollection(id){
   say('Loaded ' + col.label + '. ' + STRANDS.length + ' threads, ' + NODEREFS.length + ' beads.');
 }
 
+/* ============================================================
+   BL-WEB-28 — import/export collection JSON. No storage API
+   (ADR-W08): a downloaded file and a re-uploaded file, nothing kept
+   between the two. The exported shape is exactly the collection
+   contract CONTRIBUTING.md already documents (strands[], themes[],
+   enrich{}, repairs[]) — the same shape every built-in collection
+   already satisfies, so round-tripping one of those through export
+   then import is the test that this does what it claims.
+   ============================================================ */
+function exportCollectionJSON(id){
+  const col = COLLECTIONS[id]; if (!col) return;
+  const payload = { id:col.id, hub:col.hub, label:col.label, strands:col.strands, themes:col.themes, enrich:col.enrich, repairs:col.repairs };
+  if (col.resolutions) payload.resolutions = col.resolutions;
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = id + '-collection.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  say(col.label + ' exported as JSON.');
+}
+
+function importCollectionJSON(file, onError){
+  const reader = new FileReader();
+  reader.onload = () => {
+    let data;
+    try { data = JSON.parse(reader.result); }
+    catch(e){ onError('That file is not valid JSON.'); return; }
+    const problems = [];
+    if (!Array.isArray(data.strands) || !data.strands.length) problems.push('strands[] is missing or empty');
+    if (!Array.isArray(data.themes)) problems.push('themes[] is missing (empty is fine, but the field must exist)');
+    if (!data.enrich || typeof data.enrich !== 'object' || Array.isArray(data.enrich)) problems.push('enrich{} is missing');
+    if (problems.length){ onError('Cannot import — ' + problems.join('; ') + '.'); return; }
+    if (!Array.isArray(data.repairs) || !data.repairs.length){
+      data.repairs = [{ t:'Imported without declared gaps', d:'This collection came from a file that supplied no repairs[], or an empty one. This system’s own rule is that a collection with no declared gaps is not trusted — treat everything here as unverified until real gaps are assessed and declared.', s:'' }];
+    }
+    let id = (data.id && /^[a-z0-9_-]+$/i.test(data.id)) ? data.id.toLowerCase() : 'import';
+    const base = id; let n = 1;
+    while (COLLECTIONS[id]) id = base + '-' + (++n);
+    COLLECTIONS[id] = { id, hub:Array.isArray(data.hub) ? data.hub : ['imported','collection'],
+      label:data.label || file.name.replace(/\.json$/i,''), strands:data.strands, themes:data.themes,
+      enrich:data.enrich, repairs:data.repairs, resolutions:Array.isArray(data.resolutions) ? data.resolutions : undefined };
+    const opt = document.createElement('option'); opt.value = id; opt.textContent = COLLECTIONS[id].label;
+    document.querySelectorAll('.colpick').forEach(s => s.appendChild(opt.cloneNode(true)));
+    say(COLLECTIONS[id].label + ' imported.');
+    if (typeof renderCollectionsPage === 'function') renderCollectionsPage();
+    loadCollection(id);
+    if (typeof refreshHome === 'function') refreshHome();
+    go('web');
+  };
+  reader.onerror = () => onError('Could not read that file.');
+  reader.readAsText(file);
+}
+
 function buildListView(){
   document.getElementById('lvBody').innerHTML = STRANDS.map(s => `
     <div class="lv-strand">

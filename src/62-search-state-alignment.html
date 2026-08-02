@@ -288,4 +288,7 @@ function makeAlignCollection(){
     ]};
 }
 COLLECTIONS.align = makeAlignCollection();
+/* the Collections page renders before this runs — without a re-render,
+   Mission alignment never gets a card (found and fixed 2026-08-03) */
+renderCollectionsPage();
 </script>

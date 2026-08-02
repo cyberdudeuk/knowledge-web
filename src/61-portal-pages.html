@@ -158,11 +158,7 @@ document.getElementById('howMiniMore').addEventListener('click', () => go('manua
 /* ============================================================
    Collections
    ============================================================ */
-(function collections(){
-  const p = document.getElementById('pg-collections');
-  const wrap = document.createElement('div');
-  const conf = { '[OK]':25, '[INFERRED]':120, '[REVIEW]':26 };
-  const meta = {
+const COL_META = {
     web:{ src:'Three conversations outside any project, plus carried memory',
           why:'The collection this prototype was built from. Small enough to hand-author, which is why it is the only one with a rich typed ontology.',
           facts:[['5','threads'],['26','beads'],['46','relations']] },
@@ -181,9 +177,24 @@ document.getElementById('howMiniMore').addEventListener('click', () => go('manua
     xwalk:{ src:'Data_Cataloguing_Standards_and_Tooling_Crosswalks.xlsx',
           why:'The Rosetta Stone that binds the other collections: 61 canonical concepts mapped across ten standards profiles, 212 terms, and an indicative crosswalk over six catalogue tools. It is the vocabulary layer the rest of the estate is missing.',
           facts:[['61','concepts'],['212','terms'],['10','profiles']] }
+};
+function colMeta(c){
+  return COL_META[c.id] || {
+    src: c.id === 'align' ? 'Plan for Change · GDS blueprint · SDR · NDL' : 'Imported JSON file',
+    why: c.id === 'align' ? 'Mission alignment across the estate — missions, priorities and kickstarters cross-walked to standards domains.' : 'Brought in via Import a collection (BL-WEB-28), not part of the six this prototype ships with.',
+    facts:[[String(c.strands.length),'threads'],[String(c.strands.reduce((n,s)=>n+s.nodes.length,0)),'beads'],[String(c.themes.length),'themes']]
   };
-  wrap.innerHTML = `<div class="colgrid">` + Object.values(COLLECTIONS).map(c => {
-    const m = meta[c.id];
+}
+function renderCollectionsPage(){
+  const p = document.getElementById('pg-collections');
+  let wrap = document.getElementById('colWrap');
+  const fresh = !wrap;
+  if (fresh){ wrap = document.createElement('div'); wrap.id = 'colWrap'; }
+  let grid = document.getElementById('colGrid');
+  const freshGrid = !grid;
+  if (freshGrid){ grid = document.createElement('div'); grid.id = 'colGrid'; grid.className = 'colgrid'; }
+  grid.innerHTML = Object.values(COLLECTIONS).map(c => {
+    const m = colMeta(c);
     return `<div class="colcard${c.id===CURRENT?' live':''}" data-c="${c.id}">
       <header><div class="k">${c.id === 'web' ? 'Native' : 'Loaded from your upload'}</div><h3>${esc(c.label)}</h3></header>
       <div class="body">
@@ -197,18 +208,38 @@ document.getElementById('howMiniMore').addEventListener('click', () => go('manua
       </div>
       <footer><button class="cta" data-load="${c.id}">Load into the web</button>
         <button class="cta ghost" data-torn="${c.id}">What is torn</button>
-        ${c.resolutions && c.resolutions.length ? `<button class="cta ghost" data-resolved="${c.id}">What was resolved</button>` : ''}</footer>
+        ${c.resolutions && c.resolutions.length ? `<button class="cta ghost" data-resolved="${c.id}">What was resolved</button>` : ''}
+        <button class="cta ghost" data-export="${c.id}">Export JSON</button></footer>
     </div>`;
-  }).join('') + `</div>
-  <div class="page-head" style="margin-top:34px"><div class="eyebrow">Why this helps</div>
-    <h2 style="font-size:26px">Reducing the load of learning a whole estate at once</h2>
-    <p>A 14-sheet workbook asks you to hold the whole classification in your head before any of it means anything. A radial web gives you one hub, a handful of threads and a legible shape you can read in seconds — then lets you go deeper only where you need to. That is the same argument the Memory Grid specification makes for federated discovery: centralise the shape, not the content.</p></div>
-  <div id="colDetail"></div>`;
-  p.appendChild(wrap);
-  p.querySelectorAll('[data-load]').forEach(b => b.addEventListener('click', () => {
+  }).join('');
+  if (freshGrid) wrap.appendChild(grid);
+  if (fresh){
+    const rest = document.createElement('div');
+    rest.innerHTML = `<div class="page-head" style="margin-top:34px"><div class="eyebrow">Why this helps</div>
+      <h2 style="font-size:26px">Reducing the load of learning a whole estate at once</h2>
+      <p>A 14-sheet workbook asks you to hold the whole classification in your head before any of it means anything. A radial web gives you one hub, a handful of threads and a legible shape you can read in seconds — then lets you go deeper only where you need to. That is the same argument the Memory Grid specification makes for federated discovery: centralise the shape, not the content.</p></div>
+      <div class="page-head" style="margin-top:34px"><div class="eyebrow">Bring your own (BL-WEB-28)</div>
+        <h2 style="font-size:26px">Import a collection</h2>
+        <p>A JSON file matching the same contract every collection above already satisfies — <code>strands[]</code>, <code>themes[]</code>, <code>enrich{}</code>, <code>repairs[]</code> (see CONTRIBUTING.md). No storage API used: this reads the file you pick, nothing is kept between visits unless you export and re-import it yourself.</p>
+        <input type="file" id="colImport" accept=".json,application/json" style="margin-top:12px">
+        <p id="colImportErr" class="mono" style="color:var(--rust);font-size:12.5px;margin-top:9px" hidden></p>
+      </div>
+      <div id="colDetail"></div>`;
+    while (rest.firstChild) wrap.appendChild(rest.firstChild);
+    p.appendChild(wrap);
+    document.getElementById('colImport').addEventListener('change', e => {
+      const file = e.target.files[0]; if (!file) return;
+      const err = document.getElementById('colImportErr');
+      importCollectionJSON(file, msg => { err.textContent = msg; err.hidden = false; say('Import failed: ' + msg); });
+      err.hidden = true;
+      e.target.value = '';
+    });
+  }
+  wrap.querySelectorAll('[data-load]').forEach(b => b.addEventListener('click', () => {
     loadCollection(b.dataset.load); refreshHome(); go('web');
   }));
-  p.querySelectorAll('[data-torn]').forEach(b => b.addEventListener('click', () => {
+  wrap.querySelectorAll('[data-export]').forEach(b => b.addEventListener('click', () => exportCollectionJSON(b.dataset.export)));
+  wrap.querySelectorAll('[data-torn]').forEach(b => b.addEventListener('click', () => {
     const c = COLLECTIONS[b.dataset.torn];
     document.getElementById('colDetail').innerHTML =
       `<div class="page-head" style="margin-top:26px"><div class="eyebrow">Torn strands \u00b7 ${esc(c.label)}</div>
@@ -216,7 +247,7 @@ document.getElementById('howMiniMore').addEventListener('click', () => go('manua
        <ul class="repair" style="max-width:74ch">${c.repairs.map(r => `<li><b>${esc(r.t)}</b>${esc(r.d)}</li>`).join('')}</ul>`;
     document.getElementById('colDetail').scrollIntoView({ behavior:'smooth', block:'start' });
   }));
-  p.querySelectorAll('[data-resolved]').forEach(b => b.addEventListener('click', () => {
+  wrap.querySelectorAll('[data-resolved]').forEach(b => b.addEventListener('click', () => {
     const c = COLLECTIONS[b.dataset.resolved];
     document.getElementById('colDetail').innerHTML =
       `<div class="page-head" style="margin-top:26px"><div class="eyebrow">Entity resolution \u00b7 ${esc(c.label)}</div>
@@ -226,7 +257,8 @@ document.getElementById('howMiniMore').addEventListener('click', () => go('manua
          `<li><b>${esc(r.canonical)}</b>merged from: ${r.mergedFrom.map(esc).join(', ')}</li>`).join('')}</ul>`;
     document.getElementById('colDetail').scrollIntoView({ behavior:'smooth', block:'start' });
   }));
-})();
+}
+renderCollectionsPage();
 
 /* keep the live badge honest when the collection changes */
 const _loadCol = loadCollection;
