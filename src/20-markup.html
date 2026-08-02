@@ -20,6 +20,7 @@
         <button class="ctl" id="cOwl"      aria-pressed="false">Owl view</button>
         <button class="ctl" id="cList"     aria-pressed="false">Text version</button>
         <button class="ctl" id="cManual">Manual</button>
+        <span class="manual-hint" id="manualHint">Press <kbd>?</kbd> any time</span>
       </div>
     </div>
     <div class="tally">
@@ -49,6 +50,15 @@
           <input id="q" type="search" placeholder="Type to send a vibration…" autocomplete="off" aria-label="Search the web. Thesaurus synonyms are matched too.">
         </div>
         <div class="pluck-hint" id="pluckHint">Matching strands light up; the rest fall slack.</div>
+
+        <div class="how-mini" id="howMini">
+          <div class="eyebrow">How to move</div>
+          <p><b>Sit</b> — click the hub for the whole web.</p>
+          <p><b>Pluck</b> — search vibrates matches, it doesn't jump you.</p>
+          <p><b>Walk</b> — click a thread, or press 1–5.</p>
+          <p><b>Cross</b> — pick a spiral crossing for shared ideas.</p>
+          <button class="chip" id="howMiniMore" type="button">All nine ways · Manual</button>
+        </div>
 
         <h2 style="margin-top:20px">Radial threads</h2>
         <div id="strandList"></div>

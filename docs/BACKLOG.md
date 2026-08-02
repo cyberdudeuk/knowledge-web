@@ -1,6 +1,6 @@
 # Standing backlog
 
-56 items. Generated from `docs/programme-authority.html`, which remains the
+59 items. Generated from `docs/programme-authority.html`, which remains the
 source of truth. **Trace** cites the source that demands the item.
 
 | ID | Item | Pri | Phase | Trace |
@@ -61,6 +61,7 @@ source of truth. **Trace** cites the source that demands the item.
 | **BL-WEB-56** | Scheduled link revalidation. Live checking found 12 of 71 GDS product links now redirect and 3 are broken, while the workbook's own audit column still records them as verified. A verification stamp records when a link was checked, not whether it still resolves to the same place. | P1 | 1 | GDS, SELF |
 | **BL-WEB-57** | Mission and priority fields in the source registers. The alignment map in this build is asserted, not evidenced. Until the classification and the CDA register carry mission, GDS-priority and NDL-kickstarter fields, it cannot be validated or maintained. | P1 | 2 | Alignment |
 | **BL-WEB-58** | SDR findings need owners in the classification. The six systemic challenges from the State of Digital Government Review map to no standards domain that would evidence progress against them. | P2 | 2 | SDR |
+| **BL-WEB-59** | Navigation findability pass, direct from real product-owner use: a visible state indicator on the Display control (previously silent when non-default), a persistent page-identity label in the sticky top bar, and the spider-navigation legend moved onto the Explore page with a compact always-visible variant beside the stage and a visible "press ? for manual" hint. | DONE | 1 | MG-NFR-002, SELF |
 
 ## Do these first
 
@@ -72,6 +73,8 @@ source of truth. **Trace** cites the source that demands the item.
    original "do these first" list.
 
 ## Closed
+
+- **BL-WEB-59** navigation findability — Display button now shows a non-colour-only badge when preferences are non-default, the sticky top bar carries a persistent page-name label, and the spider-metaphor legend moved from Home to Explore (compact variant beside the stage, full legend still there, "?" hint made visible to sighted users) (v3.4, 2026-08-02). First backlog item sourced directly from the product owner's own use.
 
 - **BL-WEB-01** degraded-mode render — build emits every collection as semantic HTML in <noscript>; proven with JavaScript disabled (v3.0, 2026-08-02). Both doctrine failures now closed.
 

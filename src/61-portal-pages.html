@@ -34,6 +34,9 @@ const PAGES = [
     `<option value="${c.id}">${esc(c.label)}</option>`).join('');
   document.getElementById('colPick').addEventListener('change', e => loadCollection(e.target.value));
   document.getElementById('brandBtn').addEventListener('click', () => go('home'));
+  const whereLabel = document.createElement('span');
+  whereLabel.className = 'eyebrow'; whereLabel.id = 'whereLabel';
+  document.getElementById('subbar').appendChild(whereLabel);
   document.getElementById('subbar').appendChild(document.querySelector('.mast-controls'));
 
   /* ---- page containers ---- */
@@ -51,7 +54,6 @@ const PAGES = [
   /* ---- relocate what already exists ---- */
   P('home').appendChild(document.querySelector('.masthead'));
   P('web').appendChild(document.getElementById('main'));
-  P('home').appendChild(document.querySelector('.how'));
 
   /* reference + tours leave the rail and get the full width */
   document.querySelectorAll('.tabs .tab').forEach(t => t.replaceWith(t.cloneNode(true)));
@@ -98,6 +100,7 @@ function go(id){
     a.dataset.p === id ? a.setAttribute('aria-current','page') : a.removeAttribute('aria-current'));
   if (location.hash !== '#/' + id) history.replaceState(null, '', '#/' + id);
   const p = PAGES.find(x => x.id === id);
+  document.getElementById('whereLabel').textContent = 'Viewing · ' + p.nav;
   say(p.title + '.');
   window.scrollTo({ top:0, behavior: document.body.dataset.motion === 'still' ? 'auto' : 'smooth' });
   if (id === 'web') setTimeout(() => VPmain.apply(true), 60);
@@ -112,6 +115,14 @@ openOwlX = () => go('ontology');
 openManual = () => go('manual');
 closeOwlX = () => {};
 closeManual = () => {};
+/* cManual's click listener was bound in chunk 46 to the pre-shell openManual
+   (the modal opener) before this reassignment — stale by the time it fires,
+   silently doing nothing. Clone-and-replace drops the stale listener, same
+   fix already used above for .tabs .tab. */
+const cManualBtn = document.getElementById('cManual');
+cManualBtn.replaceWith(cManualBtn.cloneNode(true));
+document.getElementById('cManual').addEventListener('click', () => go('manual'));
+document.getElementById('howMiniMore').addEventListener('click', () => go('manual'));
 
 /* ============================================================
    Home

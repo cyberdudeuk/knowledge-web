@@ -89,15 +89,16 @@ function searchIndex(){
 (function displayPopover(){
   const sub = document.getElementById('subbar');
   const ctrls = sub.querySelector('.mast-controls');
+  const CTRL_IDS = ['cTheme','cContrast','cPalette','cText','cMotion','cVoice'];
   const pop = document.createElement('div');
   pop.className = 'prefpop'; pop.id = 'prefpop'; pop.hidden = true;
   pop.setAttribute('role','group'); pop.setAttribute('aria-label','Display preferences');
-  ['cTheme','cContrast','cPalette','cText','cMotion','cVoice'].forEach(id => {
+  CTRL_IDS.forEach(id => {
     const b = document.getElementById(id); if (b) pop.appendChild(b);
   });
   const btn = document.createElement('button');
   btn.className = 'ctl'; btn.id = 'cDisplay'; btn.setAttribute('aria-expanded','false');
-  btn.textContent = 'Display';
+  btn.innerHTML = 'Display<span class="pill" id="cDisplayCount" hidden aria-hidden="true"></span>';
   btn.addEventListener('click', () => {
     pop.hidden = !pop.hidden;
     btn.setAttribute('aria-expanded', String(!pop.hidden));
@@ -108,6 +109,22 @@ function searchIndex(){
   document.addEventListener('click', e => {
     if (!pop.hidden && !pop.contains(e.target) && e.target !== btn){ pop.hidden = true; btn.setAttribute('aria-expanded','false'); btn.removeAttribute('aria-pressed'); }
   });
+
+  const badge = document.getElementById('cDisplayCount');
+  function refreshDisplayBadge(){
+    const n = CTRL_IDS
+      .map(id => document.getElementById(id))
+      .filter(b => b && b.getAttribute('aria-pressed') === 'true').length;
+    badge.hidden = n === 0;
+    badge.textContent = String(n);
+    badge.classList.toggle('active', n > 0);
+    btn.setAttribute('aria-label', n
+      ? 'Display preferences — ' + n + ' changed from default'
+      : 'Display preferences');
+  }
+  refreshDisplayBadge();
+  new MutationObserver(refreshDisplayBadge)
+    .observe(pop, { attributes:true, attributeFilter:['aria-pressed'], subtree:true });
 })();
 
 /* ============================================================

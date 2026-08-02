@@ -29,12 +29,16 @@ function toggleAttr(btn, attr, onVal, offVal, onLabel, offLabel, announce){
   if (onLabel) btn.textContent = now ? onLabel : offLabel;
   say(announce + ' ' + (now ? 'off' : 'on'));
 }
+const THEME_CYCLE = ['dark', 'light', 'ocdo'];
+const THEME_NEXT_LABEL = { dark: 'Light', light: 'OCDO skin', ocdo: 'Dark' };
+const THEME_SAY = { dark: 'Dark theme on.', light: 'Light theme on.', ocdo: 'OCDO skin on.' };
 document.getElementById('cTheme').addEventListener('click', e => {
-  const dark = document.body.dataset.theme === 'dark';
-  document.body.dataset.theme = dark ? 'light' : 'dark';
-  e.target.textContent = dark ? 'Dark' : 'Light';
-  e.target.setAttribute('aria-pressed', String(dark));
-  say(dark ? 'Light theme on.' : 'Dark theme on.');
+  const now = document.body.dataset.theme;
+  const next = THEME_CYCLE[(THEME_CYCLE.indexOf(now) + 1) % THEME_CYCLE.length];
+  document.body.dataset.theme = next;
+  e.target.textContent = THEME_NEXT_LABEL[next];
+  e.target.setAttribute('aria-pressed', String(next !== 'dark'));
+  say(THEME_SAY[next]);
 });
 document.getElementById('cContrast').addEventListener('click', e =>
   toggleAttr(e.target, 'contrast', 'high', 'normal', null, null, 'High contrast'));
@@ -305,7 +309,7 @@ if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)
 if (window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches){
   document.body.dataset.theme = 'light';
   const b = document.getElementById('cTheme');
-  b.textContent = 'Dark'; b.setAttribute('aria-pressed', 'true');
+  b.textContent = THEME_NEXT_LABEL.light; b.setAttribute('aria-pressed', 'true');
 }
 
 /* ---------- final wiring ---------- */

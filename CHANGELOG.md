@@ -4,6 +4,65 @@ All notable changes to the artefact. Mirrors Section 13 (Release history) of
 `docs/programme-authority.html`, which remains the source of truth. Defects
 found during verification are named, never quietly fixed.
 
+## v3.4 — 2026-08-02
+
+Navigation findability pass (BL-WEB-59) — three fixes direct from the owner's own use.
+
+- **Display button now shows its own state.** A small badge counts how many
+  display preferences (theme, contrast, palette, text size, motion, voice)
+  are non-default, visible without opening the popover. Never colour-only —
+  the count and an updated `aria-label` carry the same information a sighted
+  user gets from the badge colour.
+- **Persistent page-identity label.** The already-sticky top bar now carries
+  a plain "Viewing · <page>" label alongside the nav tabs, a second,
+  harder-to-miss cue than the amber tab underline alone.
+- **The "how to move" legend is on Explore, where the graph is** — it was
+  being relocated onto Home (below the fold) instead of staying on the
+  Explore page it was authored for. Fixed with a one-line deletion, not a
+  rewrite. A compact always-visible mini-legend now also sits beside the
+  stage itself, linking through to the fuller manual reference. The
+  "press ? for help" hint is now visible to sighted users, not only
+  announced to screen readers.
+- **Defect found and fixed:** the `Manual` control button in the display bar
+  silently did nothing when clicked — its click listener was bound (in the
+  pre-portal-shell code) to the original modal-opening `openManual`, before
+  a later reassignment repointed the *function* to page-based navigation;
+  the already-registered listener still held the stale reference. The
+  keyboard `?` shortcut was unaffected (it calls `openManual()` live, not a
+  captured reference) and masked the bug. Found while wiring a new button to
+  the same control. Fixed by clone-and-replace, the same technique already
+  used elsewhere in this file for an identical class of staleness.
+- Also caught in passing: the OS-preference auto-init (when the browser
+  reports `prefers-color-scheme: light`) still hardcoded the old two-way
+  toggle's "Dark" label from before the OCDO skin (v3.3) made theme a
+  three-way cycle. Now reads the same `THEME_NEXT_LABEL` table the click
+  handler uses, so it correctly shows "OCDO skin" as the next option.
+- Verified: build + verify pass for dark/light; OCDO skin, keyboard reach,
+  and 390px overflow checked separately by hand.
+
+## v3.3 — 2026-08-02
+
+A second visual identity: the OCDO skin.
+
+- New **OCDO skin** theme option, alongside Dark and Light (`Display` control
+  now cycles Dark → Light → OCDO skin → Dark). Colour and type character
+  inspired by a UK government data-standards design system referenced by the
+  owner: a deep-navy "immersive" canvas, a light-weight sans display face in
+  place of the original serif, and the same uppercase-tracked mono treatment
+  the-web already used for signal text. All values are colour and type
+  choices only — the-web has no affiliation with that programme, so its
+  specific wordmarks, outcome names and footer chain are not reproduced.
+- Implemented as a third `[data-theme]` block in `src/11-themes.html`,
+  redefining the same token set every other theme uses (including
+  `--display`, so every heading site-wide follows the swap with no
+  per-selector overrides) — no new markup, no new JS beyond extending the
+  existing theme toggle from a two-way flip to a three-way cycle.
+- Verified: build + verify pass for dark/light (unchanged); OCDO skin
+  checked separately — AA contrast against its navy ground ranges 6.8:1 to
+  16.6:1 across all text/accent token pairs (better than either shipped
+  theme), sans-display propagation confirmed on the portal shell headings,
+  no console errors across all nine pages.
+
 ## v3.2 — 2026-08-02
 
 A seventh guided tour, for colleagues.

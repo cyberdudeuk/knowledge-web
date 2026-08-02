@@ -137,10 +137,11 @@ h1 em{font-style:italic;color:var(--dew)}
 .pluck input:focus{border-color:var(--dew-dim);outline:none;box-shadow:0 0 0 3px rgba(121,214,207,.09)}
 .pluck .ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--faint);pointer-events:none;font-size:13px}
 .pluck-hint{font-size:11.5px;color:var(--faint);margin-top:8px;line-height:1.45}
-.pluck-hint kbd{
+.pluck-hint kbd,.manual-hint kbd{
   font-family:var(--mono);font-size:10px;background:var(--dusk);
   border:1px solid var(--ridge);border-bottom-width:2px;border-radius:2px;padding:1px 4px;color:var(--moth);
 }
+.manual-hint{font-size:11.5px;color:var(--faint);line-height:1.45}
 
 /* ---------- strand list ---------- */
 .strand-btn{
@@ -285,6 +286,8 @@ h1 em{font-style:italic;color:var(--dew)}
 }
 .pill.open{border-color:var(--rust);color:var(--rust)}
 .pill.done{border-color:var(--dew-dim);color:var(--dew)}
+.pill.active{border-color:var(--amber-dim);color:var(--amber)}
+#cDisplayCount{margin-left:6px;padding:1px 6px}
 .xref{margin-top:16px;border-top:1px solid var(--ridge);padding-top:13px}
 .xref-h{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:9px}
 .xref-item{
@@ -326,6 +329,9 @@ h1 em{font-style:italic;color:var(--dew)}
 .how h3{font-family:var(--display);font-weight:400;font-size:17px;margin:7px 0 5px;color:var(--silk)}
 .how p{margin:0;font-size:12.5px;color:var(--moth);line-height:1.55}
 .how p b{color:var(--dew);font-weight:500}
+.how-mini{margin:14px 0}
+.how-mini p{margin:4px 0;font-size:12px;color:var(--moth);line-height:1.4}
+.how-mini p b{color:var(--dew)}
 
 footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--ridge);font-size:12px;color:var(--faint);line-height:1.6}
 footer b{color:var(--moth);font-weight:600}
@@ -481,6 +487,64 @@ footer b{color:var(--moth);font-weight:600}
 [data-theme="light"] .node .bead{fill:var(--deep)}
 [data-theme="light"] .hub-core{fill:var(--deep)}
 
+/* ============================================================
+   OCDO skin — an alternative visual identity inspired by a UK
+   government data-standards design system (two-canvas navy/pale,
+   light-weight sans display type, uppercase-tracked mono for
+   machine/signal text). Colour and type character only: this
+   project has no affiliation with that programme, so its own
+   wordmarks, outcome names and footer chain are not reproduced
+   here — only the generic design grammar.
+   ============================================================ */
+[data-theme="ocdo"]{
+  --display:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --night:#04102a;
+  --deep:#0a2350;
+  --dusk:#0d2c5e;
+  --ridge:#1c3a6e;
+  --silk:#EAF1F8;
+  --moth:#B6C8DD;
+  --faint:#8EA6C4;
+  --dew:#5fd3b4;
+  --dew-dim:#2e7a68;
+  --amber:#F4B400;
+  --amber-dim:#8a6a1f;
+  --rust:#f16fa3;
+  --violet:#a48be0;
+  --ok:#5fd3b4;
+  --shadow:0 18px 50px -22px rgba(0,0,0,.85);
+  --glass:rgba(4,16,42,.84);
+  --glass-solid:rgba(10,35,80,.97);
+  --spiralc:rgba(182,200,221,.28);
+  --violet-wash:rgba(164,139,224,.14);
+  --amber-wash:rgba(244,180,0,.1);
+  --mm-bg:rgba(4,16,42,.6);
+  --alt1:#a48be0; --alt2:#5fd3b4; --alt3:#f16fa3;
+  --sc-gov:#5fd3b4; --sc-cda:#F4B400; --sc-obs:#a48be0; --sc-cat:#7fb0e8; --sc-apps:#f16fa3;
+
+  /* taxonomic layer — the OCDO bright accent family */
+  --cat-1:#5fd3b4; --cat-2:#7fb0e8; --cat-3:#a48be0; --cat-4:#F4B400;
+  --cat-5:#f16fa3; --cat-6:#e0777a; --cat-7:#8EA6C4; --cat-8:#5b9fe0;
+
+  --ep-asserted:#5fd3b4;
+  --ep-inferred:#a48be0;
+  --ep-induced:#F4B400;
+  --ep-stub:#8EA6C4;
+  --ep-gated:#33507031;
+
+  --gold:#F4B400;
+  --gold-wash:rgba(244,180,0,.12);
+}
+[data-theme="ocdo"] body{
+  background-image:radial-gradient(120% 90% at 18% -5%, #0a2350 0%, #061a3c 46%, #04102a 100%);
+  background-attachment:fixed;
+}
+[data-theme="ocdo"] .node .bead{fill:var(--night)}
+[data-theme="ocdo"] .hub-core{fill:var(--night)}
+[data-theme="ocdo"] .panel{border-radius:3px 15px 15px 3px}
+[data-theme="ocdo"] .eyebrow,[data-theme="ocdo"] .mono,[data-theme="ocdo"] .panel h2,
+[data-theme="ocdo"] .ctl,[data-theme="ocdo"] .tally .k{letter-spacing:.16em}
+
 /* High contrast: strip washes, thicken silk, maximise text contrast */
 [data-contrast="high"]{
   --moth:var(--silk); --faint:#9aa6b8; --ridge:#6b7789; --spiralc:rgba(180,190,205,.6);
@@ -522,6 +586,7 @@ html{font-size:100%}
    Header controls
    ============================================================ */
 .mast-controls{display:flex;gap:7px;flex-wrap:wrap;margin-top:16px}
+.mast-controls .manual-hint{align-self:center}
 .ctl{
   font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
   background:transparent;border:1px solid var(--ridge);color:var(--moth);border-radius:2px;
@@ -1050,6 +1115,7 @@ html{font-size:100%}
         <button class="ctl" id="cOwl"      aria-pressed="false">Owl view</button>
         <button class="ctl" id="cList"     aria-pressed="false">Text version</button>
         <button class="ctl" id="cManual">Manual</button>
+        <span class="manual-hint" id="manualHint">Press <kbd>?</kbd> any time</span>
       </div>
     </div>
     <div class="tally">
@@ -1079,6 +1145,15 @@ html{font-size:100%}
           <input id="q" type="search" placeholder="Type to send a vibration…" autocomplete="off" aria-label="Search the web. Thesaurus synonyms are matched too.">
         </div>
         <div class="pluck-hint" id="pluckHint">Matching strands light up; the rest fall slack.</div>
+
+        <div class="how-mini" id="howMini">
+          <div class="eyebrow">How to move</div>
+          <p><b>Sit</b> — click the hub for the whole web.</p>
+          <p><b>Pluck</b> — search vibrates matches, it doesn't jump you.</p>
+          <p><b>Walk</b> — click a thread, or press 1–5.</p>
+          <p><b>Cross</b> — pick a spiral crossing for shared ideas.</p>
+          <button class="chip" id="howMiniMore" type="button">All nine ways · Manual</button>
+        </div>
 
         <h2 style="margin-top:20px">Radial threads</h2>
         <div id="strandList"></div>
@@ -2997,12 +3072,16 @@ function toggleAttr(btn, attr, onVal, offVal, onLabel, offLabel, announce){
   if (onLabel) btn.textContent = now ? onLabel : offLabel;
   say(announce + ' ' + (now ? 'off' : 'on'));
 }
+const THEME_CYCLE = ['dark', 'light', 'ocdo'];
+const THEME_NEXT_LABEL = { dark: 'Light', light: 'OCDO skin', ocdo: 'Dark' };
+const THEME_SAY = { dark: 'Dark theme on.', light: 'Light theme on.', ocdo: 'OCDO skin on.' };
 document.getElementById('cTheme').addEventListener('click', e => {
-  const dark = document.body.dataset.theme === 'dark';
-  document.body.dataset.theme = dark ? 'light' : 'dark';
-  e.target.textContent = dark ? 'Dark' : 'Light';
-  e.target.setAttribute('aria-pressed', String(dark));
-  say(dark ? 'Light theme on.' : 'Dark theme on.');
+  const now = document.body.dataset.theme;
+  const next = THEME_CYCLE[(THEME_CYCLE.indexOf(now) + 1) % THEME_CYCLE.length];
+  document.body.dataset.theme = next;
+  e.target.textContent = THEME_NEXT_LABEL[next];
+  e.target.setAttribute('aria-pressed', String(next !== 'dark'));
+  say(THEME_SAY[next]);
 });
 document.getElementById('cContrast').addEventListener('click', e =>
   toggleAttr(e.target, 'contrast', 'high', 'normal', null, null, 'High contrast'));
@@ -3273,7 +3352,7 @@ if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)
 if (window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches){
   document.body.dataset.theme = 'light';
   const b = document.getElementById('cTheme');
-  b.textContent = 'Dark'; b.setAttribute('aria-pressed', 'true');
+  b.textContent = THEME_NEXT_LABEL.light; b.setAttribute('aria-pressed', 'true');
 }
 
 /* ---------- final wiring ---------- */
@@ -4650,6 +4729,9 @@ const PAGES = [
     `<option value="${c.id}">${esc(c.label)}</option>`).join('');
   document.getElementById('colPick').addEventListener('change', e => loadCollection(e.target.value));
   document.getElementById('brandBtn').addEventListener('click', () => go('home'));
+  const whereLabel = document.createElement('span');
+  whereLabel.className = 'eyebrow'; whereLabel.id = 'whereLabel';
+  document.getElementById('subbar').appendChild(whereLabel);
   document.getElementById('subbar').appendChild(document.querySelector('.mast-controls'));
 
   /* ---- page containers ---- */
@@ -4667,7 +4749,6 @@ const PAGES = [
   /* ---- relocate what already exists ---- */
   P('home').appendChild(document.querySelector('.masthead'));
   P('web').appendChild(document.getElementById('main'));
-  P('home').appendChild(document.querySelector('.how'));
 
   /* reference + tours leave the rail and get the full width */
   document.querySelectorAll('.tabs .tab').forEach(t => t.replaceWith(t.cloneNode(true)));
@@ -4714,6 +4795,7 @@ function go(id){
     a.dataset.p === id ? a.setAttribute('aria-current','page') : a.removeAttribute('aria-current'));
   if (location.hash !== '#/' + id) history.replaceState(null, '', '#/' + id);
   const p = PAGES.find(x => x.id === id);
+  document.getElementById('whereLabel').textContent = 'Viewing · ' + p.nav;
   say(p.title + '.');
   window.scrollTo({ top:0, behavior: document.body.dataset.motion === 'still' ? 'auto' : 'smooth' });
   if (id === 'web') setTimeout(() => VPmain.apply(true), 60);
@@ -4728,6 +4810,14 @@ openOwlX = () => go('ontology');
 openManual = () => go('manual');
 closeOwlX = () => {};
 closeManual = () => {};
+/* cManual's click listener was bound in chunk 46 to the pre-shell openManual
+   (the modal opener) before this reassignment — stale by the time it fires,
+   silently doing nothing. Clone-and-replace drops the stale listener, same
+   fix already used above for .tabs .tab. */
+const cManualBtn = document.getElementById('cManual');
+cManualBtn.replaceWith(cManualBtn.cloneNode(true));
+document.getElementById('cManual').addEventListener('click', () => go('manual'));
+document.getElementById('howMiniMore').addEventListener('click', () => go('manual'));
 
 /* ============================================================
    Home
@@ -4924,15 +5014,16 @@ function searchIndex(){
 (function displayPopover(){
   const sub = document.getElementById('subbar');
   const ctrls = sub.querySelector('.mast-controls');
+  const CTRL_IDS = ['cTheme','cContrast','cPalette','cText','cMotion','cVoice'];
   const pop = document.createElement('div');
   pop.className = 'prefpop'; pop.id = 'prefpop'; pop.hidden = true;
   pop.setAttribute('role','group'); pop.setAttribute('aria-label','Display preferences');
-  ['cTheme','cContrast','cPalette','cText','cMotion','cVoice'].forEach(id => {
+  CTRL_IDS.forEach(id => {
     const b = document.getElementById(id); if (b) pop.appendChild(b);
   });
   const btn = document.createElement('button');
   btn.className = 'ctl'; btn.id = 'cDisplay'; btn.setAttribute('aria-expanded','false');
-  btn.textContent = 'Display';
+  btn.innerHTML = 'Display<span class="pill" id="cDisplayCount" hidden aria-hidden="true"></span>';
   btn.addEventListener('click', () => {
     pop.hidden = !pop.hidden;
     btn.setAttribute('aria-expanded', String(!pop.hidden));
@@ -4943,6 +5034,22 @@ function searchIndex(){
   document.addEventListener('click', e => {
     if (!pop.hidden && !pop.contains(e.target) && e.target !== btn){ pop.hidden = true; btn.setAttribute('aria-expanded','false'); btn.removeAttribute('aria-pressed'); }
   });
+
+  const badge = document.getElementById('cDisplayCount');
+  function refreshDisplayBadge(){
+    const n = CTRL_IDS
+      .map(id => document.getElementById(id))
+      .filter(b => b && b.getAttribute('aria-pressed') === 'true').length;
+    badge.hidden = n === 0;
+    badge.textContent = String(n);
+    badge.classList.toggle('active', n > 0);
+    btn.setAttribute('aria-label', n
+      ? 'Display preferences — ' + n + ' changed from default'
+      : 'Display preferences');
+  }
+  refreshDisplayBadge();
+  new MutationObserver(refreshDisplayBadge)
+    .observe(pop, { attributes:true, attributeFilter:['aria-pressed'], subtree:true });
 })();
 
 /* ============================================================
