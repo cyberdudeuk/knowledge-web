@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>The Web — colleague deck</title>
+<style>
+  @page { size: 1280px 720px; margin: 0; }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#10141d}
+  body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#dfe7ee}
+  .slide{
+    width:1280px;height:720px;position:relative;overflow:hidden;
+    background:linear-gradient(180deg,#161c28,#10141d);
+    padding:64px 76px;page-break-after:always;
+    display:flex;flex-direction:column;justify-content:center;
+  }
+  .slide:last-child{page-break-after:auto}
+  .eyebrow{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:14px;letter-spacing:.16em;text-transform:uppercase;color:#79d6cf;margin:0 0 14px}
+  h1{font-family:ui-serif,Georgia,serif;font-weight:300;font-size:56px;line-height:1.05;margin:0 0 18px;color:#dfe7ee}
+  h1 em{font-style:italic;color:#79d6cf}
+  .lede{font-family:ui-serif,Georgia,serif;font-style:italic;font-weight:300;font-size:24px;color:#8e9aad;max-width:70ch;line-height:1.5;margin:0}
+  p.body{font-size:20px;line-height:1.6;color:#dfe7ee;max-width:64ch;margin:0 0 14px}
+  .shot{position:absolute;right:64px;top:50%;transform:translateY(-50%);width:640px;border-radius:6px;border:1px solid #2b3547;box-shadow:0 30px 70px -20px rgba(0,0,0,.85)}
+  .shot-full{width:1000px;border-radius:6px;border:1px solid #2b3547;box-shadow:0 30px 70px -20px rgba(0,0,0,.85);margin-top:24px}
+  .col-left{max-width:500px}
+  .col-left h1,.col-left .lede,.col-left p.body{max-width:460px}
+  .footer{position:absolute;bottom:36px;left:76px;font-family:ui-monospace,monospace;font-size:12px;letter-spacing:.1em;color:#77839a;text-transform:uppercase}
+  .badge{display:inline-block;font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;border:1px solid #c96f4c;color:#c96f4c;border-radius:100px;padding:4px 12px;margin-bottom:20px}
+  ul.plain{list-style:none;margin:0;padding:0}
+  ul.plain li{padding:10px 0 10px 22px;border-bottom:1px dashed #2b3547;position:relative;font-size:19px;line-height:1.5;max-width:900px}
+  ul.plain li:last-child{border-bottom:0}
+  ul.plain li::before{content:'';position:absolute;left:0;top:19px;width:7px;height:7px;border:1px solid #79d6cf;transform:rotate(45deg)}
+  ul.plain b{color:#79d6cf}
+  table.roles{border-collapse:collapse;width:100%;max-width:1080px;font-size:18px}
+  table.roles th{text-align:left;font-family:ui-monospace,monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#77839a;padding:0 16px 10px 0;border-bottom:1px solid #2b3547}
+  table.roles td{padding:16px 16px 16px 0;border-bottom:1px solid #1d2533;vertical-align:top;line-height:1.5}
+  table.roles td:first-child{color:#e3a044;font-weight:600;white-space:nowrap}
+  code.k{font-family:ui-monospace,monospace;background:#1d2533;padding:1px 7px;border-radius:3px;color:#79d6cf;font-size:16px}
+  .ask{font-family:ui-serif,Georgia,serif;font-style:italic;font-size:30px;line-height:1.5;color:#dfe7ee;max-width:56ch}
+  .num{font-family:ui-serif,serif;font-size:22px;color:#e3a044;margin-right:14px}
+</style>
+</head>
+<body>
+
+<div class="slide">
+  <div class="eyebrow">A personal project · shown to you, not sold to you</div>
+  <h1>The Web</h1>
+  <p class="lede">Where knowledge, evidence and decisions connect — and where they honestly don't, yet.</p>
+  <p class="footer">Emanuel Silva · prototype · not a service · not signed off</p>
+</div>
+
+<div class="slide">
+  <div class="eyebrow">The problem</div>
+  <h1 style="font-size:44px">Three things keep happening</h1>
+  <ul class="plain">
+    <li>Decisions get made, and the evidence behind them scatters across emails, decks and people's heads.</li>
+    <li>Related work sits in different teams, never finding out it overlaps.</li>
+    <li>Gaps get quietly left out of the record, instead of being named as gaps.</li>
+  </ul>
+</div>
+
+<div class="slide">
+  <div class="col-left">
+    <div class="eyebrow">What this is</div>
+    <h1 style="font-size:42px">One map, <em>not</em> a document</h1>
+    <p class="body">A single web page — no install, works offline — that turns a body of work into something you can walk through: what exists, how it connects, and what's still missing. Six real bodies of work are loaded into it already.</p>
+  </div>
+  <img class="shot" src="screenshots/01-home.png">
+</div>
+
+<div class="slide">
+  <div class="col-left">
+    <div class="eyebrow">See it work — the evidence chain</div>
+    <h1 style="font-size:38px">Pick anything.<br>It shows its own working.</h1>
+    <p class="body">This isn't drawn by hand. Every chain here is generated live from the real relationships in the data — workstream, evidence, insight, decision — so it can't drift from what's actually true.</p>
+  </div>
+  <img class="shot" src="screenshots/04-walk-graph.png">
+</div>
+
+<div class="slide">
+  <div class="col-left">
+    <div class="eyebrow">See it work — honesty about gaps</div>
+    <h1 style="font-size:38px">It also shows<br>what <em>doesn't</em> fit yet</h1>
+    <p class="body">Most tools hide the mess. This one names it: which connections are solid, and which ones are real but don't fit the tidy model yet. Nothing gets quietly dropped.</p>
+  </div>
+  <img class="shot" src="screenshots/05-walk-linking-tables.png">
+</div>
+
+<div class="slide">
+  <div class="col-left">
+    <div class="eyebrow">Real data, not a mock-up</div>
+    <h1 style="font-size:38px">499 real government<br>data assets</h1>
+    <p class="body">Already loaded, already explorable. This wasn't built to look convincing — it was built to hold up against a real register, with its real gaps and messiness intact.</p>
+  </div>
+  <img class="shot" src="screenshots/08-cda-collection.png">
+</div>
+
+<div class="slide">
+  <div class="col-left">
+    <div class="eyebrow">Underneath it</div>
+    <h1 style="font-size:38px">A shared way<br>of classifying things</h1>
+    <p class="body">Every item has a type, and every type has rules about what it can connect to. That's what makes the connections trustworthy instead of decorative.</p>
+  </div>
+  <img class="shot" src="screenshots/03-ontology.png">
+</div>
+
+<div class="slide">
+  <div class="eyebrow">Where this might touch your work</div>
+  <h1 style="font-size:38px">Four doors in</h1>
+  <table class="roles">
+    <tr><th>If you...</th><th>Start here</th></tr>
+    <tr><td>Write submissions or need to defend a decision</td><td>The evidence chain — <code class="k">Walk</code></td></tr>
+    <tr><td>Work with data standards or registers</td><td>A real 499-asset register — <code class="k">Collections</code></td></tr>
+    <tr><td>Track machinery-of-government or institutional change</td><td>Declared gaps, named not hidden — <code class="k">Explore</code></td></tr>
+    <tr><td>Sit in governance or assurance</td><td>What fits the model and what doesn't — <code class="k">Linking tables</code></td></tr>
+  </table>
+</div>
+
+<div class="slide">
+  <div class="eyebrow">What I'm asking of you</div>
+  <p class="ask">Not sign-off. Not adoption.<br>Just — does any of this already connect to what <em>you're</em> working on?<br>Or is there a gap here you can see that I can't?</p>
+</div>
+
+<div class="slide">
+  <div class="eyebrow">Try it yourself</div>
+  <h1 style="font-size:38px">It's one file.<br>Open it.</h1>
+  <p class="body"><span class="num">1</span>Open <code class="k">the-web.html</code> in any browser — no install.</p>
+  <p class="body"><span class="num">2</span>Click <code class="k">Tours</code> → <b style="color:#e3a044">"For colleagues"</b> — six minutes, narrated.</p>
+  <p class="body"><span class="num">3</span>Tell me what you spot.</p>
+  <p class="footer">the-web · prototype · AMBER by design</p>
+</div>
+
+</body>
+</html>
