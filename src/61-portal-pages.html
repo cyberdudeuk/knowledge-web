@@ -196,7 +196,8 @@ document.getElementById('howMiniMore').addEventListener('click', () => go('manua
         <p style="font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:.04em">${esc(m.src)}</p>
       </div>
       <footer><button class="cta" data-load="${c.id}">Load into the web</button>
-        <button class="cta ghost" data-torn="${c.id}">What is torn</button></footer>
+        <button class="cta ghost" data-torn="${c.id}">What is torn</button>
+        ${c.resolutions && c.resolutions.length ? `<button class="cta ghost" data-resolved="${c.id}">What was resolved</button>` : ''}</footer>
     </div>`;
   }).join('') + `</div>
   <div class="page-head" style="margin-top:34px"><div class="eyebrow">Why this helps</div>
@@ -213,6 +214,16 @@ document.getElementById('howMiniMore').addEventListener('click', () => go('manua
       `<div class="page-head" style="margin-top:26px"><div class="eyebrow">Torn strands \u00b7 ${esc(c.label)}</div>
         <h2 style="font-size:24px">${c.repairs.length} things this collection cannot yet do</h2></div>
        <ul class="repair" style="max-width:74ch">${c.repairs.map(r => `<li><b>${esc(r.t)}</b>${esc(r.d)}</li>`).join('')}</ul>`;
+    document.getElementById('colDetail').scrollIntoView({ behavior:'smooth', block:'start' });
+  }));
+  p.querySelectorAll('[data-resolved]').forEach(b => b.addEventListener('click', () => {
+    const c = COLLECTIONS[b.dataset.resolved];
+    document.getElementById('colDetail').innerHTML =
+      `<div class="page-head" style="margin-top:26px"><div class="eyebrow">Entity resolution \u00b7 ${esc(c.label)}</div>
+        <h2 style="font-size:24px">${c.resolutions.length} organisation${c.resolutions.length===1?'':'s'} resolved from ${c.resolutions.reduce((n,r)=>n+r.mergedFrom.length,0)} recorded variant${c.resolutions.reduce((n,r)=>n+r.mergedFrom.length,0)===1?'':'s'}</h2>
+        <p style="font-family:var(--display);font-style:italic;font-size:15px;color:var(--moth);max-width:66ch;margin:12px 0 0">A scaffold, not a full fix (BL-WEB-53) \u2014 demonstrated against the variant pairs this collection's own repairs declare, not the full source register, which isn't in this repository.</p></div>
+       <ul class="repair" style="max-width:74ch">${c.resolutions.map(r =>
+         `<li><b>${esc(r.canonical)}</b>merged from: ${r.mergedFrom.map(esc).join(', ')}</li>`).join('')}</ul>`;
     document.getElementById('colDetail').scrollIntoView({ behavior:'smooth', block:'start' });
   }));
 })();

@@ -4,6 +4,37 @@ All notable changes to the artefact. Mirrors Section 13 (Release history) of
 `docs/programme-authority.html`, which remains the source of truth. Defects
 found during verification are named, never quietly fixed.
 
+## v3.5 — 2026-08-02
+
+Entity resolution scaffold for the CDA register (BL-WEB-53).
+
+- New resolver (`ORG_ALIASES`/`resolveOrg`/`deptDisplay` in
+  `src/60-collections.html`) normalises department strings on ingest,
+  demonstrated against the two variant pairs that actually appear in the
+  CDA collection's own data (ONS → Office for National Statistics, DfE →
+  Department for Education) — the original recorded string is kept
+  visible alongside the resolved name, never silently overwritten.
+- New **"What was resolved"** panel on the Collections page (only shown
+  for collections that declare a `resolutions[]`), mirroring the existing
+  "What is torn" pattern: canonical name, and what it was merged from.
+- **Honest about scope, not a full fix**: the collection's own repairs
+  entry ("Department names are uncontrolled") was rewritten to state
+  plainly that this resolves 2 of the estate's known variant pairs, not
+  the asserted 115 — `CDA_Live_Dashboard_Template.xlsx` itself was never
+  checked into this repository, only a pre-aggregated 5-domain summary,
+  so the other ~112 strings can't be resolved from here. The mechanism
+  is real and ready to run at full scale; the source data is not present
+  to run it against. Nothing was fabricated to make this look more done
+  than it is.
+- Also closed in this pass: **BL-WEB-32** (Decision traceability view)
+  was found marked open in `docs/BACKLOG.md` despite being delivered in
+  v2.7 — the release note names it explicitly. Verified live against the
+  actual root-selection and causation-order logic before closing it.
+- Verified: build + verify pass, 6 collections, dark/light themes; the
+  new panel checked live (correct 2-pair resolution, correct exclusion
+  of the un-exercised DEFRA/Defra pair, keyboard-reachable, no 390px
+  overflow).
+
 ## v3.4 — 2026-08-02
 
 Navigation findability pass (BL-WEB-59) — three fixes direct from the owner's own use.

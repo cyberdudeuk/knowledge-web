@@ -1,6 +1,6 @@
 {
   "name": "the-web",
-  "version": "3.4.0",
+  "version": "3.5.0",
   "private": true,
   "description": "A navigable, ontology-backed map of a body of work. Single-file HTML prototype.",
   "type": "module",

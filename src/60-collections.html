@@ -87,6 +87,34 @@ const XWALK = {"DAM Policy / x-gov": {"Concept": 2}, "DCAT profile / specialism"
 const CDA_CLS = {"Dataset":"Register","Data Service":"Portal","Data Distribution":"Source",
   "Dataset / API":"Portal","Catalogue":"Portal","Register":"Register"};
 
+/* ============================================================
+   BL-WEB-53 — entity resolution on ingest, scaffold.
+   The register's own repairs[] below asserts 115 distinct department
+   strings across 499 assets. That claim isn't fabricated here — it isn't
+   re-derivable here either: CDA_Live_Dashboard_Template.xlsx itself was
+   never checked into this repo, only this pre-aggregated 5-domain
+   summary (CDA_DOM above), which already carries just one dept string
+   per domain. The only variant pairs evidenced anywhere in this estate
+   are the three named in the repairs entry. This resolver is built and
+   demonstrated against those three, wired into the two that actually
+   appear in CDA_DOM — a working mechanism ready to run at full scale
+   the moment the real per-asset data is available, not a claim that the
+   115-string problem is solved.
+   ============================================================ */
+const ORG_ALIASES = [
+  { pref:'Office for National Statistics', alt:['ONS'] },
+  { pref:'Department for Education', alt:['DfE'] },
+  { pref:'Department for Environment, Food & Rural Affairs', alt:['DEFRA','Defra'] }
+];
+function resolveOrg(raw){
+  const hit = ORG_ALIASES.find(a => a.alt.includes(raw));
+  return hit ? hit.pref : raw;
+}
+function deptDisplay(raw){
+  const resolved = resolveOrg(raw);
+  return resolved === raw ? resolved : `${resolved} (recorded as “${raw}”)`;
+}
+
 function makeCdaCollection(){
   const strands=[], enrich={}, themes=[], typeDom={};
   Object.entries(CDA_DOM).forEach(([d,v]) => Object.keys(v.types).forEach(t => (typeDom[t]=typeDom[t]||[]).push(d)));
@@ -97,7 +125,7 @@ function makeCdaCollection(){
     const id='d'+i;
     const nodes=[{ t:dom, k:`${v.n} assets`, themes:[],
       b:`${v.n} critical data assets. Mean DAM compliance ${pct(v.dam)}, discovery readiness ${pct(v.disc)}, NDL readiness ${pct(v.ndl)}. Enterprise value ${v.evs}. ${v.crit} rated Critical impact, ${v.flag} classified Flagship.`,
-      c:[`Assets: ${v.n}`,`DAM compliance: ${pct(v.dam)}`,`Discovery readiness: ${pct(v.disc)}`,`NDL / valuation readiness: ${pct(v.ndl)}`,`Mean enterprise value: ${v.evs}`,`Critical impact: ${v.crit}`,`Flagship: ${v.flag}`,`Largest holder: ${v.dept}`],
+      c:[`Assets: ${v.n}`,`DAM compliance: ${pct(v.dam)}`,`Discovery readiness: ${pct(v.disc)}`,`NDL / valuation readiness: ${pct(v.ndl)}`,`Mean enterprise value: ${v.evs}`,`Critical impact: ${v.crit}`,`Flagship: ${v.flag}`,`Largest holder: ${deptDisplay(v.dept)}`],
       open: v.ndl < 0.45 }];
     enrich[id+':0']={ cls:'Capability', tax:'meas/value', kisil:'I2', rel:[] };
     const _cdaAll = Object.entries(v.types).sort((a,b)=>b[1].n-a[1].n);
@@ -120,12 +148,16 @@ function makeCdaCollection(){
       meta:`${v.n} assets \u00b7 EVS ${v.evs}`, url:'', state: v.ndl<0.45?'in-flight':'complete',
       summary:`${dom} holds ${v.n} of the 499 critical data assets. Mean enterprise value ${v.evs}; NDL and valuation readiness ${pct(v.ndl)}.`, nodes });
   });
+  const deptsUsed = Object.values(CDA_DOM).map(v => v.dept);
+  const resolutions = ORG_ALIASES
+    .map(a => ({ canonical:a.pref, mergedFrom:a.alt.filter(x => deptsUsed.includes(x)) }))
+    .filter(r => r.mergedFrom.length);
   return { id:'cda', hub:['critical data assets','499 \u00b7 live register'],
-    label:'CDA Live Register \u2014 499 critical data assets', strands, themes, enrich,
+    label:'CDA Live Register \u2014 499 critical data assets', strands, themes, enrich, resolutions,
     repairs:[
       { t:'No asset anywhere reaches Tier 3', d:'NDL and valuation readiness averages 39% and peaks at 63%. Not one of the 499 assets is ready for National Data Library or valuation use. Tier 1 averages 84%, Tier 2 63%, Tier 3 is effectively unstarted across the whole estate.', s:'' },
       { t:'74% are Invest to Unlock', d:'371 of 499 assets are high value and low readiness. Only 12% are Flagship and only 4% are quick wins. The estate is almost entirely potential, not delivery.', s:'' },
-      { t:'Department names are uncontrolled', d:'115 distinct department strings for what is a far smaller set of organisations \u2014 ONS and Office for National Statistics, DfE and Department for Education, DEFRA and Defra all appear separately. Any count by department is currently wrong.', s:'' },
+      { t:'Department names are uncontrolled, and this build can only prove part of the fix', d:`115 distinct department strings are recorded for what is a far smaller set of organisations \u2014 ONS and Office for National Statistics, DfE and Department for Education, DEFRA and Defra all appear separately. Any count by department drawn from the full register is still wrong. An entity resolver is built and demonstrated here against the ${resolutions.length} pair${resolutions.length===1?'':'s'} of variants that actually appear in this collection's data (see "What was resolved") \u2014 but CDA_Live_Dashboard_Template.xlsx itself isn't in this repository, only a pre-aggregated 5-domain summary, so the other ~112 strings can't be resolved from here. The mechanism is ready; the source data is not.`, s:'' },
       { t:'DAM Category has 300 distinct values', d:'A categorisation field with 300 values across 499 rows is free text wearing a controlled list\u2019s clothing. It cannot support the reporting the DAM Policy requires.', s:'' },
       { t:'130 sheets in one workbook', d:'The register, its analytics, 60-plus ADIS seed registers, assurance trackers and merged hubs all live in a single file. This is the clearest case in the estate for a navigable overview rather than a spreadsheet.', s:'' }
     ]};
