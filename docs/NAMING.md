@@ -34,7 +34,22 @@ earlier editions of this register recorded as a three-way collision was in fact
 
 This closes **BL-WEB-36** and **BL-WEB-37**, and retires risk **I-01**.
 
-**Supersession question (2026-08-02, owner to decide — XDMH-204).** Whitehall
+**Supersession resolved (owner ruling, 2 August 2026 — XDMH-204 closed).**
+The 1 August programme register prevails: bare **KIL** at programme level is
+the data model underpinning KISIL. Whitehall Connect's GOV-2.8 canon entry
+("KIL = Knowledge (& Semantic) Interoperability Layer") is recorded as a
+**scoped product alias of KISIL** — the WC product namespace uses "KIL" for
+the layer exactly as KISL does, and the next WC authority edition should
+carry a supersession note pointing here. Also resolved (XDMH-205): the
+Observatory's "Knowledge & Information Layer (KIL)" expansion is
+**deprecated** — future Observatory versions say KISIL where they mean the
+layer, and the instrument's own graph model is referred to plainly as *the
+Observatory instrument graph* (no new acronym; the versioned v6–v13 HTML
+snapshots stand as history, uncorrected by design). And C1 is applied: the
+layering statement and entity mapping are ratified, with the cross-citation
+addenda physically inserted into both Word specifications on 2 August 2026.
+
+*Superseded question, kept for the record (2026-08-02):* Whitehall
 Connect GOV-2.8 (18 July) carries its own canon ruling: *"product canon (v5.2
 keystone + owner expansion) defines KIL = Knowledge (& Semantic)
 Interoperability Layer. Canon prevails."* That makes KIL a *layer* within the
@@ -58,6 +73,8 @@ other.
 |---|---|---|---|
 | **KISIL** | Knowledge Integration & Semantic Interoperability Layer. **The layer. Never a ladder.** | Technical Specification · owner ruling 2026-08-01 | Canonical |
 | **KISL** | Abbreviation of KISIL — the same layer (Whitehall Connect's spelling) | Owner ruling 2026-08-01 | Recorded alias |
+| **KIL** (WC product namespace) | "Knowledge (& Semantic) Interoperability Layer" — the layer, within Whitehall Connect only | GOV-2.8 canon · scoped by owner ruling 2026-08-02 | Scoped product alias of KISIL |
+| **"Knowledge & Information Layer"** (Observatory) | Deprecated expansion of KIL; future versions use KISIL for the layer; the instrument's graph model = "the Observatory instrument graph" | Owner ruling 2026-08-02 | Deprecated variant |
 | **KSL** | Abbreviation of KISIL — the same layer. *Not* a ladder; the ladder once carried under this name is retired | Owner ruling 2026-08-01 | Recorded alias |
 | **KIL** | The data model underpinning KISIL — Workstream → Artefact → Insight → Signal → Decision | KISIL spec §1–4 · owner ruling 2026-08-01 | Canonical. Default stratification. |
 | **Memory Grid** | Working short name for the DSIT/GDS Organisational Memory and Change Intelligence Platform | PRD v0.2 §1.1 | Canonical |
@@ -91,3 +108,9 @@ interface, in the tours, in the manual and here.
   artefact; Observatory referent reinstated as an evidenced variant
   ("Knowledge & Information Layer"); WC GOV-2.8 competing canon ruling
   surfaced (XDMH-204); ladder-misreading timeline dated to 1h52m on 25 July.
+- 2026-08-02 · **owner resolves XDMH-204/205 and C1:** programme register
+  prevails over GOV-2.8 (WC's KIL recorded as scoped alias of KISIL);
+  Observatory expansion deprecated, instrument graph named descriptively;
+  layering mapping ratified and cross-citation addenda inserted into the
+  KISIL Technical Specification and KIL-DMS-001. The KIL/KISIL vocabulary
+  is now fully reconciled — no open naming questions remain.
