@@ -4165,6 +4165,33 @@ const KIL_BY_CLASS = {
 const kilOf = id => KIL_BY_CLASS[CLSOF(id)] || 'A';
 
 /* ============================================================
+   1a. The five M2M linking tables (BL-WEB-30/31; KISIL spec §3;
+   design system step 9). A native substrate, not just a reading:
+   every declared relation is classified into the canonical table
+   its endpoints' KIL stages demand. Read-only first cut — this
+   is XDMH-200's first test named in KISIL-TOC-001. Nothing is
+   invented: a relation that fits no canonical transition is
+   named in KIL_UNCLASSIFIED, never silently dropped.
+   ============================================================ */
+const KIL_TABLE_DEF = [
+  { id:'workstream_artefacts', from:'W', to:'A', label:'workstream_artefacts', verb:'has artefact' },
+  { id:'artefact_insights',    from:'A', to:'I', label:'artefact_insights',    verb:'evidences' },
+  { id:'insight_signals',      from:'I', to:'S', label:'insight_signals',      verb:'promotes to' },
+  { id:'insight_decisions',    from:'I', to:'D', label:'insight_decisions',    verb:'informs' },
+  { id:'artefact_decisions',   from:'A', to:'D', label:'artefact_decisions',   verb:'grounds decision' }
+];
+const KIL_TABLES = {};
+const KIL_UNCLASSIFIED = [];
+function buildKilTables(){
+  KIL_TABLE_DEF.forEach(t => { KIL_TABLES[t.id] = []; });
+  KIL_UNCLASSIFIED.length = 0;
+  DECLARED.forEach(e => {
+    const def = KIL_TABLE_DEF.find(t => t.from === kilOf(e.from) && t.to === kilOf(e.to));
+    (def ? KIL_TABLES[def.id] : KIL_UNCLASSIFIED).push(e);
+  });
+}
+
+/* ============================================================
    2. Collections
    ============================================================ */
 const GDS_AREAS = {
@@ -4522,7 +4549,7 @@ function loadCollection(id){
   document.head.appendChild(sc);
 
   if (STRATA.on) toggleStrata(false);
-  buildGeom(col); rebuildEdges(col);
+  buildGeom(col); rebuildEdges(col); buildKilTables();
   TRAIL.length = 0; VISITED.clear();
 
   document.getElementById('strandList').innerHTML = '';
@@ -4578,6 +4605,14 @@ function buildListView(){
   document.querySelectorAll('#lvBody .lv-head').forEach(b => b.addEventListener('click', () => selectStrand(b.dataset.s)));
   document.querySelectorAll('#lvBody .lv-items button').forEach(b => b.addEventListener('click', () => selectNode(b.dataset.s, +b.dataset.j)));
 }
+
+/* EDGES/DECLARED for the native 'web' collection are built once at parse
+   time by chunk 44, not through rebuildEdges() — loadCollection() never
+   runs at boot. Mirror that: classify the tables once here too, so the
+   substrate is populated on a cold load, not only after a collection
+   switch. Defect found while wiring XDMH-200: the same gap would have
+   silently left KIL_TABLES empty at boot. */
+buildKilTables();
 </script>
 <script>
 /* ============================================================
@@ -5338,6 +5373,9 @@ readState();
 .wreg{width:100%;border-collapse:collapse;font-size:12px}
 .wreg td,.wreg th{padding:6px 10px 6px 0;border-bottom:1px solid var(--ridge);color:var(--moth);text-align:left;vertical-align:top}
 .wreg th{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);font-weight:500}
+.ktable{border:1px solid var(--ridge);border-radius:var(--r);background:var(--deep);padding:12px 14px;margin-bottom:10px}
+.ktable h4{margin:0 0 8px;font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--silk);display:flex;align-items:center;gap:8px}
+.ktable h4 span{font-family:var(--body);font-size:10.5px;color:var(--faint);letter-spacing:0}
 </style>
 <script>
 /* ============================================================
@@ -5364,11 +5402,13 @@ readState();
           <button class="vtab" role="tab" aria-selected="false" data-wt="timeline">Timeline</button>
           <button class="vtab" role="tab" aria-selected="false" data-wt="audit">Audit trail</button>
           <button class="vtab" role="tab" aria-selected="false" data-wt="register">Register</button>
+          <button class="vtab" role="tab" aria-selected="false" data-wt="tables">Linking tables</button>
         </div>
         <div id="wt-graph"></div>
         <div id="wt-timeline" hidden></div>
         <div id="wt-audit" hidden></div>
         <div id="wt-register" hidden></div>
+        <div id="wt-tables" hidden></div>
       </div>
     </div>`;
   document.querySelector('.shell').insertBefore(d, footer);
@@ -5417,8 +5457,31 @@ readState();
       b.addEventListener('click', () => { walkRoot = (walkRoot === b.dataset.w ? null : b.dataset.w); renderWalk(); }));
   }
 
+  /* the five M2M linking tables (BL-WEB-30/31; KISIL spec §3) — a
+     collection-level view, independent of which root is walked */
+  function renderKilTables(){
+    const rows = KIL_TABLE_DEF.map(def => {
+      const links = KIL_TABLES[def.id] || [];
+      const sample = links.slice(0, 6).map(e => { const a = byKey[e.from], b = byKey[e.to];
+        return `<li>${esc(a ? a.nd.t : e.from)} <span class="mono2">${esc(def.verb)}</span> ${esc(b ? b.nd.t : e.to)}${e.declared ? '' : ' <span class="mono2">· inferred</span>'}</li>`; }).join('');
+      return `<div class="ktable"><h4>${esc(def.id)}<span>${links.length} row${links.length === 1 ? '' : 's'}</span></h4>` +
+        (links.length ? `<ul class="wtab-list">${sample}</ul>${links.length > 6 ? `<p class="pluck-hint">+${links.length - 6} more</p>` : ''}`
+                       : '<p class="walk-empty" style="padding:6px 0">No rows in this collection — a declared gap, not an omission.</p>') + '</div>';
+    }).join('');
+    const uncl = KIL_UNCLASSIFIED.length
+      ? `<p class="walk-note">${KIL_UNCLASSIFIED.length} declared relation${KIL_UNCLASSIFIED.length === 1 ? '' : 's'} fit none of the five canonical transitions and are named, not dropped: ` +
+        KIL_UNCLASSIFIED.slice(0, 10).map(e => { const a = byKey[e.from], b = byKey[e.to];
+          return `${esc(a ? a.nd.t : e.from)} → ${esc(b ? b.nd.t : e.to)}`; }).join(' · ') +
+        (KIL_UNCLASSIFIED.length > 10 ? ` · +${KIL_UNCLASSIFIED.length - 10} more` : '') + '</p>'
+      : '<p class="walk-note">Every declared relation in this collection classifies into one of the five canonical tables.</p>';
+    document.getElementById('wt-tables').innerHTML =
+      '<p class="pluck-hint" style="margin-bottom:12px">The five many-to-many linking tables (KISIL spec §3), built read-only from this collection’s declared relations by KIL stage — the first cut of BL-WEB-30/31 (design system step 9). No write API yet; this is the substrate the walk already reads.</p>' +
+      rows + uncl;
+  }
+
   function renderWalk(){
     renderRoots();
+    renderKilTables();
     const g = document.getElementById('wt-graph');
     if (!walkRoot || !byKey[walkRoot]){
       g.innerHTML = '<div class="walk-canvas"><div class="walk-empty">Select a root to walk its evidence.<br>Every tier below it is drawn from declared and entailed relations — nothing is invented.</div></div>';
@@ -5480,7 +5543,7 @@ readState();
   document.getElementById('walkTabs').querySelectorAll('.vtab').forEach(t =>
     t.addEventListener('click', () => {
       document.querySelectorAll('#walkTabs .vtab').forEach(x => x.setAttribute('aria-selected', x === t));
-      ['graph','timeline','audit','register'].forEach(id =>
+      ['graph','timeline','audit','register','tables'].forEach(id =>
         document.getElementById('wt-' + id).hidden = (id !== t.dataset.wt));
     }));
 

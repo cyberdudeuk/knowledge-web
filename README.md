@@ -1,6 +1,6 @@
 # The Web
 
-![Version](https://img.shields.io/badge/version-3.0-1d70b8)
+![Version](https://img.shields.io/badge/version-3.1-1d70b8)
 ![Status](https://img.shields.io/badge/status-prototype_·_AMBER_by_design-c05600)
 ![Licence](https://img.shields.io/badge/licence-Apache--2.0-00703c)
 ![Delivery](https://img.shields.io/badge/delivery-single_HTML_file-4c2c92)

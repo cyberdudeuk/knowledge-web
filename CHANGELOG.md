@@ -4,6 +4,33 @@ All notable changes to the artefact. Mirrors Section 13 (Release history) of
 `docs/programme-authority.html`, which remains the source of truth. Defects
 found during verification are named, never quietly fixed.
 
+## v3.1 — 2026-08-02
+
+Design system step 9: the KIL linking-table substrate (BL-WEB-30/31, XDMH-200).
+
+- Read-only first cut of the five M2M linking tables (KISIL spec §3):
+  `workstream_artefacts`, `artefact_insights`, `insight_signals`,
+  `insight_decisions`, `artefact_decisions`. Built live per collection from
+  the declared-relation registry, classified by the KIL stage of each
+  relation's endpoints.
+- New **Linking tables** view on the Traceability walk page: row counts,
+  sample rows, and an honest declaration of every relation that fits no
+  canonical transition — nothing silently dropped.
+- First real test named in KISIL-TOC-001: for the native collection, only
+  11 of 46 declared relations classify into the five tables. The finding is
+  informative, not a bug — most native relations (`partOf`, `equivalentTo`,
+  `derivedFrom`) sit within one KIL stage rather than crossing the canonical
+  W→A→I→S→D transitions.
+- **Defect found and fixed:** `KIL_TABLES` was empty at cold boot.
+  `loadCollection()` never runs for the initial page view — the native
+  collection's EDGES/DECLARED are built by separate one-time top-level code
+  in an earlier chunk, a pattern already in the codebase. The build hook
+  was silently skipped until an explicit top-level call was added,
+  mirroring that existing pattern.
+- Verified: build + degraded + verify green; table population checked
+  directly against live state, not just rendered output, across two
+  collections.
+
 ## v3.0 — 2026-08-02
 
 **The design-system migration is complete.** Steps 7 and 8.

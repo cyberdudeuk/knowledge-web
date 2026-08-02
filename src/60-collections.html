@@ -33,6 +33,33 @@ const KIL_BY_CLASS = {
 const kilOf = id => KIL_BY_CLASS[CLSOF(id)] || 'A';
 
 /* ============================================================
+   1a. The five M2M linking tables (BL-WEB-30/31; KISIL spec §3;
+   design system step 9). A native substrate, not just a reading:
+   every declared relation is classified into the canonical table
+   its endpoints' KIL stages demand. Read-only first cut — this
+   is XDMH-200's first test named in KISIL-TOC-001. Nothing is
+   invented: a relation that fits no canonical transition is
+   named in KIL_UNCLASSIFIED, never silently dropped.
+   ============================================================ */
+const KIL_TABLE_DEF = [
+  { id:'workstream_artefacts', from:'W', to:'A', label:'workstream_artefacts', verb:'has artefact' },
+  { id:'artefact_insights',    from:'A', to:'I', label:'artefact_insights',    verb:'evidences' },
+  { id:'insight_signals',      from:'I', to:'S', label:'insight_signals',      verb:'promotes to' },
+  { id:'insight_decisions',    from:'I', to:'D', label:'insight_decisions',    verb:'informs' },
+  { id:'artefact_decisions',   from:'A', to:'D', label:'artefact_decisions',   verb:'grounds decision' }
+];
+const KIL_TABLES = {};
+const KIL_UNCLASSIFIED = [];
+function buildKilTables(){
+  KIL_TABLE_DEF.forEach(t => { KIL_TABLES[t.id] = []; });
+  KIL_UNCLASSIFIED.length = 0;
+  DECLARED.forEach(e => {
+    const def = KIL_TABLE_DEF.find(t => t.from === kilOf(e.from) && t.to === kilOf(e.to));
+    (def ? KIL_TABLES[def.id] : KIL_UNCLASSIFIED).push(e);
+  });
+}
+
+/* ============================================================
    2. Collections
    ============================================================ */
 const GDS_AREAS = {
@@ -390,7 +417,7 @@ function loadCollection(id){
   document.head.appendChild(sc);
 
   if (STRATA.on) toggleStrata(false);
-  buildGeom(col); rebuildEdges(col);
+  buildGeom(col); rebuildEdges(col); buildKilTables();
   TRAIL.length = 0; VISITED.clear();
 
   document.getElementById('strandList').innerHTML = '';
@@ -446,4 +473,12 @@ function buildListView(){
   document.querySelectorAll('#lvBody .lv-head').forEach(b => b.addEventListener('click', () => selectStrand(b.dataset.s)));
   document.querySelectorAll('#lvBody .lv-items button').forEach(b => b.addEventListener('click', () => selectNode(b.dataset.s, +b.dataset.j)));
 }
+
+/* EDGES/DECLARED for the native 'web' collection are built once at parse
+   time by chunk 44, not through rebuildEdges() — loadCollection() never
+   runs at boot. Mirror that: classify the tables once here too, so the
+   substrate is populated on a cold load, not only after a collection
+   switch. Defect found while wiring XDMH-200: the same gap would have
+   silently left KIL_TABLES empty at boot. */
+buildKilTables();
 </script>
