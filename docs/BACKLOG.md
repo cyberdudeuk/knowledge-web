@@ -36,7 +36,7 @@ source of truth. **Trace** cites the source that demands the item.
 | **BL-WEB-29** | Occlusion mitigation in the stratified view — auto-nudge coincident beads, or offer an exploded layout. | P2 | 2 | SELF |
 | **BL-WEB-30** | Adopt the KIL entity model natively — Workstream, Artefact, Insight, Signal, Decision as first-class collection entities rather than a derived reading of ontology class. **First cut in v3.1**: the five stages are classified live via `kilOf()`; entities are still read *through* ontology class, not authored as native KIL types. | P2 | 2 | KISIL §2 |
 | **BL-WEB-31** | Many-to-many linking tables. Implement workstream_artefacts, artefact_insights, insight_signals, insight_decisions, artefact_decisions as the relation substrate. **Read-only substrate shipped in v3.1** — `KIL_TABLES`, built live from the declared-relation registry per collection, visible in the Traceability walk's new Linking tables tab. Only 11 of 46 native-collection relations classify; 35 are honestly declared unclassified (ontology relations like `partOf`/`equivalentTo` don't fit the five canonical transitions). Write API (KISIL §5) not started. | P1 | 2 | KISIL §3, XDMH-200 |
-| **BL-WEB-32** | Decision traceability view. Given a Decision, walk back through insights to artefacts to workstream — the KISIL GET /decisions/{id}/traceability rendered as a lit route on the web. | P1 | 2 | KISIL §4 |
+| **BL-WEB-32** | Decision traceability view. Given a Decision, walk back through insights to artefacts to workstream — the KISIL GET /decisions/{id}/traceability rendered as a lit route on the web. | DONE | 2 | KISIL §4 |
 | **BL-WEB-33** | Quantified metadata drives the visual. impact and confidence (1–5) and severity should set bead weight and route prominence, so high-impact low-confidence findings surface automatically. | P1 | 2 | KISIL §2 |
 | **BL-WEB-34** | Impact-analysis propagation. When an artefact is superseded or redacted, flag every downstream insight and decision that relied on it. | P2 | 3 | KISIL §3 |
 | **BL-WEB-35** | Signal promotion. Allow an insight to be promoted to a signal with severity, and render signals distinctly. | P2 | 3 | KISIL §2 |
@@ -73,6 +73,8 @@ source of truth. **Trace** cites the source that demands the item.
    original "do these first" list.
 
 ## Closed
+
+- **BL-WEB-32** decision traceability view — delivered in v2.7 as the traceability walk (a ninth portal page): roots are Decision entities where they exist, otherwise the most-evidenced nodes with the missing-Decisions gap stated; swim-columns in KIL causation order; four representations of one walk (Graph, Timeline, Audit trail, Register). Marked open in this table ever since, despite the v2.7 release note explicitly naming it delivered — found and fixed while scoping the next round of backlog work (2026-08-02).
 
 - **BL-WEB-59** navigation findability — Display button now shows a non-colour-only badge when preferences are non-default, the sticky top bar carries a persistent page-name label, and the spider-metaphor legend moved from Home to Explore (compact variant beside the stage, full legend still there, "?" hint made visible to sighted users) (v3.4, 2026-08-02). First backlog item sourced directly from the product owner's own use.
 
