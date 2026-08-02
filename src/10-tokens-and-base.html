@@ -220,6 +220,14 @@ h1 em{font-style:italic;color:var(--dew)}
 .node.ep-inferred .bead{stroke-dasharray:5 2.5}
 .node.ep-induced .bead{stroke-dasharray:1.1 2.6;stroke-linecap:round}
 .node.ep-stub .bead{stroke-dasharray:8 4;opacity:.8}
+
+/* consultation-maturity outline (BL-WEB-54, STD5 topics only) — a
+   separate channel from epistemic state above: those two never coexist
+   on the same bead here, since standards topics carry no inference.
+   Endorsed is the unmarked default; Draft already reads via .open;
+   Partially Endorsed gets its own, visually distinct dash rhythm. */
+.node.mat-partial .bead{stroke-dasharray:4 1.5}
+
 .cls-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;fill:var(--faint);opacity:0;transition:opacity .2s;pointer-events:none}
 .node:hover .cls-lbl,.node.sel .cls-lbl,.node:focus-visible .cls-lbl{opacity:1}
 
@@ -287,6 +295,7 @@ h1 em{font-style:italic;color:var(--dew)}
 .pill.open{border-color:var(--rust);color:var(--rust)}
 .pill.done{border-color:var(--dew-dim);color:var(--dew)}
 .pill.active{border-color:var(--amber-dim);color:var(--amber)}
+.pill.mat-partial{border-color:var(--amber-dim);color:var(--amber);border-style:dashed}
 #cDisplayCount{margin-left:6px;padding:1px 6px}
 .xref{margin-top:16px;border-top:1px solid var(--ridge);padding-top:13px}
 .xref-h{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:9px}

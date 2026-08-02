@@ -182,7 +182,8 @@ function makeStd5Collection(){
     dom.topics.slice(0,9).forEach((t, j) => {
       nodes.push({ t:`${t.c} ${t.n}`, k:t.s, themes:[st(t.s)],
         b:`Topic ${t.c} of domain ${num}. Status: ${t.s}.`,
-        c:[`Standards: ${t.ex}`,`Status: ${t.s}`,`Domain: ${clean}`], open:t.s==='Draft' });
+        c:[`Standards: ${t.ex}`,`Status: ${t.s}`,`Domain: ${clean}`], open:t.s==='Draft',
+        mat: t.s==='Partially Endorsed' ? 'partial' : null });
       enrich[`${id}:${j+1}`]={ cls:'Standard', tax:'govern/policy', kisil:t.s==='Endorsed'?'K':'L', rel:[['partOf', id+':0']] };
     });
     /* level of detail: the '9 of 15' truncation becomes a declared aggregate */
@@ -370,7 +371,7 @@ function buildGeom(col){
       const r = 100 + j * step, p = pt(s.angle, r), nid = s.id + ':' + j;
       const cls = (col.enrich[nid] || {}).cls || 'Concept';
       const ep = (function(){ const e = nd.ep || (col.enrich[nid]||{}).ep || 'asserted'; return EP_STATES.includes(e) ? e : 'asserted'; })();
-      const g = el('g', { class:'node' + (nd.open ? ' open' : '') + (ep !== 'asserted' ? ' ep-' + ep : ''), tabindex:'0', role:'button' });
+      const g = el('g', { class:'node' + (nd.open ? ' open' : '') + (ep !== 'asserted' ? ' ep-' + ep : '') + (nd.mat ? ' mat-' + nd.mat : ''), tabindex:'0', role:'button' });
       g.dataset.s = s.id; g.dataset.j = j;
       g.style.setProperty('--strand-c', `var(--sc-${s.id})`);
       g.appendChild(el('circle', { class:'halo', cx:p.x, cy:p.y, r:17, fill:'transparent', 'pointer-events':'all' }));

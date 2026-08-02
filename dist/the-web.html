@@ -220,6 +220,14 @@ h1 em{font-style:italic;color:var(--dew)}
 .node.ep-inferred .bead{stroke-dasharray:5 2.5}
 .node.ep-induced .bead{stroke-dasharray:1.1 2.6;stroke-linecap:round}
 .node.ep-stub .bead{stroke-dasharray:8 4;opacity:.8}
+
+/* consultation-maturity outline (BL-WEB-54, STD5 topics only) — a
+   separate channel from epistemic state above: those two never coexist
+   on the same bead here, since standards topics carry no inference.
+   Endorsed is the unmarked default; Draft already reads via .open;
+   Partially Endorsed gets its own, visually distinct dash rhythm. */
+.node.mat-partial .bead{stroke-dasharray:4 1.5}
+
 .cls-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;fill:var(--faint);opacity:0;transition:opacity .2s;pointer-events:none}
 .node:hover .cls-lbl,.node.sel .cls-lbl,.node:focus-visible .cls-lbl{opacity:1}
 
@@ -287,6 +295,7 @@ h1 em{font-style:italic;color:var(--dew)}
 .pill.open{border-color:var(--rust);color:var(--rust)}
 .pill.done{border-color:var(--dew-dim);color:var(--dew)}
 .pill.active{border-color:var(--amber-dim);color:var(--amber)}
+.pill.mat-partial{border-color:var(--amber-dim);color:var(--amber);border-style:dashed}
 #cDisplayCount{margin-left:6px;padding:1px 6px}
 .xref{margin-top:16px;border-top:1px solid var(--ridge);padding-top:13px}
 .xref-h{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:9px}
@@ -2045,6 +2054,7 @@ function renderNode(ref, kin){
      ${list ? `<ul class="detail-body" style="padding-left:17px;margin-top:11px">${list}</ul>` : ''}
      <div class="meta-row">
        ${nd.open ? '<span class="pill open">Still open</span>' : '<span class="pill done">Built</span>'}
+       ${nd.mat === 'partial' ? '<span class="pill mat-partial">Partially endorsed</span>' : ''}
        ${epPill(((NODEREFS.find(r => r.s === s && r.nd === nd)||{}).ep) || nd.ep || 'asserted')}
        ${(nd.themes||[]).map(t => `<span class="pill">${esc((THEMES.find(x=>x.id===t)||{}).label||t)}</span>`).join('')}
      </div>
@@ -4393,7 +4403,8 @@ function makeStd5Collection(){
     dom.topics.slice(0,9).forEach((t, j) => {
       nodes.push({ t:`${t.c} ${t.n}`, k:t.s, themes:[st(t.s)],
         b:`Topic ${t.c} of domain ${num}. Status: ${t.s}.`,
-        c:[`Standards: ${t.ex}`,`Status: ${t.s}`,`Domain: ${clean}`], open:t.s==='Draft' });
+        c:[`Standards: ${t.ex}`,`Status: ${t.s}`,`Domain: ${clean}`], open:t.s==='Draft',
+        mat: t.s==='Partially Endorsed' ? 'partial' : null });
       enrich[`${id}:${j+1}`]={ cls:'Standard', tax:'govern/policy', kisil:t.s==='Endorsed'?'K':'L', rel:[['partOf', id+':0']] };
     });
     /* level of detail: the '9 of 15' truncation becomes a declared aggregate */
@@ -4581,7 +4592,7 @@ function buildGeom(col){
       const r = 100 + j * step, p = pt(s.angle, r), nid = s.id + ':' + j;
       const cls = (col.enrich[nid] || {}).cls || 'Concept';
       const ep = (function(){ const e = nd.ep || (col.enrich[nid]||{}).ep || 'asserted'; return EP_STATES.includes(e) ? e : 'asserted'; })();
-      const g = el('g', { class:'node' + (nd.open ? ' open' : '') + (ep !== 'asserted' ? ' ep-' + ep : ''), tabindex:'0', role:'button' });
+      const g = el('g', { class:'node' + (nd.open ? ' open' : '') + (ep !== 'asserted' ? ' ep-' + ep : '') + (nd.mat ? ' mat-' + nd.mat : ''), tabindex:'0', role:'button' });
       g.dataset.s = s.id; g.dataset.j = j;
       g.style.setProperty('--strand-c', `var(--sc-${s.id})`);
       g.appendChild(el('circle', { class:'halo', cx:p.x, cy:p.y, r:17, fill:'transparent', 'pointer-events':'all' }));

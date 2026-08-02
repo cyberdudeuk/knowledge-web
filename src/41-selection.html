@@ -168,6 +168,7 @@ function renderNode(ref, kin){
      ${list ? `<ul class="detail-body" style="padding-left:17px;margin-top:11px">${list}</ul>` : ''}
      <div class="meta-row">
        ${nd.open ? '<span class="pill open">Still open</span>' : '<span class="pill done">Built</span>'}
+       ${nd.mat === 'partial' ? '<span class="pill mat-partial">Partially endorsed</span>' : ''}
        ${epPill(((NODEREFS.find(r => r.s === s && r.nd === nd)||{}).ep) || nd.ep || 'asserted')}
        ${(nd.themes||[]).map(t => `<span class="pill">${esc((THEMES.find(x=>x.id===t)||{}).label||t)}</span>`).join('')}
      </div>

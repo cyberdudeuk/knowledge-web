@@ -16,9 +16,9 @@ source of truth. **Trace** cites the source that demands the item.
 | **BL-WEB-09** | Print and PDF stylesheet. Governance packs are still circulated on paper; the web currently prints as a dark rectangle. | P2 | 2 | MG-FR-015 |
 | **BL-WEB-10** | Global search across beads, glossary, thesaurus, dictionary, ontology and manual — not only the current web. | DONE | 1 | IA-10 |
 | **BL-WEB-11** | Collapse display preferences into one popover, separating them from modes and destinations. | DONE | 1 | IA-03 |
-| **BL-WEB-12** | Layout that scales past ~60 beads. Rings currently truncate: Data Standards category 5 shows 9 of 15 topics. Needs growth, clustering or level-of-detail. | P1 | 2 | STD, SELF |
+| **BL-WEB-12** | Layout that scales past ~60 beads. Rings currently truncate: Data Standards category 5 shows 9 of 15 topics. Needs growth, clustering or level-of-detail. | DONE | 2 | STD, SELF |
 | **BL-WEB-13** | Third taxonomy tier. The classification defines Category > Topic > Subject; Subject is modelled but unpopulated. Support the depth so it is visibly empty rather than silently absent. | P2 | 2 | STD |
-| **BL-WEB-14** | Drill-in from an aggregate bead to its members. A GDS bead currently says "Guidance · 17 items" without listing the seventeen. | P1 | 2 | GDS |
+| **BL-WEB-14** | Drill-in from an aggregate bead to its members. A GDS bead currently says "Guidance · 17 items" without listing the seventeen. | DONE | 2 | GDS |
 | **BL-WEB-15** | Mapping confidence as a first-class visual channel. 120 of 173 GDS mappings are inferred and 26 flagged for review; the web should encode that, not just report it. | P1 | 2 | GDS, ADR-W03 |
 | **BL-WEB-16** | Controlled-list validation on ingest. Free-text status fields ("Published", "Published ", "Up to date") cannot be counted. Flag uncontrolled fields at collection build. | P2 | 2 | GDS |
 | **BL-WEB-17** | Compendium collection set — the Data Governance Playbook plus siblings across the end-to-end discipline, sharing one ontology and thesaurus. | P2 | 3 | IA target |
@@ -73,6 +73,8 @@ source of truth. **Trace** cites the source that demands the item.
    original "do these first" list.
 
 ## Closed
+
+- **BL-WEB-12** layout scaling past ~60 beads, and **BL-WEB-14** drill-in from an aggregate bead to its members — both delivered together in v2.8's "declared aggregate" pattern (`+N more topics/types` beads listing every member, applied to all three collections that truncated: CDA asset types, Classification topics, GDS delivery types). Both marked open in this table ever since, despite the v2.8 release note explicitly naming the fix. Found and fixed while resuming backlog work (2026-08-02).
 
 - **BL-WEB-32** decision traceability view — delivered in v2.7 as the traceability walk (a ninth portal page): roots are Decision entities where they exist, otherwise the most-evidenced nodes with the missing-Decisions gap stated; swim-columns in KIL causation order; four representations of one walk (Graph, Timeline, Audit trail, Register). Marked open in this table ever since, despite the v2.7 release note explicitly naming it delivered — found and fixed while scoping the next round of backlog work (2026-08-02).
 
