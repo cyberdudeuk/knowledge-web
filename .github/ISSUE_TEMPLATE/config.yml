@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/cyberdudeuk/knowledge-web/security/advisories/new
+    about: Please report security issues privately — see SECURITY.md, not a public issue.
+  - name: Vocabulary or naming question
+    url: https://github.com/cyberdudeuk/knowledge-web/blob/main/docs/NAMING.md
+    about: KIL/KISIL/KSL terminology decisions belong to the owner — read docs/NAMING.md before opening an issue about a term.

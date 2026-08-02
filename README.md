@@ -1,6 +1,7 @@
 # The Web
 
 ![Version](https://img.shields.io/badge/version-3.4-1d70b8)
+[![check](https://github.com/cyberdudeuk/knowledge-web/actions/workflows/check.yml/badge.svg)](https://github.com/cyberdudeuk/knowledge-web/actions/workflows/check.yml)
 ![Status](https://img.shields.io/badge/status-prototype_·_AMBER_by_design-c05600)
 ![Licence](https://img.shields.io/badge/licence-Apache--2.0-00703c)
 ![Delivery](https://img.shields.io/badge/delivery-single_HTML_file-4c2c92)
@@ -162,6 +163,11 @@ This is a personal project. See [CONTRIBUTING.md](CONTRIBUTING.md) and
 `CLAUDE.md`. The one-sentence version: edit chunks not the bundle, run
 `npm run check` before every commit, name your defects, and never guess at
 vocabulary — flag it and ask.
+
+Also see [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) and
+[SECURITY.md](SECURITY.md) (please report vulnerabilities privately, not as
+a public issue). Every push and pull request against `main` runs the same
+`npm run check` build-and-verify pipeline via GitHub Actions.
 
 ## Licence
 

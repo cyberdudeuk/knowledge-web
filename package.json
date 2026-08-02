@@ -1,9 +1,18 @@
 {
   "name": "the-web",
-  "version": "3.0.0",
+  "version": "3.4.0",
   "private": true,
   "description": "A navigable, ontology-backed map of a body of work. Single-file HTML prototype.",
   "type": "module",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cyberdudeuk/knowledge-web.git"
+  },
+  "homepage": "https://github.com/cyberdudeuk/knowledge-web#readme",
+  "bugs": {
+    "url": "https://github.com/cyberdudeuk/knowledge-web/issues"
+  },
   "scripts": {
     "build": "node scripts/build.mjs",
     "verify": "node scripts/verify.mjs",
