@@ -1,4 +1,4 @@
-# Video script — "The Web" walkthrough
+# Video script — "The Knowledge Web" walkthrough
 
 **Honest note on this file:** I can't record a narrated video myself — no screen-recording tool in this environment. What follows is a complete shot list with the real screenshots already in order and the words to say over each one. Two ways to use it:
 

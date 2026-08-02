@@ -1,4 +1,4 @@
-# The Web
+# The Knowledge Web
 
 ![Version](https://img.shields.io/badge/version-3.4-1d70b8)
 [![check](https://github.com/cyberdudeuk/knowledge-web/actions/workflows/check.yml/badge.svg)](https://github.com/cyberdudeuk/knowledge-web/actions/workflows/check.yml)

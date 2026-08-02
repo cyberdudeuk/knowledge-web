@@ -73,7 +73,7 @@ since the beginning: every artefact existing only as a download.
 ```bash
 git init
 git add .
-git commit -m "Initial commit: The Web v2.0 portal, authority and build harness"
+git commit -m "Initial commit: The Knowledge Web v2.0 portal, authority and build harness"
 ```
 
 That's it. You now have history, diffs and rollback. Everything after this is recoverable.

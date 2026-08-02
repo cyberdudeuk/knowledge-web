@@ -1,4 +1,4 @@
-# The Web design system — specification v1
+# The Knowledge Web design system — specification v1
 
 **Purpose:** rebuild the-web's visual layer around what it actually is — an
 ontology-backed knowledge graph — with lineage and traceability as first-class

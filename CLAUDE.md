@@ -1,4 +1,4 @@
-# The Web — operating rules
+# The Knowledge Web — operating rules
 
 Read this first, every session. It is the contract, not a suggestion.
 
@@ -6,6 +6,10 @@ Read this first, every session. It is the contract, not a suggestion.
 
 A navigable, ontology-backed map of a body of work, delivered as one self-contained
 HTML file. Built in ordered chunks under `src/`, assembled to `dist/the-web.html`.
+
+Internal/dev codename: **ARACHNO**. Not shown in the product's own UI — used here,
+in commit history and in `docs/programme-authority.html` only. One component of a
+wider set the owner refers to as `govuk.os`.
 
 Governance lives in `docs/programme-authority.html` — a **sibling**, not a child.
 Reference it; never generate it from the code, and never make the code read it.

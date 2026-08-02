@@ -1,4 +1,4 @@
-# The Web — one page
+# The Knowledge Web — one page
 
 **What it is.** A personal prototype — one self-contained web page, no install — that turns a body of work into something you can walk through: what exists, how it connects, and what's still missing. Six real bodies of work are loaded into it already, including a real 499-asset government data register.
 

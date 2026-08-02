@@ -58,7 +58,7 @@ dist = dist.replace(/<noscript id="degraded">[\s\S]*?<\/noscript>\n?/, '');
 const block =
   `<noscript id="degraded"><div style="max-width:76ch;margin:0 auto;padding:26px;` +
   `font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;line-height:1.6">` +
-  `<h1>The Web — text rendering</h1>` +
+  `<h1>The Knowledge Web — text rendering</h1>` +
   `<p><strong>JavaScript is unavailable, and that is fine.</strong> This is the ` +
   `degraded-mode rendering: every collection as headings, lists, relation triples ` +
   `and declared gaps — the same content the interactive web draws, which is a ` +

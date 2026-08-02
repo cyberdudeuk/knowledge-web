@@ -14,4 +14,4 @@ createServer((req, res) => {
   if (!file.startsWith(ROOT) || !existsSync(file)) { res.writeHead(404); return res.end('Not found'); }
   res.writeHead(200, { 'Content-Type': TYPES[extname(file)] || 'application/octet-stream' });
   res.end(readFileSync(file));
-}).listen(PORT, () => console.log(`\n  The Web → http://localhost:${PORT}\n  Ctrl+C to stop\n`));
+}).listen(PORT, () => console.log(`\n  The Knowledge Web → http://localhost:${PORT}\n  Ctrl+C to stop\n`));
