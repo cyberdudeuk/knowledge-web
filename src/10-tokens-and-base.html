@@ -297,6 +297,21 @@ h1 em{font-style:italic;color:var(--dew)}
 
 .empty{color:var(--faint);font-size:13px;line-height:1.6;font-style:italic;font-family:var(--display)}
 
+/* ---------- node inspector quadrant ----------
+   attributes | provenance / outgoing | inbound — hairline-divided 2×2.
+   Inferred (materialised inverse) edges carry a dashed pill and hue. */
+.quad{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--ridge);border:1px solid var(--ridge);border-radius:var(--r);overflow:hidden;margin-top:14px}
+.quad>div{background:var(--deep);padding:10px 11px;min-width:0}
+.quad h4{font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);margin:0 0 7px}
+.quad .qrow{font-size:11.5px;color:var(--moth);line-height:1.5;margin:0 0 4px}
+.quad .qrow b{color:var(--silk);font-weight:600}
+.quad .qk{font-family:var(--mono);font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);margin-right:4px}
+.qedge{display:block;width:100%;text-align:left;background:none;border:0;padding:3px 0;cursor:pointer;font-size:11.5px;color:var(--moth);font-family:var(--body);line-height:1.4}
+.qedge:hover{color:var(--silk)}
+.qedge .qp{font-family:var(--mono);font-size:9px;color:var(--dew);letter-spacing:.04em}
+.qedge.qinf .qp{color:var(--ep-inferred)}
+.qedge .qep{font-family:var(--mono);font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ep-inferred);border:1px dashed var(--ep-inferred);border-radius:100px;padding:0 5px;margin-left:5px}
+
 /* ---------- repair list ---------- */
 .repair{list-style:none;margin:0;padding:0}
 .repair li{padding:9px 0 9px 16px;border-bottom:1px dashed var(--ridge);position:relative;font-size:12.5px;color:var(--moth);line-height:1.45}

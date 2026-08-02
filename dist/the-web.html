@@ -297,6 +297,21 @@ h1 em{font-style:italic;color:var(--dew)}
 
 .empty{color:var(--faint);font-size:13px;line-height:1.6;font-style:italic;font-family:var(--display)}
 
+/* ---------- node inspector quadrant ----------
+   attributes | provenance / outgoing | inbound — hairline-divided 2×2.
+   Inferred (materialised inverse) edges carry a dashed pill and hue. */
+.quad{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--ridge);border:1px solid var(--ridge);border-radius:var(--r);overflow:hidden;margin-top:14px}
+.quad>div{background:var(--deep);padding:10px 11px;min-width:0}
+.quad h4{font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);margin:0 0 7px}
+.quad .qrow{font-size:11.5px;color:var(--moth);line-height:1.5;margin:0 0 4px}
+.quad .qrow b{color:var(--silk);font-weight:600}
+.quad .qk{font-family:var(--mono);font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);margin-right:4px}
+.qedge{display:block;width:100%;text-align:left;background:none;border:0;padding:3px 0;cursor:pointer;font-size:11.5px;color:var(--moth);font-family:var(--body);line-height:1.4}
+.qedge:hover{color:var(--silk)}
+.qedge .qp{font-family:var(--mono);font-size:9px;color:var(--dew);letter-spacing:.04em}
+.qedge.qinf .qp{color:var(--ep-inferred)}
+.qedge .qep{font-family:var(--mono);font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ep-inferred);border:1px dashed var(--ep-inferred);border-radius:100px;padding:0 5px;margin-left:5px}
+
 /* ---------- repair list ---------- */
 .repair{list-style:none;margin:0;padding:0}
 .repair li{padding:9px 0 9px 16px;border-bottom:1px dashed var(--ridge);position:relative;font-size:12.5px;color:var(--moth);line-height:1.45}
@@ -1892,6 +1907,43 @@ function xrefBlock(title, refs){
 function wire(){
   detailBody.querySelectorAll('.xref-item').forEach(b =>
     b.addEventListener('click', () => selectNode(b.dataset.s, +b.dataset.j)));
+  detailBody.querySelectorAll('.qedge').forEach(b =>
+    b.addEventListener('click', () => { const r = byKey[b.dataset.n]; if (r) selectNode(r.s.id, r.j); }));
+}
+
+/* ---------- node inspector quadrant ----------
+   attributes | provenance / outgoing | inbound. Edge lists come from the
+   live EDGES registry: declared relations are asserted; materialised
+   inverses carry an inferred pill — the distinction is never collapsed. */
+function quadBlock(s, nd){
+  const ref = NODEREFS.find(r => r.s === s && r.nd === nd);
+  if (!ref || typeof EDGES === 'undefined') return '';
+  const nid = ref.s.id + ':' + ref.j;
+  const e2 = ENRICH[nid] || {};
+  const stage = (typeof kilOf === 'function' && typeof KIL !== 'undefined')
+    ? (KIL.levels.find(l => l.id === kilOf(nid)) || {}).label : '';
+  const edgeBtn = (e, out) => {
+    const other = byKey[out ? e.to : e.from];
+    if (!other) return '';
+    return `<button class="qedge${e.declared ? '' : ' qinf'}" data-n="${out ? e.to : e.from}">` +
+      `<span class="qp">${esc(PROPOF(e.prop).label)}${out ? ' →' : ' ←'}</span> ${esc(other.nd.t)}` +
+      `${e.declared ? '' : '<span class="qep">inferred</span>'}</button>`;
+  };
+  const outE = EDGES.filter(e => e.from === nid), inE = EDGES.filter(e => e.to === nid);
+  return `<div class="quad">
+    <div><h4>Attributes</h4>
+      <p class="qrow"><span class="qk">class</span><b>${esc(e2.cls || 'Concept')}</b></p>
+      <p class="qrow"><span class="qk">taxonomy</span>${esc(flatTax()[e2.tax] || '—')}</p>
+      ${stage ? `<p class="qrow"><span class="qk">kil stage</span>${esc(stage)}</p>` : ''}
+    </div>
+    <div><h4>Provenance</h4>
+      <p class="qrow"><span class="qk">thread</span>${esc(s.label)}</p>
+      <p class="qrow"><span class="qk">status</span>${nd.open ? 'Open · stated on the node' : 'Built · stated on the node'}</p>
+      ${s.url ? `<p class="qrow"><span class="qk">source</span><a href="${s.url}" target="_blank" rel="noopener">conversation →</a></p>` : `<p class="qrow"><span class="qk">source</span>collection data</p>`}
+    </div>
+    <div><h4>Outgoing · ${outE.length}</h4>${outE.map(e => edgeBtn(e, true)).join('') || '<p class="qrow">none declared</p>'}</div>
+    <div><h4>Inbound · ${inE.length}</h4>${inE.map(e => edgeBtn(e, false)).join('') || '<p class="qrow">none declared</p>'}</div>
+  </div>`;
 }
 
 function renderHub(){
@@ -1920,6 +1972,7 @@ function renderNode(ref, kin){
        ${(nd.themes||[]).map(t => `<span class="pill">${esc((THEMES.find(x=>x.id===t)||{}).label||t)}</span>`).join('')}
      </div>
      ${(nd.impact || nd.conf) ? `<div class="meta-row" style="--strand-c:var(--sc-${s.id})">${nd.impact ? pips('Impact', nd.impact) : ''}${nd.conf ? pips('Confidence', nd.conf) : ''}</div>` : ''}
+     ${quadBlock(s, nd)}
      ${xrefBlock('Resonates with', kin)}
      ${s.url ? `<div class="xref"><a href="${s.url}" target="_blank" rel="noopener">Open the conversation \u2192</a></div>` : ''}`;
   wire();

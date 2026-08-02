@@ -4,6 +4,19 @@ All notable changes to the artefact. Mirrors Section 13 (Release history) of
 `docs/programme-authority.html`, which remains the source of truth. Defects
 found during verification are named, never quietly fixed.
 
+## v2.6 — 2026-08-02
+
+Design system step 5: the node inspector.
+
+- 2×2 provenance quadrant in the detail rail: Attributes (class, taxonomy,
+  KIL stage) | Provenance (thread, status verbatim, source link) / Outgoing |
+  Inbound edges, every edge clickable for graph navigation.
+- Edge lists come from the live registry: declared relations are asserted;
+  materialised inverse assertions carry a dashed INFERRED pill — the
+  asserted/entailed distinction is surfaced, never collapsed.
+- Advances BL-WEB-19/41 (provenance per node).
+- Defect found and fixed: none. Verified: 8 pages × 6 collections × 2 themes.
+
 ## v2.5 — 2026-08-02
 
 Design system step 4: the edge grammar.
