@@ -4203,13 +4203,22 @@ function makeCdaCollection(){
       c:[`Assets: ${v.n}`,`DAM compliance: ${pct(v.dam)}`,`Discovery readiness: ${pct(v.disc)}`,`NDL / valuation readiness: ${pct(v.ndl)}`,`Mean enterprise value: ${v.evs}`,`Critical impact: ${v.crit}`,`Flagship: ${v.flag}`,`Largest holder: ${v.dept}`],
       open: v.ndl < 0.45 }];
     enrich[id+':0']={ cls:'Capability', tax:'meas/value', kisil:'I2', rel:[] };
-    Object.entries(v.types).sort((a,b)=>b[1].n-a[1].n).slice(0,8).forEach(([t,m], j) => {
+    const _cdaAll = Object.entries(v.types).sort((a,b)=>b[1].n-a[1].n);
+    _cdaAll.slice(0,8).forEach(([t,m], j) => {
       nodes.push({ t, k:`${m.n} \u00b7 EVS ${m.evs}`, themes:themes.filter(x=>x.label===t).map(x=>x.id),
         b:`${m.n} ${t.toLowerCase()} assets in ${dom}. DAM ${pct(m.dam)}, discovery ${pct(m.disc)}, NDL ${pct(m.ndl)}, enterprise value ${m.evs}.`,
         c:[`Count: ${m.n}`,`DAM compliance: ${pct(m.dam)}`,`Discovery readiness: ${pct(m.disc)}`,`NDL readiness: ${pct(m.ndl)}`,`Enterprise value: ${m.evs}`],
         open: m.ndl < 0.4 });
       enrich[`${id}:${j+1}`]={ cls:CDA_CLS[t]||'Register', tax:'desc/metadata', kisil:'I', rel:[['partOf', id+':0']] };
     });
+    /* level of detail: truncation is declared, never silent (BL-WEB-12/14) */
+    if (_cdaAll.length > 8){
+      const rest = _cdaAll.slice(8);
+      nodes.push({ t:`+${rest.length} more type${rest.length===1?'':'s'}`, k:'aggregate \u00b7 undrawn',
+        b:`${rest.length} further asset type${rest.length===1?'':'s'} in ${dom}, aggregated here so the ring stays readable. Every member is listed below and in the text version \u2014 nothing is silently dropped.`,
+        c:rest.map(([t,m]) => `${t} \u00b7 ${m.n} assets \u00b7 EVS ${m.evs}`) });
+      enrich[`${id}:9`]={ cls:'Register', tax:'desc/metadata', kisil:'I', rel:[['partOf', id+':0']] };
+    }
     strands.push({ id, key:String(i+1), angle:0, colour:PALETTE[i%PALETTE.length], label:dom,
       meta:`${v.n} assets \u00b7 EVS ${v.evs}`, url:'', state: v.ndl<0.45?'in-flight':'complete',
       summary:`${dom} holds ${v.n} of the 499 critical data assets. Mean enterprise value ${v.evs}; NDL and valuation readiness ${pct(v.ndl)}.`, nodes });
@@ -4247,6 +4256,14 @@ function makeStd5Collection(){
         c:[`Standards: ${t.ex}`,`Status: ${t.s}`,`Domain: ${clean}`], open:t.s==='Draft' });
       enrich[`${id}:${j+1}`]={ cls:'Standard', tax:'govern/policy', kisil:t.s==='Endorsed'?'K':'L', rel:[['partOf', id+':0']] };
     });
+    /* level of detail: the '9 of 15' truncation becomes a declared aggregate */
+    if (dom.topics.length > 9){
+      const rest = dom.topics.slice(9);
+      nodes.push({ t:`+${rest.length} more topic${rest.length===1?'':'s'}`, k:'aggregate \u00b7 undrawn',
+        b:`${rest.length} further topic${rest.length===1?'':'s'} in this domain, aggregated so the ring stays readable. Every member is listed below with its status \u2014 nothing is silently dropped.`,
+        c:rest.map(t => `${t.c} ${t.n} \u00b7 ${t.s}`), open:rest.some(t => t.s==='Draft') });
+      enrich[`${id}:10`]={ cls:'Standard', tax:'govern/policy', kisil:'K', rel:[['partOf', id+':0']] };
+    }
     strands.push({ id, key:String(i+1), angle:0, colour:PALETTE[i%PALETTE.length], label:clean,
       meta:`Domain ${num} \u00b7 ${dom.topics.length} topics${isNew?' \u00b7 NEW':''}`, url:'',
       state:isNew?'in-flight':(counts['Draft']?'in-flight':'complete'),
@@ -4308,7 +4325,8 @@ function makeGdsCollection(){
 
   Object.entries(GDS_AREAS).forEach(([area, types], i) => {
     const id = 'a' + i, total = Object.values(types).reduce((a,b)=>a+b,0);
-    const list = Object.entries(types).sort((a,b) => b[1]-a[1]).slice(0, 8);
+    const _gdsAll = Object.entries(types).sort((a,b) => b[1]-a[1]);
+    const list = _gdsAll.slice(0, 8);
     const nodes = [{ t:area.replace('[REVIEW] ',''), k:'2026 area', themes:[],
       b:`A mapped GDS DTx area in the 2026 estate, carrying ${total} products, services and pipeline items across ${Object.keys(types).length} delivery types.`,
       c:Object.entries(types).map(([k,v]) => `${k} \u00b7 ${v}`), open:area.startsWith('[REVIEW]') }];
@@ -4319,6 +4337,14 @@ function makeGdsCollection(){
         c:[`Type: ${t}`, `Count: ${n}`, `Area: ${area}`] });
       enrich[`${id}:${j+1}`] = { cls:GDS_CLS[t] || 'Concept', tax:'del/docs', kisil:'I', rel:[['partOf', id + ':0']] };
     });
+    /* level of detail: truncation is declared, never silent (BL-WEB-12/14) */
+    if (_gdsAll.length > 8){
+      const rest = _gdsAll.slice(8);
+      nodes.push({ t:`+${rest.length} more type${rest.length===1?'':'s'}`, k:'aggregate \u00b7 undrawn',
+        b:`${rest.length} further delivery type${rest.length===1?'':'s'} in this area, aggregated so the ring stays readable. Every member is listed below with its count \u2014 nothing is silently dropped.`,
+        c:rest.map(([t,n]) => `${t} \u00b7 ${n} item${n===1?'':'s'}`) });
+      enrich[`${id}:9`] = { cls:'Concept', tax:'del/docs', kisil:'I', rel:[['partOf', id + ':0']] };
+    }
     strands.push({ id, key:String(i+1), angle:0, colour:PALETTE[i % PALETTE.length],
       label:area.replace('[REVIEW] unmapped','Unmapped — needs review'),
       meta:`${total} items \u00b7 ${Object.keys(types).length} types`, url:'', state:area.startsWith('[REVIEW]') ? 'dormant' : 'complete',
