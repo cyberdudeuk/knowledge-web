@@ -62,6 +62,17 @@ variant expansion "Semantic **/ Syntactic** Interoperability Layer"; and the
 **KIL v1.1 Lineage/Mapping/API Addendum** (12 July) independently corroborates
 the five-entity, five-linking-table KIL data model, adding a 5-layer lineage
 architecture and API catalogue.
+
+**Correction (Council of Nine adversarial review, 2 August 2026, evidential-weight
+lens).** The Addendum and both blueprint decks corroborate the five-entity
+*shape* only — none of the five sources cited for this ruling use the strings
+KISIL, KISL or KSL, so the specific claim "KISL/KSL = KISIL" rests on this
+ruling alone, not on independent confirmation. Separately, the Architecture
+Blueprint **PDF** was created 12 July 2026, not 29 May — only the source
+`.pptx` carries the 29 May date. **The naming-identity part of this ruling is
+a pragmatic, owner-made convention, not an evidenced external fact**, and is
+recorded as such deliberately rather than overstated.
+
 The remaining open question is C1 in the Confluence Body of Work Index: how the
 KISIL five-entity chain and KIL-DMS-001 relate *within* the underpinning data
 model — layered per this ruling, but the two documents do not yet cite each
