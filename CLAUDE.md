@@ -96,4 +96,4 @@ Verified: build + verify pass, N collections, both themes
 
 - **R-01** Scope has outrun assurance. Verified by automation only, never by a user.
 - **R-04** The ontology was authored by the tool, not agreed by a vocabulary owner.
-- **I-01** KSL is an unratified local scheme sitting alongside a canonical one.
+- ~~**I-01** KSL is an unratified local scheme sitting alongside a canonical one.~~ Retired 2026-08-01: KSL was a backronym on a misread abbreviation, not a rival scheme; the ladder is gone. See `docs/NAMING.md`.
