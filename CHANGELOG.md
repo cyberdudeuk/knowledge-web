@@ -4,6 +4,51 @@ All notable changes to the artefact. Mirrors Section 13 (Release history) of
 `docs/programme-authority.html`, which remains the source of truth. Defects
 found during verification are named, never quietly fixed.
 
+## v3.6 — 2026-08-03
+
+A full pass through the standing backlog (owner: "do all of the things
+that do not require actions from me"). Nine items closed or advanced,
+two honestly documented as blocked on missing data rather than faked.
+
+**Closed:**
+- **BL-WEB-12 / BL-WEB-14** (hygiene) — both were delivered together in
+  v2.8's declared-aggregate pattern but stayed marked open ever since.
+  Verified against live code before closing.
+- **BL-WEB-54** — endorsement/consultation maturity now has its own
+  outline channel (`.mat-partial`) and an explicit pill, distinct from
+  the epistemic asserted/inferred/induced system; Endorsed/Draft already
+  had adequate signals, only Partially Endorsed was genuinely invisible.
+- **BL-WEB-28** — import/export collection JSON, no storage API. Found
+  and fixed two real defects along the way: the Collections page never
+  rendered a card for the `align` collection (spliced in by a later
+  chunk, after the page's one-time render already ran), and my own
+  first-cut fix for that re-wiped the import UI on every re-render.
+- **BL-WEB-19** — a dedicated Provenance panel (source, row count,
+  extraction date, truncation) for 5 of 6 collections. Extraction date
+  is honestly "not recorded" rather than invented.
+- **BL-WEB-56** — the one real link check this estate has ever had now
+  surfaces as an explicit stamp in that same panel. Left open on the
+  "scheduled" half — a static file has no server to schedule from.
+- **BL-WEB-41** — created-by role and review status added to the
+  node-inspector's Provenance quadrant, both a genuinely universal fact
+  (AI-drafted, not owner-reviewed — risk R-04), not fabricated detail.
+- **BL-WEB-32** (hygiene) — delivered in v2.7, never marked done.
+- **BL-WEB-07** — manual counterparts defined for the three
+  still-missing Augmentation Register entries, each reusing a mechanism
+  that already exists rather than proposing new work.
+
+**Documented as genuinely blocked, not faked:**
+- **BL-WEB-15** and **BL-WEB-33** — both ask for real per-item scored
+  data (mapping confidence; impact/confidence/severity) to drive visual
+  encoding. Neither exists anywhere in this codebase — only hand-authored
+  aggregate claims. The rendering mechanisms are real and ready; the
+  source data to drive them from is not present in this repository.
+
+Verified throughout: build + verify pass, 6 collections, dark/light
+themes, keyboard reach and 390px checked at each step. Each item
+committed and pushed individually as it landed — this entry is a
+summary, not the record of what happened when.
+
 ## v3.5 — 2026-08-02
 
 Entity resolution scaffold for the CDA register (BL-WEB-53).
