@@ -199,6 +199,13 @@ const GDS_LINKCHECK = {
     ['Communities blogs','Link field contains "Multiple links", not a URL']
   ]
 };
+/* BL-WEB-56 — a verification stamp: when the links were last checked,
+   distinct from whether the workbook's own audit column still claims
+   them verified. Only ever set once (25 July 2026) — this is a stamp of
+   the one real check that happened, not a live/scheduled recheck (a
+   static single-file artefact has nowhere to run a schedule from). */
+COLLECTIONS.gds.provenance.linkCheck = { date:GDS_LINKCHECK.date, checked:GDS_LINKCHECK.checked,
+  reachable:GDS_LINKCHECK.reachable, redirected:GDS_LINKCHECK.redirected, broken:GDS_LINKCHECK.broken };
 
 /* ============================================================
    Alignment: missions → priorities → kickstarters → standards

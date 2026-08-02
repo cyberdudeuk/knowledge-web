@@ -5049,6 +5049,7 @@ function renderCollectionsPage(){
          <li><b>Row count</b>${esc(pv.rowCount)}</li>
          <li><b>Extraction date</b>${pv.extractionDate ? esc(pv.extractionDate) : 'Not recorded — this collection was built before extraction dates were tracked (BL-WEB-19). Declaring the gap rather than guessing a date.'}</li>
          <li><b>What was truncated, and why</b>See "What is torn" above — every ring truncation in this collection is declared there as a "+N more" aggregate, listing every member rather than dropping any silently.</li>
+         ${pv.linkCheck ? `<li><b>Link verification stamp</b>${pv.linkCheck.checked} links checked directly against their published locations on ${esc(pv.linkCheck.date)} — ${pv.linkCheck.reachable} reachable, ${pv.linkCheck.redirected} now redirect, ${pv.linkCheck.broken} broken. This is when they were checked, not a claim they still resolve today (BL-WEB-56) — the workbook's own audit column still records all of them as verified.</li>` : ''}
        </ul>`;
     document.getElementById('colDetail').scrollIntoView({ behavior:'smooth', block:'start' });
   }));
@@ -5285,6 +5286,13 @@ const GDS_LINKCHECK = {
     ['Communities blogs','Link field contains "Multiple links", not a URL']
   ]
 };
+/* BL-WEB-56 — a verification stamp: when the links were last checked,
+   distinct from whether the workbook's own audit column still claims
+   them verified. Only ever set once (25 July 2026) — this is a stamp of
+   the one real check that happened, not a live/scheduled recheck (a
+   static single-file artefact has nowhere to run a schedule from). */
+COLLECTIONS.gds.provenance.linkCheck = { date:GDS_LINKCHECK.date, checked:GDS_LINKCHECK.checked,
+  reachable:GDS_LINKCHECK.reachable, redirected:GDS_LINKCHECK.redirected, broken:GDS_LINKCHECK.broken };
 
 /* ============================================================
    Alignment: missions → priorities → kickstarters → standards
