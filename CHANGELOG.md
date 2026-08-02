@@ -4,6 +4,24 @@ All notable changes to the artefact. Mirrors Section 13 (Release history) of
 `docs/programme-authority.html`, which remains the source of truth. Defects
 found during verification are named, never quietly fixed.
 
+## v3.2 — 2026-08-02
+
+A seventh guided tour, for colleagues.
+
+- New tour "For colleagues — where does this touch your work?": six stops
+  built to be watched with someone else — the traceability walk, the
+  linking-tables honesty view, a real 499-asset collection, the
+  declared-gaps mechanism — closing on one direct question rather than an
+  ask to adopt anything.
+- First piece of a colleague-facing materials package (deck, one-pager,
+  video script alongside it) — deliberately separate from the formal
+  KIL/KISIL submission track, which is paused pending real-person testing.
+- **Defect found and fixed:** two tour stops changed the underlying data
+  but not the page, stranding the viewer on the Walk page while narrating
+  the Explore view. Caught by checking live page state stop-by-stop, not
+  by visual inspection alone.
+- Verified: build + verify green; tour walked end to end against live state.
+
 ## v3.1 — 2026-08-02
 
 Design system step 9: the KIL linking-table substrate (BL-WEB-30/31, XDMH-200).

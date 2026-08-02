@@ -215,4 +215,19 @@
   window.addEventListener('hashchange', () => { if (location.hash.includes('/walk')) renderWalk(); });
   renderWalk();
 })();
+
+/* ---------- one more tour: for colleagues seeing this for the first time ---------- */
+TOURS.push(
+  { id:'colleagues', name:'For colleagues — where does this touch your work?', blurb:'Six stops, one per way of working. Built to be watched with someone else, not read alone.', stops:[
+    { s:'This is a personal, working prototype — not a service, not signed off, not asking you to adopt anything. I’m showing you because I think parts of it already overlap with what you do, and you’ll spot that faster than I can explain it.', run:() => { loadCollection('web'); reset(); } },
+    { s:'If you write submissions, clear decisions, or need to show the evidence behind a recommendation: this is the traceability walk. Pick anything on the left and the evidence chain behind it draws itself — nothing hand-arranged.', run:() => { go('walk'); setTimeout(() => { document.querySelector('.walk-root')?.click(); }, 80); } },
+    { s:'The same walk has a Linking tables view. It shows what fits the formal evidence chain — and, just as honestly, what doesn’t fit yet. If your work involves reconciling records that don’t quite line up, this is built for exactly that problem.', run:() => setTimeout(() => document.querySelector('.vtab[data-wt="tables"]')?.click(), 80) },
+    { s:'If you work with data standards, registers or asset catalogues: this is 499 real government data assets, already mapped and explorable — not a mock-up.', run:() => loadCollection('cda') },
+    { s:'Every collection here declares what’s missing, out loud, instead of hiding it. If part of your job is spotting gaps, duplication or things nobody owns, that’s the same instinct this is built on.', run:() => { go('web'); loadCollection('web'); setTimeout(() => selectNode('obs', 1), 60); } },
+    { s:'That’s the tour. One question, honestly: does anything here already connect to what you’re working on — or is there a gap you can see that I can’t? Either answer is useful.', run:() => { go('web'); loadCollection('web'); reset(); } }
+  ]}
+);
+document.getElementById('tourPick').innerHTML = TOURS.map(t =>
+  `<button class="tour-btn" data-t="${t.id}"><b>${esc(t.name)}</b><span>${esc(t.blurb)}</span></button>`).join('');
+document.querySelectorAll('.tour-btn').forEach(b => b.addEventListener('click', () => startTour(b.dataset.t)));
 </script>
