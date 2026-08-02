@@ -1,6 +1,6 @@
 # The Web
 
-![Version](https://img.shields.io/badge/version-2.7-1d70b8)
+![Version](https://img.shields.io/badge/version-3.0-1d70b8)
 ![Status](https://img.shields.io/badge/status-prototype_·_AMBER_by_design-c05600)
 ![Licence](https://img.shields.io/badge/licence-Apache--2.0-00703c)
 ![Delivery](https://img.shields.io/badge/delivery-single_HTML_file-4c2c92)
@@ -120,8 +120,9 @@ Verified: build + verify pass, N collections, both themes
 2. **Registered fallback** — no assisted capability ships without its manual
    counterpart in the Augmentation Register.
 3. **Degraded-mode completeness** — with every service unavailable the
-   artefact still performs its core function. *The font CDN failure is now
-   fixed (v2.1); the static no-JS render (BL-WEB-01) remains open.*
+   artefact still performs its core function. *Both recorded failures are
+   fixed: the font CDN (v2.1) and the static no-JS render (v3.0) — the
+   artefact now works with JavaScript disabled.*
 4. **Human-in-the-loop on consequence** — anything that drafts, decides or
    acts surfaces for explicit review.
 
@@ -136,7 +137,7 @@ architecture (neutral · taxonomic · epistemic · authority-gold), system font
 stacks (nothing fetched at runtime), a typed node/edge grammar where outline
 style carries epistemic state, a traceability-walk view, aggregate-first
 level of detail, and an eight-step migration path that keeps `npm run check`
-green at every step. Steps 1–2 landed in v2.1.
+green at every step. **All eight steps are complete as of v3.0.**
 
 ## Status
 
@@ -150,8 +151,8 @@ Current focus, in order:
 
 1. ~~`BL-WEB-05` version control~~ — **closed** by this repository
 2. ~~`BL-WEB-02` remove the font CDN~~ — **closed** in v2.1
-3. `BL-WEB-01` degraded-mode static render — the graph becomes progressive
-   enhancement over semantic HTML
+3. ~~`BL-WEB-01` degraded-mode static render~~ — **closed** in v3.0; the
+   artefact works with JavaScript disabled
 4. `BL-WEB-04` usability testing — staged; formal testing gates any move to
    internal use
 

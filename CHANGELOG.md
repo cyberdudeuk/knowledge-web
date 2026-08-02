@@ -4,6 +4,20 @@ All notable changes to the artefact. Mirrors Section 13 (Release history) of
 `docs/programme-authority.html`, which remains the source of truth. Defects
 found during verification are named, never quietly fixed.
 
+## v3.0 — 2026-08-02
+
+**The design-system migration is complete.** Steps 7 and 8.
+
+- **Step 7 (v2.8):** the three silent ring truncations become declared "+N
+  more" aggregate beads stating cardinality and listing every member —
+  nothing silently dropped (BL-WEB-12/14 advanced; defect named).
+- **Step 8 (v3.0): BL-WEB-01 closed — the second doctrine failure fixed.**
+  The build emits every collection as semantic HTML (headings, lists,
+  relation triples, declared gaps) into a noscript block; proven working
+  with JavaScript disabled. The interactive web is now formally a
+  progressive enhancement. Pipeline: build → degraded → verify.
+- Both doctrine failures recorded at v2.0 are now closed.
+
 ## v2.7 — 2026-08-02
 
 Design system step 6: the traceability walk (BL-WEB-32).

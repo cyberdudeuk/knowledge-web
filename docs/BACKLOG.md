@@ -5,7 +5,7 @@ source of truth. **Trace** cites the source that demands the item.
 
 | ID | Item | Pri | Phase | Trace |
 |---|---|---|---|---|
-| **BL-WEB-01** | Degraded-mode render. Emit a static, semantic HTML rendering of every collection — headings, lists, tables, relation triples — that displays with JavaScript disabled. The interactive web becomes progressive enhancement over it. | P1 | 1 | T-03, SELF |
+| **BL-WEB-01** | Degraded-mode render. Emit a static, semantic HTML rendering of every collection — headings, lists, tables, relation triples — that displays with JavaScript disabled. The interactive web becomes progressive enhancement over it. | DONE | 1 | T-03, SELF |
 | **BL-WEB-02** | Remove the external font dependency. Ship a system-font stack with an optional embedded subset, so the artefact renders correctly on an air-gapped or egress-restricted desktop. | DONE | 1 | T-03, SELF |
 | **BL-WEB-03** | Collection authoring pipeline. Generate a collection from a source file — xlsx, csv, JSON-LD, a register export — through a declared mapping, with a reviewable mapping report. The single item that turns a demonstrator into a platform. | P1 | 1 | IA-06, GDS, STD |
 | **BL-WEB-04** | Assisted-usability testing with five participants, at least one screen-reader user and one keyboard-only user. UCD means tested, not designed-to. | P1 | 1 | MG-NFR-002 |
@@ -65,14 +65,15 @@ source of truth. **Trace** cites the source that demands the item.
 ## Do these first
 
 1. **BL-WEB-04** usability testing. Open since v1.0. Staged in
-   `docs/USER-TESTING-PLAN.md` for a personal project: Stage 0 self-audit with
-   VoiceOver and keyboard-only now; Stage 1 informal cold readers; Stage 2 the
-   formal five-participant protocol, which is the gate for internal adoption and
-   the only stage that closes the item.
-2. **BL-WEB-01** degraded-mode render — the remaining doctrine failure the
-   Authority records openly. BL-WEB-02 (font CDN) closed in v2.1.
+   `docs/USER-TESTING-PLAN.md`: Stage 0 self-audit with VoiceOver and
+   keyboard-only now; Stage 1 informal cold readers; Stage 2 the formal
+   protocol, the gate for internal adoption and the only stage that closes it.
+   With BL-WEB-01/02 both closed in v3.0, this is the last standing P1 of the
+   original "do these first" list.
 
 ## Closed
+
+- **BL-WEB-01** degraded-mode render — build emits every collection as semantic HTML in <noscript>; proven with JavaScript disabled (v3.0, 2026-08-02). Both doctrine failures now closed.
 
 - **BL-WEB-36** KSL ladder retired — owner ruled KSL/KISL are abbreviations of KISIL; the inferred ladder rested on a misreading (v2.4, 2026-08-01)
 - **BL-WEB-37** KIL collision dissolved — one layer with three spellings (KISIL/KISL/KSL) over one underpinning KIL data model, per owner ruling (v2.4, 2026-08-01)
