@@ -140,6 +140,8 @@ function quadBlock(s, nd){
       <p class="qrow"><span class="qk">thread</span>${esc(s.label)}</p>
       <p class="qrow"><span class="qk">status</span>${nd.open ? 'Open · stated on the node' : 'Built · stated on the node'}</p>
       ${s.url ? `<p class="qrow"><span class="qk">source</span><a href="${s.url}" target="_blank" rel="noopener">conversation →</a></p>` : `<p class="qrow"><span class="qk">source</span>collection data</p>`}
+      <p class="qrow"><span class="qk">created by</span>AI-drafted (Claude Code), not owner-authored</p>
+      <p class="qrow"><span class="qk">review status</span>Not reviewed by a vocabulary or content owner — see risk R-04</p>
     </div>
     <div><h4>Outgoing · ${outE.length}</h4>${outE.map(e => edgeBtn(e, true)).join('') || '<p class="qrow">none declared</p>'}</div>
     <div><h4>Inbound · ${inE.length}</h4>${inE.map(e => edgeBtn(e, false)).join('') || '<p class="qrow">none declared</p>'}</div>
