@@ -125,3 +125,34 @@ interface, in the tours, in the manual and here.
   layering mapping ratified and cross-citation addenda inserted into the
   KISIL Technical Specification and KIL-DMS-001. The KIL/KISIL vocabulary
   is now fully reconciled — no open naming questions remain.
+
+## The product's own name
+
+**Owner ruling, 2 August 2026:** the product's public-facing name is
+**"The Knowledge Web"** (was "The Web"). Internal/dev codename **ARACHNO**
+— recorded here and in `CLAUDE.md`/`docs/programme-authority.html` only,
+deliberately never shown in the product's own UI.
+
+Left unchanged, as separate internal identifiers rather than the display
+name:
+
+- GitHub repo slug (`knowledge-web`), local folder and `package.json`
+  `"name"` (both `the-web`) — a bigger, more-reversible-feeling change the
+  owner explicitly deferred
+- `WEB-2.0`, the governance-record document-control code in
+  `docs/programme-authority.html`
+- The separate KIL/KISIL formal-specification suite (outside this repo),
+  which still refers to "the-web" as its reference implementation —
+  explicitly out of scope for this rename
+
+Every occurrence of the old name that functioned as the product's own
+title (page `<title>` tags, the masthead brand mark, document headings,
+the degraded-mode noscript heading) was updated; the literal spider-web
+metaphor throughout the interface and prose ("pluck a thread", "a spider
+cannot see its web", SVG titles, aria-labels) was deliberately left
+untouched — that is the product's narrative device, not an instance of
+its name, and renaming it was never part of this decision.
+
+The owner also describes this project as one component of a wider,
+loosely-named set of components referred to as **`govuk.os`** — noted
+here for future context, not a naming decision in its own right.
