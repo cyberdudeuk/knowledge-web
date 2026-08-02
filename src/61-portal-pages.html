@@ -209,6 +209,7 @@ function renderCollectionsPage(){
       <footer><button class="cta" data-load="${c.id}">Load into the web</button>
         <button class="cta ghost" data-torn="${c.id}">What is torn</button>
         ${c.resolutions && c.resolutions.length ? `<button class="cta ghost" data-resolved="${c.id}">What was resolved</button>` : ''}
+        ${c.provenance ? `<button class="cta ghost" data-prov="${c.id}">Provenance</button>` : ''}
         <button class="cta ghost" data-export="${c.id}">Export JSON</button></footer>
     </div>`;
   }).join('');
@@ -239,6 +240,19 @@ function renderCollectionsPage(){
     loadCollection(b.dataset.load); refreshHome(); go('web');
   }));
   wrap.querySelectorAll('[data-export]').forEach(b => b.addEventListener('click', () => exportCollectionJSON(b.dataset.export)));
+  wrap.querySelectorAll('[data-prov]').forEach(b => b.addEventListener('click', () => {
+    const c = COLLECTIONS[b.dataset.prov], pv = c.provenance;
+    document.getElementById('colDetail').innerHTML =
+      `<div class="page-head" style="margin-top:26px"><div class="eyebrow">Provenance · ${esc(c.label)}</div>
+        <h2 style="font-size:24px">Where this came from</h2></div>
+       <ul class="repair" style="max-width:74ch">
+         <li><b>Source file</b>${esc(pv.source)}</li>
+         <li><b>Row count</b>${esc(pv.rowCount)}</li>
+         <li><b>Extraction date</b>${pv.extractionDate ? esc(pv.extractionDate) : 'Not recorded — this collection was built before extraction dates were tracked (BL-WEB-19). Declaring the gap rather than guessing a date.'}</li>
+         <li><b>What was truncated, and why</b>See "What is torn" above — every ring truncation in this collection is declared there as a "+N more" aggregate, listing every member rather than dropping any silently.</li>
+       </ul>`;
+    document.getElementById('colDetail').scrollIntoView({ behavior:'smooth', block:'start' });
+  }));
   wrap.querySelectorAll('[data-torn]').forEach(b => b.addEventListener('click', () => {
     const c = COLLECTIONS[b.dataset.torn];
     document.getElementById('colDetail').innerHTML =

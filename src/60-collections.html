@@ -154,6 +154,7 @@ function makeCdaCollection(){
     .filter(r => r.mergedFrom.length);
   return { id:'cda', hub:['critical data assets','499 \u00b7 live register'],
     label:'CDA Live Register \u2014 499 critical data assets', strands, themes, enrich, resolutions,
+    provenance:{ source:'CDA_Live_Dashboard_Template.xlsx', rowCount:'499 assets across 130 sheets, 116 fields', extractionDate:null },
     repairs:[
       { t:'No asset anywhere reaches Tier 3', d:'NDL and valuation readiness averages 39% and peaks at 63%. Not one of the 499 assets is ready for National Data Library or valuation use. Tier 1 averages 84%, Tier 2 63%, Tier 3 is effectively unstarted across the whole estate.', s:'' },
       { t:'74% are Invest to Unlock', d:'371 of 499 assets are high value and low readiness. Only 12% are Flagship and only 4% are quick wins. The estate is almost entirely potential, not delivery.', s:'' },
@@ -201,6 +202,7 @@ function makeStd5Collection(){
   });
   return { id:'std', hub:['data standards','classification v5.0'],
     label:'UK Gov Data Standards Classification v5.0 (draft)', strands, themes, enrich,
+    provenance:{ source:'UK_Gov_Data_Standards_Classification_v5_0_DRAFT.xlsx', rowCount:'57 topics across 7 domains', extractionDate:null },
     repairs:[
       { t:'59% complete overall', d:'The status dashboard records 66 topics planned, 39 complete and 27 to be confirmed. Domains 6 and 7 sit at 25% and 22%.', s:'' },
       { t:'The two new domains are the least developed', d:'Governance, Ethics & Trust and AI, ML & Emerging Technologies were introduced in v5.0 and are the thinnest \u2014 which is exactly what the consultation brief asks stakeholders about.', s:'v6' },
@@ -236,6 +238,7 @@ function makeXwalkCollection(){
     });
   return { id:'xwalk', hub:['standards crosswalk','61 concepts \u00b7 212 terms'],
     label:'Data Cataloguing Standards & Tooling Crosswalks', strands, themes, enrich,
+    provenance:{ source:'Data_Cataloguing_Standards_and_Tooling_Crosswalks.xlsx', rowCount:'212 terms across 61 concepts, 10 profiles', extractionDate:null },
     repairs:[
       { t:'Five vocabularies contribute fewer than five terms each', d:'NDL, DAM Policy and the Discoverability Platform appear as concepts only. The cross-government layer is thin next to DCAT v3, which alone supplies 84 of 212 terms.', s:'' },
       { t:'GOV.UK Open Standards contributes only standards', d:'Twenty entries, all of type Standard, with no classes or properties. It names what to comply with but not what to record.', s:'' },
@@ -283,6 +286,7 @@ function makeGdsCollection(){
   });
   return { id:'gds', hub:['GDS products & services','2026 estate'],
     label:'GDS Products & Services Catalogue 2026', strands, themes, enrich,
+    provenance:{ source:'GDS_Products_and_Services_Catalogue_-_2026.xlsx', rowCount:'173 items across 9 DTx areas, 14 sheets', extractionDate:null },
     repairs:[
       { t:'120 of 173 mappings are inferred', d:'Only 25 area mappings are marked [OK]. 120 are [INFERRED] and 26 are flagged [REVIEW]. The estate view rests on machine inference that has not been confirmed by owners.', s:'' },
       { t:'Two items are unmapped entirely', d:'One guidance item and one community item carry no 2026 area at all.', s:'a7' },
@@ -293,7 +297,8 @@ function makeGdsCollection(){
 
 /* the collection the prototype was born with */
 const HOME_COLLECTION = { id:'web', hub:['data & metadata','management'], label:'This build \u2014 conversation history',
-  strands:STRANDS.map(s => s), themes:THEMES.map(t => t), enrich:Object.assign({}, ENRICH), repairs:REPAIRS.map(r => r) };
+  strands:STRANDS.map(s => s), themes:THEMES.map(t => t), enrich:Object.assign({}, ENRICH), repairs:REPAIRS.map(r => r),
+  provenance:{ source:'Conversation history outside any project, plus carried memory', rowCount:'26 beads across 5 threads', extractionDate:null } };
 const COLLECTIONS = { web:HOME_COLLECTION, cda:makeCdaCollection(), std:makeStd5Collection(),
                       gds:makeGdsCollection(), xwalk:makeXwalkCollection() };
 let CURRENT = 'web';
