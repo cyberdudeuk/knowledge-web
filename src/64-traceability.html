@@ -1,0 +1,190 @@
+<style>
+/* ============================================================
+   Traceability walk — design system step 6.
+   SVG edges under real HTML cards; swim-columns in causation
+   order; the walk is generated from the live EDGES registry so
+   it can never drift from the data.
+   ============================================================ */
+.walk-grid{display:grid;grid-template-columns:258px minmax(0,1fr);gap:20px;align-items:start}
+@media(max-width:860px){.walk-grid{grid-template-columns:1fr}}
+.walk-root{display:block;width:100%;text-align:left;background:transparent;border:0;border-left:2px solid var(--ridge);padding:9px 0 9px 12px;margin-bottom:3px;cursor:pointer;color:var(--moth);font-family:var(--body)}
+.walk-root:hover{background:rgba(255,255,255,.028);color:var(--silk)}
+.walk-root.on{border-left-color:var(--gold);color:var(--silk);background:var(--gold-wash)}
+.walk-root .nm{font-size:13.5px;font-weight:600;line-height:1.25;display:block}
+.walk-root .sub{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;color:var(--faint);margin-top:4px;display:block}
+.vtabs{display:flex;gap:0;border-bottom:1px solid var(--ridge);margin-bottom:14px}
+.vtab{background:transparent;border:0;border-bottom:2px solid transparent;cursor:pointer;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);padding:9px 12px}
+.vtab:hover{color:var(--silk)}
+.vtab[aria-selected="true"]{color:var(--amber);border-bottom-color:var(--amber)}
+.walk-canvas{position:relative;border:1px solid var(--ridge);border-radius:var(--r);background:linear-gradient(180deg,var(--deep),var(--night));padding:18px;overflow-x:auto}
+.walk-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.walk-cols{position:relative;z-index:1;display:flex;gap:26px;align-items:flex-start;min-width:0}
+.walk-col{flex:1 1 0;min-width:150px}
+.walk-col-h{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin:0 0 10px;display:flex;gap:8px;align-items:baseline}
+.walk-col-h b{color:var(--gold);font-weight:500}
+.wcard{display:block;width:100%;text-align:left;background:var(--glass-solid);border:1px solid var(--ridge);border-left:3px solid var(--strand-c,var(--dew));border-radius:var(--r);padding:9px 11px;margin-bottom:9px;cursor:pointer;color:var(--moth);font-family:var(--body)}
+.wcard:hover{border-color:var(--faint);color:var(--silk)}
+.wcard.root{border-left-color:var(--gold);box-shadow:0 0 0 1px var(--gold-wash)}
+.wcard .wc-k{font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);display:block}
+.wcard .wc-t{font-size:12.5px;font-weight:600;color:var(--silk);line-height:1.3;display:block;margin-top:3px}
+.walk-empty{padding:34px;text-align:center;color:var(--faint);font-family:var(--display);font-style:italic;font-size:14px;line-height:1.6}
+.walk-note{border-left:2px solid var(--rust);padding:2px 0 2px 14px;margin:14px 0 0;font-size:12.5px;color:var(--moth);line-height:1.55}
+.wtab-list{list-style:none;margin:0;padding:0}
+.wtab-list li{padding:8px 0;border-bottom:1px solid var(--ridge);font-size:12.5px;color:var(--moth);line-height:1.5}
+.wtab-list li:last-child{border-bottom:0}
+.wtab-list .mono2{font-family:var(--mono);font-size:9.5px;letter-spacing:.05em;color:var(--faint)}
+.wreg{width:100%;border-collapse:collapse;font-size:12px}
+.wreg td,.wreg th{padding:6px 10px 6px 0;border-bottom:1px solid var(--ridge);color:var(--moth);text-align:left;vertical-align:top}
+.wreg th{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);font-weight:500}
+</style>
+<script>
+/* ============================================================
+   Traceability walk (BL-WEB-32; design system step 6)
+   ============================================================ */
+(function walkPage(){
+  const at = PAGES.findIndex(p => p.id === 'ontology') + 1;
+  PAGES.splice(at, 0, { id:'walk', nav:'Walk', title:'Traceability walk',
+    kicker:'Decision lineage',
+    lede:'Pick a root and walk its evidence back down the KIL chain — workstream to artefact to insight to signal to decision. Drawn from the live relation registry, so the walk can never drift from the data.' });
+
+  const footer = document.querySelector('.shell > footer');
+  const d = document.createElement('section');
+  d.className = 'page'; d.id = 'pg-walk';
+  d.innerHTML = `<div class="page-head"><div class="eyebrow">Decision lineage</div>
+    <h2>Traceability walk</h2>
+    <p>Pick a root and walk its evidence back down the KIL chain — workstream to artefact to insight to signal to decision. Drawn from the live relation registry, so the walk can never drift from the data.</p></div>
+    <div class="walk-grid">
+      <div class="panel"><h2>Roots</h2><div id="walkRoots"></div>
+        <p class="pluck-hint" id="walkRootNote"></p></div>
+      <div>
+        <div class="vtabs" role="tablist" id="walkTabs">
+          <button class="vtab" role="tab" aria-selected="true" data-wt="graph">Graph</button>
+          <button class="vtab" role="tab" aria-selected="false" data-wt="timeline">Timeline</button>
+          <button class="vtab" role="tab" aria-selected="false" data-wt="audit">Audit trail</button>
+          <button class="vtab" role="tab" aria-selected="false" data-wt="register">Register</button>
+        </div>
+        <div id="wt-graph"></div>
+        <div id="wt-timeline" hidden></div>
+        <div id="wt-audit" hidden></div>
+        <div id="wt-register" hidden></div>
+      </div>
+    </div>`;
+  document.querySelector('.shell').insertBefore(d, footer);
+  document.getElementById('pnav').innerHTML = PAGES.map(p =>
+    `<a href="#/${p.id}" data-p="${p.id}">${p.nav}</a>`).join('');
+
+  const STAGE_ORDER = ['W','A','I','S','D'];
+  let walkRoot = null;
+
+  /* roots: Decision-stage nodes first; otherwise any node with inbound
+     evidence, stated honestly — the estate's missing Decisions stay named */
+  function walkCandidates(){
+    const withIn = NODEREFS.filter(r => EDGES.some(e => e.to === key(r)));
+    const dec = withIn.filter(r => kilOf(key(r)) === 'D');
+    return { list:(dec.length ? dec : withIn).slice(0, 30), hasDecisions:!!dec.length };
+  }
+
+  /* breadth-first walk over inbound edges from the root */
+  function walkFrom(rootId){
+    const seen = new Set([rootId]), hops = [];
+    let frontier = [rootId];
+    while (frontier.length){
+      const next = [];
+      frontier.forEach(id => EDGES.forEach(e => {
+        if (e.to !== id) return;
+        hops.push(e);
+        if (!seen.has(e.from)){ seen.add(e.from); next.push(e.from); }
+      }));
+      frontier = next;
+    }
+    return { ids:[...seen], hops };
+  }
+
+  function renderRoots(){
+    const { list, hasDecisions } = walkCandidates();
+    document.getElementById('walkRoots').innerHTML = list.map(r => {
+      const id = key(r);
+      return `<button class="walk-root${id === walkRoot ? ' on' : ''}" data-w="${id}">
+        <span class="nm">${esc(r.nd.t)}</span>
+        <span class="sub">${esc((KIL.levels.find(l => l.id === kilOf(id))||{}).label || '')} · ${esc(r.s.label)}</span></button>`;
+    }).join('') || '<p class="walk-empty">Nothing in this collection carries inbound relations.</p>';
+    document.getElementById('walkRootNote').textContent = hasDecisions
+      ? 'Roots are the Decision entities in this collection.'
+      : 'No Decision entities exist in this collection — the recorded gap stands. Roots below are the most-evidenced nodes instead.';
+    document.querySelectorAll('#walkRoots .walk-root').forEach(b =>
+      b.addEventListener('click', () => { walkRoot = (walkRoot === b.dataset.w ? null : b.dataset.w); renderWalk(); }));
+  }
+
+  function renderWalk(){
+    renderRoots();
+    const g = document.getElementById('wt-graph');
+    if (!walkRoot || !byKey[walkRoot]){
+      g.innerHTML = '<div class="walk-canvas"><div class="walk-empty">Select a root to walk its evidence.<br>Every tier below it is drawn from declared and entailed relations — nothing is invented.</div></div>';
+      ['timeline','audit','register'].forEach(t => document.getElementById('wt-' + t).innerHTML = '');
+      return;
+    }
+    const { ids, hops } = walkFrom(walkRoot);
+    const byStage = {};
+    ids.forEach(id => { const st = kilOf(id); (byStage[st] = byStage[st] || []).push(id); });
+    const stages = STAGE_ORDER.filter(s2 => byStage[s2]);
+    const declaredN = hops.filter(h => h.declared).length;
+
+    g.innerHTML = `<div class="walk-canvas" id="walkCanvas">
+      <svg class="walk-svg" id="walkSvg" aria-hidden="true"></svg>
+      <div class="walk-cols">` + stages.map((st, i) => {
+        const lv = KIL.levels.find(l => l.id === st) || { label:st };
+        return `<div class="walk-col" data-st="${st}">
+          <p class="walk-col-h"><b>${i + 1}</b> ${esc(lv.label)} · ${byStage[st].length}</p>` +
+          byStage[st].map(id => { const r = byKey[id];
+            return `<button class="wcard${id === walkRoot ? ' root' : ''}" data-w="${id}" style="--strand-c:var(--sc-${r.s.id})">
+              <span class="wc-k">${esc(CLSOF(id))}${id === walkRoot ? ' · root' : ''}</span>
+              <span class="wc-t">${esc(r.nd.t)}</span></button>`; }).join('') + '</div>';
+      }).join('') + `</div></div>
+      <p class="walk-note">${hops.length} relations in this walk — ${declaredN} asserted, ${hops.length - declaredN} entailed (materialised inverses). Nothing else reaches this root.</p>`;
+
+    /* Bézier edges under the cards, drawn from real card positions */
+    requestAnimationFrame(() => {
+      const cv = document.getElementById('walkCanvas'), svg = document.getElementById('walkSvg');
+      if (!cv || !svg) return;
+      const cb = cv.getBoundingClientRect();
+      svg.setAttribute('viewBox', `0 0 ${cb.width} ${cb.height}`);
+      const at2 = id => { const el2 = cv.querySelector(`.wcard[data-w="${CSS.escape(id)}"]`);
+        if (!el2) return null; const b = el2.getBoundingClientRect();
+        return { l:b.left - cb.left, r:b.right - cb.left, y:b.top - cb.top + b.height / 2 }; };
+      svg.innerHTML = hops.map(h => {
+        const a = at2(h.from), b = at2(h.to);
+        if (!a || !b) return '';
+        const x1 = a.r, x2 = b.l, mx = (x1 + x2) / 2;
+        const cls = h.declared ? '' : 'stroke-dasharray="5 3" opacity="0.5"';
+        return `<path d="M${x1},${a.y} C${mx},${a.y} ${mx},${b.y} ${x2},${b.y}" fill="none" ${cls}
+          stroke="var(--ep-${h.declared ? 'asserted' : 'inferred'})" stroke-width="1.5"/>`;
+      }).join('');
+    });
+    g.querySelectorAll('.wcard').forEach(b =>
+      b.addEventListener('click', () => { walkRoot = b.dataset.w; renderWalk(); }));
+
+    /* the same walk, three more ways */
+    document.getElementById('wt-timeline').innerHTML = '<ul class="wtab-list">' +
+      STAGE_ORDER.filter(s2 => byStage[s2]).map(st => byStage[st].map(id =>
+        `<li><span class="mono2">${esc((KIL.levels.find(l => l.id === st)||{}).label || st)}</span> — <b style="color:var(--silk)">${esc(byKey[id].nd.t)}</b></li>`).join('')).join('') + '</ul>';
+    document.getElementById('wt-audit').innerHTML = '<ul class="wtab-list">' +
+      hops.map(h => `<li><span class="mono2">${esc(PROPOF(h.prop).label)}</span> · ${esc((byKey[h.from]||{nd:{t:h.from}}).nd.t)} → ${esc((byKey[h.to]||{nd:{t:h.to}}).nd.t)} · <span class="mono2">${h.declared ? 'asserted' : 'inferred · materialised inverse'}</span></li>`).join('') + '</ul>';
+    document.getElementById('wt-register').innerHTML = `<table class="wreg"><tr><th>Node</th><th>Class</th><th>KIL stage</th><th>In</th><th>Out</th></tr>` +
+      ids.map(id => `<tr><td style="color:var(--silk);font-weight:600">${esc(byKey[id].nd.t)}</td><td>${esc(CLSOF(id))}</td>
+        <td>${esc((KIL.levels.find(l => l.id === kilOf(id))||{}).label || '')}</td>
+        <td>${EDGES.filter(e => e.to === id).length}</td><td>${EDGES.filter(e => e.from === id).length}</td></tr>`).join('') + '</table>';
+  }
+
+  document.getElementById('walkTabs').querySelectorAll('.vtab').forEach(t =>
+    t.addEventListener('click', () => {
+      document.querySelectorAll('#walkTabs .vtab').forEach(x => x.setAttribute('aria-selected', x === t));
+      ['graph','timeline','audit','register'].forEach(id =>
+        document.getElementById('wt-' + id).hidden = (id !== t.dataset.wt));
+    }));
+
+  /* stay current: rebuild on collection change and when the page is shown */
+  document.getElementById('colPick').addEventListener('change', () => { walkRoot = null; renderWalk(); });
+  window.addEventListener('hashchange', () => { if (location.hash.includes('/walk')) renderWalk(); });
+  renderWalk();
+})();
+</script>

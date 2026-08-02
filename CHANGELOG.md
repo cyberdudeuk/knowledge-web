@@ -4,6 +4,18 @@ All notable changes to the artefact. Mirrors Section 13 (Release history) of
 `docs/programme-authority.html`, which remains the source of truth. Defects
 found during verification are named, never quietly fixed.
 
+## v2.7 — 2026-08-02
+
+Design system step 6: the traceability walk (BL-WEB-32).
+
+- New portal page (ninth): pick a root, walk its evidence down the KIL chain.
+  Swim-columns in causation order; SVG edges under real HTML cards, drawn
+  from the live relation registry — asserted solid, entailed dashed.
+- Four representations of one walk: Graph / Timeline / Audit trail / Register.
+- Roots are Decision entities where a collection has them; where it does not,
+  the gap is stated and the most-evidenced nodes stand in.
+- Defect found and fixed: none. Verified: 9 pages × 6 collections × 2 themes.
+
 ## v2.6 — 2026-08-02
 
 Design system step 5: the node inspector.

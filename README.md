@@ -1,6 +1,6 @@
 # The Web
 
-![Version](https://img.shields.io/badge/version-2.6-1d70b8)
+![Version](https://img.shields.io/badge/version-2.7-1d70b8)
 ![Status](https://img.shields.io/badge/status-prototype_·_AMBER_by_design-c05600)
 ![Licence](https://img.shields.io/badge/licence-Apache--2.0-00703c)
 ![Delivery](https://img.shields.io/badge/delivery-single_HTML_file-4c2c92)
@@ -12,7 +12,7 @@
 ![Storage](https://img.shields.io/badge/storage_APIs-none_(ADR--W08)-6b7280)
 ![Language](https://img.shields.io/badge/English-UK_only-6b7280)
 ![Node](https://img.shields.io/badge/node-%E2%89%A518_(build_only)-5F5E5A)
-![Verified](https://img.shields.io/badge/verified-8_pages_%C3%97_6_collections_%C3%97_2_themes-1d70b8)
+![Verified](https://img.shields.io/badge/verified-9_pages_%C3%97_6_collections_%C3%97_2_themes-1d70b8)
 ![Doctrine](https://img.shields.io/badge/asserted_%E2%89%A0_inferred_%E2%89%A0_induced-never_collapsed-4c2c92)
 ![Gaps](https://img.shields.io/badge/every_collection-declares_its_gaps-946b00)
 
