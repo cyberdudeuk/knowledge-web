@@ -3301,6 +3301,21 @@ document.getElementById('manBody').innerHTML = `
   <li>Every bead is reachable by <kbd>Tab</kbd> and has a spoken name, its class, and its description.</li>
 </ul>
 
+<p style="margin-top:16px"><b>What has actually been verified</b> (BL-WEB-08) — run automatically before every release, not just claimed:</p>
+<ul>
+  <li>AA contrast (4.5:1) on body text, checked by a headless browser against the real painted background, in every theme.</li>
+  <li>Every interactive element reachable by keyboard, with an accessible name, checked the same way.</li>
+  <li>Zero console or page errors across all 9 pages and all 6 collections.</li>
+  <li>No horizontal overflow at 390px width.</li>
+</ul>
+<p><b>What has not been verified:</b></p>
+<ul>
+  <li>Never tested by a real screen-reader user, or a real keyboard-only user — automation checks reachability and naming, not whether the experience actually makes sense to a person using one. This is standing risk R-01.</li>
+  <li>The ontology and taxonomy were authored by the tool that built this, not agreed by a vocabulary owner — risk R-04.</li>
+  <li>The OCDO skin (a third theme, added after the automated contrast check was written) has only been spot-checked by hand, not covered by the automated pass yet.</li>
+</ul>
+<p><b>To report a barrier:</b> open a GitHub issue against this repository using the bug report template, and say explicitly that it's an accessibility barrier — nothing here should need you to already know the internals to report it.</p>
+
 <h3>Every key</h3>
 <table class="keytable">
   <tr><td><kbd>/</kbd></td><td>Focus the search</td></tr>

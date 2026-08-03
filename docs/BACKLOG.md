@@ -12,7 +12,7 @@ source of truth. **Trace** cites the source that demands the item.
 | **BL-WEB-05** | Version control the code line. The prototype exists only as build-session output. Establish a repository and tagged releases. | DONE | 0 | R-02 |
 | **BL-WEB-06** | Shareable state. Encode collection, selection, view mode and zoom in the URL so a view can be cited in a governance pack. | DONE | 1 | IA-07 |
 | **BL-WEB-07** | Complete the augmentation register. Define manual counterparts for AUG-06, 07 and 08 before those capabilities ship. | DONE | 2 | T-02 |
-| **BL-WEB-08** | Accessibility statement in the artefact, naming what has been verified, what has not, and how to report a barrier. | P2 | 1 | MG-NFR-002 |
+| **BL-WEB-08** | Accessibility statement in the artefact, naming what has been verified, what has not, and how to report a barrier. | DONE | 1 | MG-NFR-002 |
 | **BL-WEB-09** | Print and PDF stylesheet. Governance packs are still circulated on paper; the web currently prints as a dark rectangle. | P2 | 2 | MG-FR-015 |
 | **BL-WEB-10** | Global search across beads, glossary, thesaurus, dictionary, ontology and manual — not only the current web. | DONE | 1 | IA-10 |
 | **BL-WEB-11** | Collapse display preferences into one popover, separating them from modes and destinations. | DONE | 1 | IA-03 |
