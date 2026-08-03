@@ -183,7 +183,7 @@ function makeStd5Collection(){
     dom.topics.slice(0,9).forEach((t, j) => {
       nodes.push({ t:`${t.c} ${t.n}`, k:t.s, themes:[st(t.s)],
         b:`Topic ${t.c} of domain ${num}. Status: ${t.s}.`,
-        c:[`Standards: ${t.ex}`,`Status: ${t.s}`,`Domain: ${clean}`], open:t.s==='Draft',
+        c:[`Standards: ${t.ex}`,`Status: ${t.s}`,`Domain: ${clean}`,`Subject (3rd tier): not populated in this dataset (BL-WEB-13)`], open:t.s==='Draft',
         mat: t.s==='Partially Endorsed' ? 'partial' : null });
       enrich[`${id}:${j+1}`]={ cls:'Standard', tax:'govern/policy', kisil:t.s==='Endorsed'?'K':'L', rel:[['partOf', id+':0']] };
     });
