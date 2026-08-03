@@ -27,7 +27,7 @@ source of truth. **Trace** cites the source that demands the item.
 | **BL-WEB-20** | OWL round-trip. Import and export Turtle and JSON-LD so the ontology meets real vocabularies and returns to Protégé. | P1 | 2 | DCAT, ADR-W09 |
 | **BL-WEB-21** | Explanation of inference. "Why is this inferred?" showing the axiom chain. Without it the reasoner asks for trust it has not earned. | P1 | 2 | T-04 |
 | **BL-WEB-22** | Adopt DCAT-UK-AP as an ontology import — dcat:Dataset, Distribution, DataService, Catalog — so a collection can be expressed in the profile government actually mandates. | P1 | 2 | DCAT, MG-IR005 |
-| **BL-WEB-23** | SKOS export of the thesaurus, with the taxonomy as a concept scheme. | P2 | 2 | MG 2.3.4 |
+| **BL-WEB-23** | SKOS export of the thesaurus, with the taxonomy as a concept scheme. **Shipped**: "Export SKOS" button on the Reference page's Taxonomy and Thesaurus views, downloading a SKOS-shaped JSON-LD file. Both data structures were already authored SKOS-shaped (TAXONOMY as a two-level scheme, THESAURUS with pref/alt/broader/related) — this serialises what already exists, no new vocabulary decisions made. | DONE | 2 | MG 2.3.4 |
 | **BL-WEB-24** | Duplicate and near-duplicate detection across and within collections, presented as "possible match", never as judgement. | P2 | 3 | MG-FR-009 |
 | **BL-WEB-25** | Cardinality and property-chain axioms, plus equivalent-class definitions, taking the reasoner beyond its current subset. | P3 | 3 | ADR-W09 |
 | **BL-WEB-26** | SHACL validation of a collection against a shape file, mirroring the DCAT-UK-AP validation step. | P2 | 3 | DCAT §6 |
