@@ -467,6 +467,7 @@ DISPLAY SETTINGS  (cross-cutting, one popover)               [BL-WEB-11]
   <li><b>Typography.</b> UK English exclusively. Literal <code>·</code> (U+00B7) and <code>—</code> (U+2014) in prose; JS escapes inside template strings, to avoid anchor mismatch during patch runs.</li>
   <li><b>Paths.</b> Outputs to <code>/mnt/user-data/outputs/</code>. Uploads are read-only.</li>
   <li><b>No storage APIs.</b> <code>localStorage</code> and <code>sessionStorage</code> are not used anywhere, by decision ADR-W08.</li>
+  <li><b>Performance budget (BL-WEB-51).</b> Declared and tested every run, not just declared: cold navigation to first rendered bead under 8s; switching to the largest collection (CDA, 499 assets) under 2s; bead click to detail-panel update under 400ms; JS heap after cycling all six collections under 250MB. The first-paint ceiling was set after measuring actual behaviour, not guessed — a single-file app of this size genuinely takes a few seconds to parse cold, two orders of magnitude slower than any in-page interaction.</li>
 </ul>
 
 <footer>
