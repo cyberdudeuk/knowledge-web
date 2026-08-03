@@ -805,6 +805,32 @@ html{font-size:100%}
 .legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;font-family:var(--mono);font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);align-items:center}
 .legend svg{width:15px;height:15px;vertical-align:-3px;margin-right:4px}
 .legend svg *{fill:none;stroke:var(--moth);stroke-width:1.6}
+
+/* ============================================================
+   Print (BL-WEB-09) — governance packs go on paper. Printing the
+   dark interactive stage makes a black rectangle, so print instead
+   shows the existing text version (BL-WEB-10) of whatever collection
+   is currently loaded: real content already built for this exact
+   purpose, not a new page authored just for print. Scope is
+   deliberately narrow — the Explore page's list view, not every page.
+   ============================================================ */
+@media print{
+  *{background:#fff!important;color:#000!important;box-shadow:none!important;text-shadow:none!important}
+  .topbar,.skip,#live,.tourbar,.modal,.zoomdock,.minimap,.arm-note,footer{display:none!important}
+  .page{display:none!important}
+  #pg-web{display:block!important}
+  .grid{display:block!important}
+  .rail-left,.rail-right,.stage,.how,.masthead .mast-controls,.mark-wrap{display:none!important}
+  .rail-mid{display:block!important}
+  .listview{display:block!important;margin:0}
+  .listview[hidden]{display:block!important}
+  .lv-strand{border:1px solid #999;border-radius:0;margin-bottom:14px;overflow:visible;page-break-inside:avoid}
+  .lv-head{background:#eee;border-left:3px solid #000;color:#000}
+  .lv-head .sub{color:#333}
+  .lv-items button{color:#000}
+  .lv-items .cls{color:#555}
+  a{color:#000;text-decoration:underline}
+}
 </style>
 <style>
 /* ============================================================
