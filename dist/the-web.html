@@ -3800,6 +3800,37 @@ function ax(html, kind, tag){
   return `<div class="ax ${kind||''}">${tag?`<span class="tag">${tag}</span>`:''}${html}</div>`;
 }
 
+/* ============================================================
+   BL-WEB-21 — explanation of inference. The reasoner (REASON, above)
+   already knows exactly which rule produced each inferred fact; this
+   just states it in words instead of leaving "inferred" as an
+   unexplained label. Traces the real rule that fired, not a guess.
+   ============================================================ */
+function whyClass(id, cls){
+  /* subsumption checked first and preferred: the reasoner's own domain/range
+     step explicitly never targets 'Thing' (the universal root), so if 'Thing'
+     (or anything else genuinely reached via ancestry) shows up here, ancestry
+     is the only correct explanation — matching some unrelated edge whose
+     domain/range coincidentally equals the same class would be a real but
+     misleading answer, not the one the reasoner actually used to add it. */
+  const asserted = CLSOF(id);
+  if (ancestorsOf(asserted).includes(cls)) return `via subsumption — ${asserted} is asserted as a subclass of ${cls}`;
+  const viaDomain = DECLARED.find(e => e.from === id && PROP_META[e.prop] && PROP_META[e.prop].dom === cls);
+  if (viaDomain) return `via property domain — ${asserted} asserts ${viaDomain.prop}, and ${viaDomain.prop}'s declared domain is ${cls}`;
+  const viaRange = DECLARED.find(e => e.to === id && PROP_META[e.prop] && PROP_META[e.prop].rng === cls);
+  if (viaRange) return `via property range — something asserts ${viaRange.prop} to this, and ${viaRange.prop}'s declared range is ${cls}`;
+  return 'derived by the reasoner';
+}
+function whyEdge(e){
+  if (DECLARED.some(d => d.prop === e.prop && d.from === e.to && d.to === e.from)){
+    return `via symmetry — ${e.prop} is declared Symmetric, and the reverse direction is asserted`;
+  }
+  const allOfProp = [...DECLARED, ...REASON.extra].filter(x => x.prop === e.prop);
+  const mid = allOfProp.find(a => a.from === e.from && allOfProp.some(b => b.from === a.to && b.to === e.to));
+  if (mid && nodeOf(mid.to)) return `via transitivity — ${e.prop} is declared Transitive, chained through ${nodeOf(mid.to).nd.t}`;
+  return 'derived by the reasoner';
+}
+
 function owlDetail(){
   const det = document.getElementById('owlDetail'), use = document.getElementById('owlUsage');
   const cls = ONTOLOGY.find(o => o.id === owlSel);
@@ -3818,7 +3849,7 @@ function owlDetail(){
       ${ax(`<b>web:shape</b> "${esc(cls.shape)}" <span class="tag">visual encoding</span>`)}
       <h4>SubClass of</h4>
       ${cls.parent ? ax(`<i>${NS}${cls.parent}</i>`, '', 'asserted') : ax('<em>owl:Thing</em> — this is the root', '', 'asserted')}
-      ${owlShowInf ? anc.slice(1).map(a => ax(`<i>${NS}${a}</i>`, 'inf', 'inferred')).join('') : ''}
+      ${owlShowInf ? anc.slice(1).map(a => ax(`<i>${NS}${a}</i>`, 'inf', 'inferred — via subsumption (transitive subclass-of)')).join('') : ''}
       ${kids.length ? `<h4>Sub classes</h4>` + kids.map(k => ax(`<i>${NS}${k}</i>`)).join('') : ''}
       ${dis.length ? `<h4>Disjoint with</h4>` + dis.map(k => ax(`<i>${NS}${k}</i>`, '', 'asserted')).join('') : ''}`;
 
@@ -3851,7 +3882,7 @@ function owlDetail(){
       ${ax(`<b>rdfs:range</b> <i>${NS}${meta.rng}</i>`)}
       <h4>Assertions \u00b7 ${list.length}${owlShowInf && inf.length ? ' asserted, ' + inf.length + ' inferred' : ''}</h4>` +
       list.map(e => ax(`<b>${esc(nodeOf(e.from).nd.t)}</b> <i>${prp.id}</i> <b>${esc(nodeOf(e.to).nd.t)}</b>`, '', 'asserted')).join('') +
-      (owlShowInf ? inf.map(e => ax(`<b>${esc(nodeOf(e.from).nd.t)}</b> <i>${prp.id}</i> <b>${esc(nodeOf(e.to).nd.t)}</b>`, 'inf', 'inferred')).join('') : '');
+      (owlShowInf ? inf.map(e => ax(`<b>${esc(nodeOf(e.from).nd.t)}</b> <i>${prp.id}</i> <b>${esc(nodeOf(e.to).nd.t)}</b>`, 'inf', `inferred — ${whyEdge(e)}`)).join('') : '');
     u = `<p style="font-size:12px;color:var(--moth);line-height:1.55">Draw every <b style="color:var(--silk)">${esc(prp.id)}</b> assertion on the web.</p>
       <button class="ctl" id="owlDraw">Draw on the web</button>`;
   }
@@ -3862,7 +3893,7 @@ function owlDetail(){
     h = `<div class="entity-head"><div class="iri">${NS}${id.replace(':','_')}</div><h3>${esc(ind.nd.t)}</h3><p>${esc(ind.nd.b)}</p></div>
       <h4>Types</h4>
       ${ax(`<b>rdf:type</b> <i>${NS}${asserted}</i>`, '', 'asserted')}
-      ${owlShowInf ? infT.map(t => ax(`<b>rdf:type</b> <i>${NS}${t}</i>`, 'inf', 'inferred')).join('') : ''}
+      ${owlShowInf ? infT.map(t => ax(`<b>rdf:type</b> <i>${NS}${t}</i>`, 'inf', `inferred — ${whyClass(id, t)}`)).join('') : ''}
       <h4>Annotations</h4>
       ${ax(`<b>web:thread</b> "${esc(ind.s.label)}"`)}
       ${ax(`<b>web:kilStage</b> "${esc((KIL.levels.find(l=>l.id===kilOf(id))||{}).label)}" <span class="tag">KIL \u00b7 canonical</span>`)}
@@ -3871,7 +3902,8 @@ function owlDetail(){
       <h4>Property assertions</h4>`;
     const asserts = assertionsOf(id);
     h += asserts.filter(a => owlShowInf || a.kind === 'asserted').map(a =>
-      ax(`<i>${a.prop}</i> <b>${esc(nodeOf(a.to).nd.t)}</b>`, a.kind === 'asserted' ? '' : 'inf', a.kind)).join('')
+      ax(`<i>${a.prop}</i> <b>${esc(nodeOf(a.to).nd.t)}</b>`, a.kind === 'asserted' ? '' : 'inf',
+        a.kind === 'inferred' ? `inferred — ${whyEdge(a)}` : a.kind === 'inverse' ? 'inverse — materialised from the declared direction' : a.kind)).join('')
       || ax('<em>none</em>');
     h += `<h4>On the web</h4><button class="owl-jump" data-node="${id}">Go to this bead \u2192<span class="s">${esc(ind.s.label)}</span></button>`;
     u = `<p style="font-size:12px;color:var(--moth);line-height:1.55">Assertions pointing <b style="color:var(--silk)">at</b> this individual.</p>` +
