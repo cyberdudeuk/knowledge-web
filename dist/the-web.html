@@ -2021,6 +2021,11 @@ function wire(){
     b.addEventListener('click', () => selectNode(b.dataset.s, +b.dataset.j)));
   detailBody.querySelectorAll('.qedge').forEach(b =>
     b.addEventListener('click', () => { const r = byKey[b.dataset.n]; if (r) selectNode(r.s.id, r.j); }));
+  const expBtn = detailBody.querySelector('#expEvidence');
+  if (expBtn) expBtn.addEventListener('click', () => {
+    const r = byKey[expBtn.dataset.s + ':' + expBtn.dataset.j];
+    if (r) exportEvidencePack(r);
+  });
 }
 
 /* ---------- node inspector quadrant ----------
@@ -2089,8 +2094,59 @@ function renderNode(ref, kin){
      ${(nd.impact || nd.conf) ? `<div class="meta-row" style="--strand-c:var(--sc-${s.id})">${nd.impact ? pips('Impact', nd.impact) : ''}${nd.conf ? pips('Confidence', nd.conf) : ''}</div>` : ''}
      ${quadBlock(s, nd)}
      ${xrefBlock('Resonates with', kin)}
-     ${s.url ? `<div class="xref"><a href="${s.url}" target="_blank" rel="noopener">Open the conversation \u2192</a></div>` : ''}`;
+     ${s.url ? `<div class="xref"><a href="${s.url}" target="_blank" rel="noopener">Open the conversation \u2192</a></div>` : ''}
+     <div class="xref"><button class="cta ghost" id="expEvidence" data-s="${s.id}" data-j="${ref.j}">Export evidence pack (BL-WEB-44)</button></div>`;
   wire();
+}
+
+/* ============================================================
+   BL-WEB-44 \u2014 evidence pack export. A collated, citable Markdown pack
+   for the currently selected bead: its own detail, provenance and
+   declared relations, reusing exactly the same live registries
+   quadBlock() reads from \u2014 nothing here is a separate, divergeable
+   copy of that data.
+   ============================================================ */
+function exportEvidencePack(ref){
+  const nd = ref.nd, s = ref.s, nid = s.id + ':' + ref.j;
+  const e2 = ENRICH[nid] || {};
+  const outE = (typeof EDGES !== 'undefined' ? EDGES.filter(e => e.from === nid) : []);
+  const inE = (typeof EDGES !== 'undefined' ? EDGES.filter(e => e.to === nid) : []);
+  const edgeLine = (e, out) => {
+    const other = byKey[out ? e.to : e.from];
+    if (!other) return null;
+    return `- ${out ? PROPOF(e.prop).label + ' \u2192 ' : '\u2190 ' + PROPOF(e.prop).label + ' '}${other.nd.t}${e.declared ? '' : ' (inferred)'}`;
+  };
+  const lines = [
+    `# Evidence pack \u2014 ${nd.t}`,
+    '',
+    `Exported from The Knowledge Web. Not signed off, not a governance record in its own right \u2014 a citable snapshot of what this build asserted at export time.`,
+    '',
+    `**Thread:** ${s.label}  `,
+    `**Class:** ${e2.cls || 'Concept'}  `,
+    `**Status:** ${nd.open ? 'Still open' : 'Built'}${nd.mat === 'partial' ? ' \u00b7 Partially endorsed' : ''}`,
+    '',
+    '## Description',
+    nd.b || '',
+    '',
+    nd.c && nd.c.length ? '## Facts\n' + nd.c.map(x => '- ' + x).join('\n') : '',
+    '',
+    '## Provenance',
+    `- created by: AI-drafted (Claude Code), not owner-authored`,
+    `- review status: Not reviewed by a vocabulary or content owner (risk R-04)`,
+    s.url ? `- source: ${s.url}` : `- source: collection data`,
+    '',
+    '## Relations',
+    outE.length || inE.length
+      ? [...outE.map(e => edgeLine(e, true)), ...inE.map(e => edgeLine(e, false))].filter(Boolean).join('\n')
+      : 'None declared.',
+  ];
+  const blob = new Blob([lines.join('\n')], { type:'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = nid.replace(':','-') + '-evidence-pack.md';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  say('Evidence pack for ' + nd.t + ' exported.');
 }
 
 function renderStrand(s){
