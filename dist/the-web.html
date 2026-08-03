@@ -4111,6 +4111,34 @@ function relayout(){
                   r.clsEl.setAttribute('y', r.p.y + r.s._lab.py * r.s._lab.off - 7.5); }
   });
 
+  /* BL-WEB-29 — occlusion mitigation. Beads on the same layer whose
+     original angles put them within a few pixels of each other fully
+     hide one another once tilted. Group by (layer, coarse grid cell)
+     and spread any group of 2+ around its own shared centroid — small,
+     deterministic (same coincident set always gets the same offset,
+     never re-randomised per render), and cheap next to an exploded-
+     layout rewrite of the whole projection. */
+  const nudgeBuckets = {};
+  NODEREFS.forEach(r => {
+    const bkey = zOf(r) + ':' + Math.round(r.p.x / 14) + ':' + Math.round(r.p.y / 14);
+    (nudgeBuckets[bkey] = nudgeBuckets[bkey] || []).push(r);
+  });
+  Object.values(nudgeBuckets).filter(g => g.length > 1).forEach(group => {
+    group.sort((a, b) => (a.s.id + ':' + a.j).localeCompare(b.s.id + ':' + b.j));
+    const cx = group.reduce((s, r) => s + r.p.x, 0) / group.length;
+    const cy = group.reduce((s, r) => s + r.p.y, 0) / group.length;
+    const spread = 5 + Math.min(group.length, 6) * 2.5;
+    group.forEach((r, i) => {
+      const ang = (2 * Math.PI * i) / group.length;
+      r.p = { x: cx + Math.cos(ang) * spread, y: cy + Math.sin(ang) * spread };
+      r.bead.setAttribute('d', shapePath(r.shape, r.p.x, r.p.y, r.size));
+      r.lblEl.setAttribute('x', r.p.x + r.s._lab.px * r.s._lab.off);
+      r.lblEl.setAttribute('y', r.p.y + r.s._lab.py * r.s._lab.off + 3.5);
+      if (r.clsEl){ r.clsEl.setAttribute('x', r.p.x + r.s._lab.px * r.s._lab.off);
+                    r.clsEl.setAttribute('y', r.p.y + r.s._lab.py * r.s._lab.off - 7.5); }
+    });
+  });
+
   flatOnly.forEach(id => document.getElementById(id).style.display = 'none');
   [planes, rs, risers].forEach(g => { g.style.display = ''; g.innerHTML = ''; });
 
