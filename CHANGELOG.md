@@ -4,6 +4,52 @@ All notable changes to the artefact. Mirrors Section 13 (Release history) of
 `docs/programme-authority.html`, which remains the source of truth. Defects
 found during verification are named, never quietly fixed.
 
+## v3.7 — 2026-08-03
+
+Continuing the autonomous backlog pass. Seven more items closed, two
+more documented as blocked on missing data.
+
+**Closed:**
+- **BL-WEB-08** — accessibility statement: what's verified, what isn't
+  (risks R-01/R-04 named directly), how to report a barrier.
+- **BL-WEB-09** — print stylesheet. Printing used to produce a black
+  rectangle; `@media print` now shows the existing text version instead.
+- **BL-WEB-13** — the Subject-tier gap (already declared once in
+  repairs) now also stated on every topic bead directly.
+- **BL-WEB-23** — SKOS export of the taxonomy/thesaurus, both of which
+  were already authored SKOS-shaped.
+- **BL-WEB-21** — every inferred fact in the OWL explorer now states
+  the actual rule that produced it (subsumption, domain, range,
+  transitivity, symmetry), not an unexplained "inferred" label.
+- **BL-WEB-44** — evidence-pack export for a single selected bead
+  (Markdown: title, facts, provenance, relations). Not yet the full
+  multi-bead version the item describes.
+- **BL-WEB-51** — a performance budget, declared and tested every run,
+  not just declared. The ceiling was set after measuring real behaviour.
+
+**Documented as genuinely blocked, not faked:**
+- **BL-WEB-16** joins BL-WEB-15/33 in the same class of gap: the actual
+  per-row data the item names (GDS status strings, DAM Category values)
+  doesn't exist anywhere in this codebase, only aggregate claims.
+
+**Two real defects found in my own new code before either shipped:**
+- The performance-budget test's first cut measured "did this time out"
+  rather than real elapsed time (numbers suspiciously equal to its own
+  timeout) — rewritten to match this file's own proven fixed-wait
+  pattern instead of inventing a different one.
+- The inference-explanation logic checked property-domain/range before
+  subsumption, so a class reachable both ways could get attributed to a
+  coincidentally matching but unrelated edge. Fixed by checking
+  subsumption first.
+
+Both caught by testing the new code against real data, not by assuming
+it worked because it ran without error.
+
+Verified throughout: build + verify pass, 6 collections, dark/light
+themes, at every step. Each item committed and pushed individually as
+it landed — this entry is a summary, not the record of what happened
+when.
+
 ## v3.6 — 2026-08-03
 
 A full pass through the standing backlog (owner: "do all of the things
