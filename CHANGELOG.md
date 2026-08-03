@@ -4,6 +4,17 @@ All notable changes to the artefact. Mirrors Section 13 (Release history) of
 `docs/programme-authority.html`, which remains the source of truth. Defects
 found during verification are named, never quietly fixed.
 
+## v3.8 — 2026-08-03
+
+**BL-WEB-29** — occlusion mitigation in the stratified view. Same-layer
+beads that land within a few pixels of each other now get spread around
+their shared centroid, deterministically. Verified against synthetic
+coincident points; the current 6 collections didn't happen to produce a
+real on-screen example across the two stratification modes checked, so
+that's stated honestly rather than shown as a live before/after.
+
+Verified: build + verify pass, 6 collections, dark/light themes.
+
 ## v3.7 — 2026-08-03
 
 Continuing the autonomous backlog pass. Seven more items closed, two
