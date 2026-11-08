@@ -1,0 +1,759 @@
+{
+ "title": "Shared register: Emanuel's Knowledge Map and Claude Work 360º",
+ "listed_on": "2026-10-27",
+ "last_sweep": "2026-10-17",
+ "keyed_on": "artifact identifier",
+ "map": "https://claude.ai/artifact/JRa7HwABQE5radNQNVa9D8",
+ "work360": "https://claude.ai/artifact/9fbYTCjx1PowBxHDuiw7gi",
+ "basis": {
+  "named": "node named in its source",
+  "title": "matched on title by Claude",
+  "ambiguous": "one of two with the same title",
+  "personal": "personal: title withheld, no node",
+  "none": "no node on the map",
+  "new": "published since the last sweep; no node until its chats are read"
+ },
+ "rows": [
+  {
+   "artifact_id": "9fbYTCjx1PowBxHDuiw7gi",
+   "title": "Claude work 360º",
+   "updated": "2026-10-12",
+   "map_node": "w360",
+   "basis": "named",
+   "w360_row": 80
+  },
+  {
+   "artifact_id": "USEZkGTFDUXuw8fZLb28TG",
+   "title": "Honouring Our Communities: BHM 2026 at GDS and DSIT",
+   "updated": "2026-10-27",
+   "map_node": null,
+   "basis": "new",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "CN8nKSA4hckTmqPReEvDdP",
+   "title": "DAM Return and DAM Desk",
+   "updated": "2026-10-27",
+   "map_node": null,
+   "basis": "new",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "3KE89ExMYDJCEFohiFvDza",
+   "title": "Data Asset Management Policy portal",
+   "updated": "2026-10-27",
+   "map_node": "dam",
+   "basis": "named",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "QAZds6hjpp3UR8HG5xrXQQ",
+   "title": "DAM, GDS help and cross-government join-up: time and artefacts",
+   "updated": "2026-10-12",
+   "map_node": "damt",
+   "basis": "named",
+   "w360_row": 81
+  },
+  {
+   "artifact_id": "VtxD1e8ZSzBR4NWP2RTB7y",
+   "title": "Black History Month 2026 Hub",
+   "updated": "2026-10-26",
+   "map_node": null,
+   "basis": "new",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "CeE5WMvqGBu7DcBb8hYxCR",
+   "title": "Help run the BHM 2026 Hub all year round: proposal for comment",
+   "updated": "2026-10-21",
+   "map_node": null,
+   "basis": "new",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "QLdvzPTdd3sWmQve8nLPmw",
+   "title": "RAIDU Responsible AI & Data Use",
+   "updated": "2026-10-25",
+   "map_node": null,
+   "basis": "new",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "Ujr4P9tb74r3p6sm4GR2iN",
+   "title": null,
+   "updated": "2026-10-20",
+   "map_node": null,
+   "basis": "personal",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "6dHsFiSZELaK5gWMUq4kUf",
+   "title": null,
+   "updated": "2026-10-20",
+   "map_node": null,
+   "basis": "personal",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "L8RzXqraVr5W7iVbMxx2Bp",
+   "title": null,
+   "updated": "2026-10-20",
+   "map_node": null,
+   "basis": "personal",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "ETvuaS3XHfjTuLpAwkX2xw",
+   "title": "Recognition Opportunities Portal",
+   "updated": "2026-10-25",
+   "map_node": null,
+   "basis": "new",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "FQ9Bdkb4cbJUeoUAJP85CC",
+   "title": "DPIA: Recognition Opportunities Portal",
+   "updated": "2026-10-18",
+   "map_node": null,
+   "basis": "new",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "3NG8Argga8H9gVtoLh1ug5",
+   "title": "Recognition Opportunities Portal: professional and adversarial review",
+   "updated": "2026-10-18",
+   "map_node": null,
+   "basis": "new",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "JRa7HwABQE5radNQNVa9D8",
+   "title": "Emanuel's Knowledge Map",
+   "updated": "2026-10-17",
+   "map_node": "map",
+   "basis": "named",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "4vQacRR6pyrRmynWigHz77",
+   "title": "HIVE navigator: the govukOS portfolio",
+   "updated": "2026-10-16",
+   "map_node": "hive-nav",
+   "basis": "named",
+   "w360_row": 37
+  },
+  {
+   "artifact_id": "ASWgRxcMsEiaJNLDuw6jT7",
+   "title": null,
+   "updated": "2026-10-16",
+   "map_node": null,
+   "basis": "personal",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "HQ34d23t8M4uYpjUJFYPaQ",
+   "title": "DAM portal hand-over bundle",
+   "updated": "2026-10-15",
+   "map_node": "sdl-hand",
+   "basis": "named",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "Aakt3mHDZ1gBA2TBvL8Enx",
+   "title": "Caretakers: a conversation about govukOS and the natural world",
+   "updated": "2026-09-30",
+   "map_node": "hive-care",
+   "basis": "named",
+   "w360_row": 42
+  },
+  {
+   "artifact_id": "9NvnoPq6iU27d52NFepkgi",
+   "title": "Government Data portal",
+   "updated": "2026-10-25",
+   "map_node": "cc",
+   "basis": "named",
+   "w360_row": 43
+  },
+  {
+   "artifact_id": "2dKTqhVhjCvHx6pug84y4V",
+   "title": null,
+   "updated": "2026-10-14",
+   "map_node": null,
+   "basis": "personal",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "RkUjLnyqaupZ6wBY1v11rd",
+   "title": null,
+   "updated": "2026-10-14",
+   "map_node": null,
+   "basis": "personal",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "KysT7LL2cN1DiESt1iFt12",
+   "title": "DAM canon — build and assurance hub",
+   "updated": "2026-10-27",
+   "map_node": "dam-hub",
+   "basis": "named",
+   "w360_row": 13
+  },
+  {
+   "artifact_id": "CoesBRe4S3csJKsDQxDVUJ",
+   "title": "AI Capability Evidence Portal",
+   "updated": "2026-10-25",
+   "map_node": "aicap",
+   "basis": "title",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "S2MU9rUtjZd9HCSAKnMyUk",
+   "title": null,
+   "updated": "2026-10-25",
+   "map_node": null,
+   "basis": "personal",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "B3wdFFVF8si99WDDCLwTX2",
+   "title": "GitHub Repos Asset Catalogue",
+   "updated": "2026-10-11",
+   "map_node": "gh-cat",
+   "basis": "named",
+   "w360_row": 2
+  },
+  {
+   "artifact_id": "S7HHn4sb9zAw49SrZ1qpbk",
+   "title": "Data Interoperability Atlas",
+   "updated": "2026-10-11",
+   "map_node": "hoi-atlas",
+   "basis": "named",
+   "w360_row": 3
+  },
+  {
+   "artifact_id": "GDEmo4ZgQH9B9QDe3DRYR1",
+   "title": "50 more uses for the GitHub Repos Asset Catalogue",
+   "updated": "2026-10-10",
+   "map_node": "gh-uses",
+   "basis": "title",
+   "w360_row": 4
+  },
+  {
+   "artifact_id": "MfJr5TydNuDGPv3tGfxPTD",
+   "title": "The Hidden Tab Pattern",
+   "updated": "2026-10-08",
+   "map_node": "hoi-htp",
+   "basis": "ambiguous",
+   "w360_row": 11
+  },
+  {
+   "artifact_id": "PBSHo59v3ffM8s7QLopjxn",
+   "title": "My 360º view of the state: prototype",
+   "updated": "2026-10-25",
+   "map_node": "yp-proto",
+   "basis": "named",
+   "w360_row": 5
+  },
+  {
+   "artifact_id": "CX1xhHpatCfvWAf9nPnRe3",
+   "title": "Earning or learning",
+   "updated": "2026-10-25",
+   "map_node": "neet",
+   "basis": "ambiguous",
+   "w360_row": 7
+  },
+  {
+   "artifact_id": "KNpKcWYsXJRHdEAfRsLAoT",
+   "title": "NEET Portal family: quality, usability and compliance assessment",
+   "updated": "2026-10-09",
+   "map_node": "yp-assess",
+   "basis": "named",
+   "w360_row": 9
+  },
+  {
+   "artifact_id": "D5Z5M9w61vdEdVQU1sP587",
+   "title": "Before the label: the whole young person, pan-UK",
+   "updated": "2026-10-25",
+   "map_node": "btl-portal",
+   "basis": "named",
+   "w360_row": 6
+  },
+  {
+   "artifact_id": "KtvH3k954KaATENz92AcdL",
+   "title": "Earning or learning",
+   "updated": "2026-10-25",
+   "map_node": "neet",
+   "basis": "ambiguous",
+   "w360_row": 8
+  },
+  {
+   "artifact_id": "2CeBpkyPdDEDeQgb3DhGqa",
+   "title": "Young people: one front door",
+   "updated": "2026-10-09",
+   "map_node": "yp-door",
+   "basis": "named",
+   "w360_row": 10
+  },
+  {
+   "artifact_id": "JrKRZhibcx3aMFWp75hp2G",
+   "title": "The Hidden Tab Pattern",
+   "updated": "2026-10-08",
+   "map_node": "hoi-htp",
+   "basis": "ambiguous",
+   "w360_row": 12
+  },
+  {
+   "artifact_id": "Do2nxG8wHTCHogbw819ybV",
+   "title": "Whole-life 360º: your life with the state, cradle to grave",
+   "updated": "2026-10-25",
+   "map_node": "wl",
+   "basis": "named",
+   "w360_row": 15
+  },
+  {
+   "artifact_id": "MXZea4jDpkw4sbUS4dzHh1",
+   "title": null,
+   "updated": "2026-10-13",
+   "map_node": null,
+   "basis": "personal",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "DaVgFBSW3KtPS13eGNkqAJ",
+   "title": "Interoperability Forward-Look 2026–2036",
+   "updated": "2026-10-03",
+   "map_node": "hoi-fl",
+   "basis": "named",
+   "w360_row": 29
+  },
+  {
+   "artifact_id": "PxrGaanLT2eFxkx4DjMauN",
+   "title": "Before the label: a young person's own 360º view of the state",
+   "updated": "2026-10-05",
+   "map_node": "btl-doc",
+   "basis": "named",
+   "w360_row": 20
+  },
+  {
+   "artifact_id": "Cinx76puWuR73HUZUNaqcq",
+   "title": "A young person's own 360º view of the state: plan to close the gaps",
+   "updated": "2026-10-05",
+   "map_node": "yp-plan",
+   "basis": "named",
+   "w360_row": 21
+  },
+  {
+   "artifact_id": "QccntV3T1iQxtyDHfnoy1t",
+   "title": "Earning or learning: dashboards, gaps, aims and evaluation frameworks",
+   "updated": "2026-10-05",
+   "map_node": "eol-dash",
+   "basis": "named",
+   "w360_row": 22
+  },
+  {
+   "artifact_id": "Bmk2Bi6fN9PVKEEk8p759G",
+   "title": null,
+   "updated": "2026-10-04",
+   "map_node": null,
+   "basis": "personal",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "VBgT4CipqBS1tsmEe9NrbG",
+   "title": null,
+   "updated": "2026-10-04",
+   "map_node": null,
+   "basis": "personal",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "8L2toWcKmE923NN2TCWrwW",
+   "title": null,
+   "updated": "2026-10-04",
+   "map_node": null,
+   "basis": "personal",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "FJjc5ikpCRx6ozdkEfkkht",
+   "title": "Emanuel Silva — one conviction, many seams",
+   "updated": "2026-10-03",
+   "map_node": "hoi-show",
+   "basis": "named",
+   "w360_row": null
+  },
+  {
+   "artifact_id": "L8qA8pHiCz56DKR6Ceqkqz",
+   "title": "Head of Data Interoperability — the case",
+   "updated": "2026-10-03",
+   "map_node": "hoi",
+   "basis": "title",
+   "w360_row": 28
+  },
+  {
+   "artifact_id": "QmZ4qvCcp5EmdqPbYCcTNJ",
+   "title": "Earning or learning: showcase",
+   "updated": "2026-10-02",
+   "map_node": "eol-show",
+   "basis": "named",
+   "w360_row": 30
+  },
+  {
+   "artifact_id": "8qabj3EjNvkR42vgyk9bRf",
+   "title": "Earning or learning: the film",
+   "updated": "2026-10-02",
+   "map_node": "eol-show",
+   "basis": "named",
+   "w360_row": 31
+  },
+  {
+   "artifact_id": "58dStrh7nS26SuvD5oighj",
+   "title": "Starting a business in the UK: the whole journey",
+   "updated": "2026-10-25",
+   "map_node": "sab",
+   "basis": "title",
+   "w360_row": 32
+  },
+  {
+   "artifact_id": "647dNAccDGEXrg88XwQySN",
+   "title": "Starting a business in the UK: showcase",
+   "updated": "2026-09-23",
+   "map_node": "sab-show",
+   "basis": "named",
+   "w360_row": 46
+  },
+  {
+   "artifact_id": "JyuYMMh31QL4hCqSwiBuzf",
+   "title": "The knowledge layer",
+   "updated": "2026-09-23",
+   "map_node": "sab-kl",
+   "basis": "named",
+   "w360_row": 47
+  },
+  {
+   "artifact_id": "LLNBnnGC25rGHLh7gAsqBM",
+   "title": "Your plan",
+   "updated": "2026-09-23",
+   "map_node": "sab",
+   "basis": "title",
+   "w360_row": 48
+  },
+  {
+   "artifact_id": "69RUHRCB7eoEDtpQmBQcCF",
+   "title": "When the standard route does not fit: tailoring the journey to circumstances",
+   "updated": "2026-10-25",
+   "map_node": "sab",
+   "basis": "title",
+   "w360_row": 49
+  },
+  {
+   "artifact_id": "LsvbCitXmmUNRkoAm8wUXN",
+   "title": "Skills, qualifications and finding your people",
+   "updated": "2026-09-23",
+   "map_node": "sab",
+   "basis": "title",
+   "w360_row": 50
+  },
+  {
+   "artifact_id": "4RpcuNY4q9fHCBfQ55e5tu",
+   "title": "Every way in, and every way out",
+   "updated": "2026-09-23",
+   "map_node": "sab",
+   "basis": "title",
+   "w360_row": 51
+  },
+  {
+   "artifact_id": "HfcZAKPTWNvQWgBqNZi2Ac",
+   "title": "From starting to closing, and everything between",
+   "updated": "2026-09-23",
+   "map_node": "sab",
+   "basis": "title",
+   "w360_row": 52
+  },
+  {
+   "artifact_id": "EPbYgJxvewzppkfMyWDWxe",
+   "title": "Verification register",
+   "updated": "2026-09-23",
+   "map_node": "sab",
+   "basis": "title",
+   "w360_row": 53
+  },
+  {
+   "artifact_id": "5umUj4ekvdvz9rWvZMhzkn",
+   "title": "How this was built and run",
+   "updated": "2026-09-23",
+   "map_node": "sab",
+   "basis": "title",
+   "w360_row": 54
+  },
+  {
+   "artifact_id": "PCZ6bFsGLqmAGqoyy3TL9d",
+   "title": "Service blueprints",
+   "updated": "2026-09-23",
+   "map_node": "sab",
+   "basis": "title",
+   "w360_row": 55
+  },
+  {
+   "artifact_id": "7M6omgVJjcD3euCwrdvPiV",
+   "title": "Standards for the journey",
+   "updated": "2026-09-23",
+   "map_node": "sab",
+   "basis": "title",
+   "w360_row": 56
+  },
+  {
+   "artifact_id": "NCw5VZ6nnXwNL5rATDyRzS",
+   "title": "International benchmark",
+   "updated": "2026-09-23",
+   "map_node": "sab",
+   "basis": "title",
+   "w360_row": 57
+  },
+  {
+   "artifact_id": "CHa4car5CcYiRmVSk3nzjx",
+   "title": "Four nations",
+   "updated": "2026-09-23",
+   "map_node": "sab",
+   "basis": "title",
+   "w360_row": 58
+  },
+  {
+   "artifact_id": "62cTiUZiUWC5hKW8vubCSn",
+   "title": "Rules, trade and the bodies",
+   "updated": "2026-09-23",
+   "map_node": "sab",
+   "basis": "title",
+   "w360_row": 59
+  },
+  {
+   "artifact_id": "2Aa11zYNCdP5KkwSJUPe6w",
+   "title": "What binds this business",
+   "updated": "2026-09-23",
+   "map_node": "sab-rules",
+   "basis": "named",
+   "w360_row": 60
+  },
+  {
+   "artifact_id": "PUyeWNZAePqiTzo4hTuaFt",
+   "title": "Whatever you are setting up",
+   "updated": "2026-09-23",
+   "map_node": "sab",
+   "basis": "title",
+   "w360_row": 61
+  },
+  {
+   "artifact_id": "VtTnZmHX7RQ8QtkD2qS2Rc",
+   "title": "Before the register",
+   "updated": "2026-09-23",
+   "map_node": "sab",
+   "basis": "title",
+   "w360_row": 62
+  },
+  {
+   "artifact_id": "3REo2dfZ4JngmGS71aHfXr",
+   "title": "Historical arc",
+   "updated": "2026-09-23",
+   "map_node": "sab",
+   "basis": "title",
+   "w360_row": 63
+  },
+  {
+   "artifact_id": "HNw4kAKtkkAC4Dki8MF2WZ",
+   "title": "Every step in the journey",
+   "updated": "2026-09-23",
+   "map_node": "sab",
+   "basis": "title",
+   "w360_row": 64
+  },
+  {
+   "artifact_id": "1sMgiuvtUe9YTNx17PiHoJ",
+   "title": "Pay, pensions and living standards — the UK in context",
+   "updated": "2026-09-18",
+   "map_node": "pay-expl",
+   "basis": "named",
+   "w360_row": 66
+  },
+  {
+   "artifact_id": "YHZW2VCa13oC9dE3zVy2m5",
+   "title": "Your pay and your pension — a plain guide",
+   "updated": "2026-09-18",
+   "map_node": "pay-guide",
+   "basis": "named",
+   "w360_row": 67
+  },
+  {
+   "artifact_id": "RZEvLoYXg1hMRewvdE2hiq",
+   "title": "Civil service take-home pay to 2030-31 — interactive forecast",
+   "updated": "2026-09-18",
+   "map_node": "pay-expl",
+   "basis": "named",
+   "w360_row": 68
+  },
+  {
+   "artifact_id": "Jd539FP8V21dDanfstADZ1",
+   "title": "Pay, pensions and living standards — source register and index",
+   "updated": "2026-09-18",
+   "map_node": "pay-expl",
+   "basis": "named",
+   "w360_row": 69
+  },
+  {
+   "artifact_id": "TYNQsrLuXbzREn4iKBjhT1",
+   "title": "Merged — see the combined plain guide",
+   "updated": "2026-09-18",
+   "map_node": "pay-guide",
+   "basis": "named",
+   "w360_row": 70
+  },
+  {
+   "artifact_id": "2sQYnbwzZV3aM6gd5E7jwH",
+   "title": "Superseded — see the current explainer",
+   "updated": "2026-09-18",
+   "map_node": "pay-expl",
+   "basis": "named",
+   "w360_row": 71
+  },
+  {
+   "artifact_id": "RmvLJnRX4AbYg3kc7EMhUz",
+   "title": "Four routes: fixing how pay and reward get explained",
+   "updated": "2026-09-18",
+   "map_node": "pay-deck",
+   "basis": "named",
+   "w360_row": 72
+  },
+  {
+   "artifact_id": "8tXbwp4rq67jmnrqHPz9S6",
+   "title": "Pay and reward transparency — a voluntary offer ahead of the DCMS transfer",
+   "updated": "2026-09-18",
+   "map_node": "pay-sub",
+   "basis": "named",
+   "w360_row": 73
+  },
+  {
+   "artifact_id": "NWZBc3r2D83njsz4hjrz6L",
+   "title": "govukOS Design System",
+   "updated": "2026-09-16",
+   "map_node": "hive-ds",
+   "basis": "ambiguous",
+   "w360_row": 74
+  },
+  {
+   "artifact_id": "S4oYSKt1BJMFZSWmtMcudx",
+   "title": "govukOS Design System",
+   "updated": "2026-09-16",
+   "map_node": "hive-ds",
+   "basis": "ambiguous",
+   "w360_row": 75
+  },
+  {
+   "artifact_id": "6pBeshoYENyqX8iPRTvydA",
+   "title": "Brief Builder — a one-page creative brief, assembled live",
+   "updated": "2026-07-25",
+   "map_node": null,
+   "basis": "none",
+   "w360_row": 76
+  },
+  {
+   "artifact_id": "9DpdtymGbH1jvP7gS6TpWR",
+   "title": "Theory of Change — GUVNR & MoG Navigator",
+   "updated": "2026-07-30",
+   "map_node": null,
+   "basis": "none",
+   "w360_row": 77
+  },
+  {
+   "artifact_id": "V8ihSDeTCV61EUHwrPQcQC",
+   "title": "Whitehall Connect — Security & Test Posture",
+   "updated": "2026-07-30",
+   "map_node": "wc",
+   "basis": "title",
+   "w360_row": 78
+  },
+  {
+   "artifact_id": "Hd4w9oHgvL7RskWyrdgxgR",
+   "title": "Whitehall Connect — the next stage",
+   "updated": "2026-07-28",
+   "map_node": "wc",
+   "basis": "title",
+   "w360_row": 79
+  }
+ ],
+ "no_longer_published": [
+  {
+   "w360_row": 14,
+   "title": "OCDO Scope, Remit and Capacity — Volumetrics",
+   "stream": "SDL"
+  },
+  {
+   "w360_row": 16,
+   "title": "DAM Policy: the optional and edge-of-scope bodies",
+   "stream": "DAM"
+  },
+  {
+   "w360_row": 19,
+   "title": "DAM Policy portal: decisions and requests to close the open items",
+   "stream": "DAM"
+  },
+  {
+   "w360_row": 23,
+   "title": "DAM Policy portal: every dashboard, metric and criterion",
+   "stream": "DAM"
+  },
+  {
+   "w360_row": 33,
+   "title": "Burden baseline survey (EVL-001): commissioning specification",
+   "stream": "DAM"
+  },
+  {
+   "w360_row": 34,
+   "title": "Moved: Critical data assets showcase",
+   "stream": "DAM"
+  },
+  {
+   "w360_row": 35,
+   "title": "Moved: Critical Data Assets register dashboard",
+   "stream": "DAM"
+  },
+  {
+   "w360_row": 36,
+   "title": "Moved: DAM Policy Benefits Canon",
+   "stream": "DAM"
+  },
+  {
+   "w360_row": 38,
+   "title": "Data governance, cataloguing and metadata — showcase",
+   "stream": "GOV"
+  },
+  {
+   "w360_row": 39,
+   "title": "Superseded: use the current data governance portal",
+   "stream": "GOV"
+  },
+  {
+   "w360_row": 40,
+   "title": "Superseded: use the current data governance portal",
+   "stream": "GOV"
+  },
+  {
+   "w360_row": 41,
+   "title": "UK public sector data governance, cataloguing and metadata portal",
+   "stream": "GOV"
+  },
+  {
+   "w360_row": 44,
+   "title": "Options appraisal — reducing data commissions and telling us once",
+   "stream": "SDL"
+  },
+  {
+   "w360_row": 45,
+   "title": "Propose a data requirement — Single Data List",
+   "stream": "SDL"
+  },
+  {
+   "w360_row": 65,
+   "title": "OCDO Scope, Remit and Capacity — Cross-Government and Public Sector-Wide",
+   "stream": "SDL"
+  }
+ ]
+}
