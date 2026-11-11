@@ -16,9 +16,10 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "verify": "node scripts/verify.mjs",
-    "check": "npm run build && npm run degraded && npm run verify",
+    "check": "npm run build && npm run degraded && npm run verify && npm run kisil",
     "serve": "node scripts/serve.mjs",
-    "degraded": "node scripts/degraded.mjs"
+    "degraded": "node scripts/degraded.mjs",
+    "kisil": "node scripts/check-kisil.mjs && node --test scripts/check-kisil.test.mjs"
   },
   "devDependencies": {
     "playwright": "^1.56.0"
