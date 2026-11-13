@@ -21,6 +21,15 @@ In scope:
 Out of scope (there is nothing here to exploit): authentication, session
 handling, server-side logic, stored user data, third-party API calls.
 
+## Automated checks
+
+- **CodeQL** scans the JavaScript and the GitHub Actions workflows on every
+  pull request, on `main` and weekly.
+- **Dependency review** stops a pull request that adds a dependency with a
+  known vulnerability of moderate severity or worse.
+- **Dependabot** proposes updates to npm packages and pinned actions weekly.
+- **OpenSSF Scorecard** checks how the repository is run, weekly.
+
 ## Reporting a vulnerability
 
 Please **do not** open a public issue for a security concern. Instead, use
