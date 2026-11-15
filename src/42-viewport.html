@@ -189,7 +189,7 @@ function popOut(){
   POP = window.open('', 'theWebRetreat', 'width=1280,height=920');
   if (!POP) { note('Your browser blocked the pop-out. Allow pop-ups for this page, then try Retreat again.'); return; }
   const css = [...document.querySelectorAll('style')].map(s => s.textContent).join('\n');
-  const fonts = [...document.querySelectorAll('link[rel="stylesheet"]')].map(l => `<link rel="stylesheet" href="${l.href}">`).join('');
+  const fonts = [...document.querySelectorAll('link[rel="stylesheet"]')].map(l => `<link rel="stylesheet" href="${esc(l.href)}">`).join('');
   POP.document.open();
   POP.document.write(
     `<!DOCTYPE html><html lang="en-GB"><head><meta charset="UTF-8"><title>The Knowledge Web \u00b7 retreat</title>${fonts}<style>${css}

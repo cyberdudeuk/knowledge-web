@@ -4,6 +4,31 @@ All notable changes to the artefact. Mirrors Section 13 (Release history) of
 `docs/programme-authority.html`, which remains the source of truth. Defects
 found during verification are named, never quietly fixed.
 
+## v3.10 — 2026-11-15
+
+**D-SEC-01** — code scanning findings fixed, part of applying the secure
+development standard.
+
+- URL state: keys from the address are kept only if known, held in an
+  object with no prototype, and looked up as own properties. Before this,
+  `#/?c=__proto__` reached the object prototype (CodeQL #11, #12).
+- The reasoner's query echo escapes the chosen class and property (#7); the
+  retreat pop-out escapes its stylesheet links (#5).
+- The knowledge map loads QRCode.js 1.0.0 and JsBarcode 3.11.6 from
+  `kmap/vendor/`, copied unchanged from npm with their MIT licences, instead
+  of from a CDN without integrity checks (#9, #10).
+- The check workflow declares read-only permissions (#1).
+
+CodeQL #2 to #4 flag the build's own regular expressions over the
+repository's source. They are not sanitisation of untrusted input, so they
+are dismissed as false positives with that reason.
+
+`scripts/security.test.mjs` keeps each fix, and fails with the URL fix
+reverted.
+
+Verified: build + lint + degraded + verify + KISIL pass, 6 collections, both
+themes, no horizontal overflow at 390px.
+
 ## v3.9 — 2026-11-15
 
 **D-LINT-01** — linters now fail the check on any finding, part of applying the

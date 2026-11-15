@@ -20,7 +20,7 @@
     "serve": "node scripts/serve.mjs",
     "degraded": "node scripts/degraded.mjs",
     "kisil": "node scripts/check-kisil.mjs && node --test scripts/check-kisil.test.mjs",
-    "lint": "eslint . && node scripts/lint-page.mjs && node --test scripts/lint.test.mjs"
+    "lint": "eslint . && node scripts/lint-page.mjs && node --test scripts/lint.test.mjs scripts/security.test.mjs"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",
