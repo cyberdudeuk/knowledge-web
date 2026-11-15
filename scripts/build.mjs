@@ -40,7 +40,7 @@ const count = (needle) => markup.split(needle).length - 1;
 if (count('<!DOCTYPE') !== 1) problems.push(`expected exactly one DOCTYPE, found ${count('<!DOCTYPE')}`);
 if (count('<body') !== 1) problems.push(`expected exactly one <body, found ${count('<body')}`);
 if (count('</body>') !== 1) problems.push(`expected exactly one </body>, found ${count('</body>')}`);
-const openScripts = html.split('<script>').length - 1, closeScripts = html.split('<\/script>').length - 1;
+const openScripts = html.split('<script>').length - 1, closeScripts = html.split('</script>').length - 1;
 if (openScripts !== closeScripts) problems.push(`${openScripts} <script> vs ${closeScripts} </script>`);
 const code = html.replace(/<!--[\s\S]*?-->/g, '');
 if (/\b(localStorage|sessionStorage)\b/.test(code))

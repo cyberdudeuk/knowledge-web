@@ -16,12 +16,16 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "verify": "node scripts/verify.mjs",
-    "check": "npm run build && npm run degraded && npm run verify && npm run kisil",
+    "check": "npm run build && npm run lint && npm run degraded && npm run verify && npm run kisil",
     "serve": "node scripts/serve.mjs",
     "degraded": "node scripts/degraded.mjs",
-    "kisil": "node scripts/check-kisil.mjs && node --test scripts/check-kisil.test.mjs"
+    "kisil": "node scripts/check-kisil.mjs && node --test scripts/check-kisil.test.mjs",
+    "lint": "eslint . && node scripts/lint-page.mjs && node --test scripts/lint.test.mjs"
   },
   "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "eslint": "9.39.5",
+    "globals": "16.5.0",
     "playwright": "^1.56.0"
   }
 }

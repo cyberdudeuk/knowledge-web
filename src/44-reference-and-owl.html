@@ -262,11 +262,6 @@ document.querySelectorAll('.subtab').forEach(b =>
 const _runQuery2 = runQuery;
 runQuery = function(v){
   const q = (v || '').trim().toLowerCase();
-  let expanded = q;
-  if (q){
-    const hit = THESAURUS.find(t => t.pref.toLowerCase().includes(q) || t.alt.some(a => a.toLowerCase().includes(q)));
-    if (hit && hit.node && byKey[hit.node]) expanded = q;
-  }
   _runQuery2(v);
   if (q){
     const syn = THESAURUS.filter(t => t.alt.some(a => a.toLowerCase().includes(q)) || t.pref.toLowerCase().includes(q));

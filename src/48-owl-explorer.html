@@ -114,7 +114,7 @@ const REASON = (function reason(){
   return { types, inferredTypes, extra, clashes, observed, notes };
 })();
 
-const allTypesOf = id => [...new Set([...(REASON.types[id]||[]), ...(REASON.inferredTypes[id]||[])])];
+const _allTypesOf = id => [...new Set([...(REASON.types[id]||[]), ...(REASON.inferredTypes[id]||[])])];
 const assertionsOf = id => [
   ...DECLARED.filter(e => e.from === id).map(e => ({ ...e, kind:'asserted' })),
   ...EDGES.filter(e => e.from === id && !e.declared).map(e => ({ ...e, kind:'inverse' })),
@@ -169,7 +169,7 @@ const glyphFor = cls => {
   const o = ONTOLOGY.find(x => x.id === cls);
   return `<svg class="g" viewBox="0 0 15 15" aria-hidden="true"><path d="${shapePath(o ? o.shape : 'circle', 7.5, 7.5, 5)}"></path></svg>`;
 };
-const iri = e => `<span class="entity-head"></span>`;
+const _iri = e => `<span class="entity-head"></span>`;
 
 function owlTree(){
   const box = document.getElementById('owlTree');

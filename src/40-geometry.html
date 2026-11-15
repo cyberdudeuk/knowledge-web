@@ -228,7 +228,7 @@ function vibrate(p){
 }
 
 /* ---------- tooltip ---------- */
-const tipEl = document.getElementById('tip'), stageEl = document.getElementById('stage'), svgEl = document.getElementById('web');
+const tipEl = document.getElementById('tip'), stageEl = document.getElementById('stage');
 function tip(e, t, m){
   const r = stageEl.getBoundingClientRect();
   place(e.clientX - r.left, e.clientY - r.top, t, m);
