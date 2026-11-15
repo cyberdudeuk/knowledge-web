@@ -16,7 +16,6 @@ let POP = null, POPVP = null;
 function attachViewport(svg, vp, opts){
   opts = opts || {};
   const V = { k:1, tx:0, ty:0, rot:0 };
-  const doc = svg.ownerDocument;
   const host = opts.host || svg.parentNode;
 
   function metrics(){
@@ -82,12 +81,12 @@ function attachViewport(svg, vp, opts){
 
   /* drag + pinch */
   const pts = new Map();
-  let last = null, pinch = null, moved = false;
+  let last = null, pinch = null, _moved = false;
   svg.addEventListener('pointerdown', e => {
     if (e.target.closest('.node')) return;
     svg.setPointerCapture(e.pointerId);
     pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
-    moved = false;
+    _moved = false;
     if (pts.size === 1) { last = { x:e.clientX, y:e.clientY }; host.classList.add('grabbing'); }
     else if (pts.size === 2) { const a = [...pts.values()]; pinch = { d:Math.hypot(a[0].x-a[1].x, a[0].y-a[1].y) }; }
   });
@@ -99,12 +98,12 @@ function attachViewport(svg, vp, opts){
       const a = [...pts.values()];
       const d = Math.hypot(a[0].x-a[1].x, a[0].y-a[1].y);
       if (pinch.d > 0) zoomAt((a[0].x+a[1].x)/2, (a[0].y+a[1].y)/2, d / pinch.d, true);
-      pinch.d = d; moved = true;
+      pinch.d = d; _moved = true;
     } else if (last){
       V.tx += (e.clientX - last.x) / m.sc;
       V.ty += (e.clientY - last.y) / m.sc;
       last = { x:e.clientX, y:e.clientY };
-      if (Math.abs(e.movementX) + Math.abs(e.movementY) > 1) moved = true;
+      if (Math.abs(e.movementX) + Math.abs(e.movementY) > 1) _moved = true;
       apply(true);
     }
   });

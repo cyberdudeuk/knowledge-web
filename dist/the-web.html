@@ -1891,7 +1891,7 @@ function vibrate(p){
 }
 
 /* ---------- tooltip ---------- */
-const tipEl = document.getElementById('tip'), stageEl = document.getElementById('stage'), svgEl = document.getElementById('web');
+const tipEl = document.getElementById('tip'), stageEl = document.getElementById('stage');
 function tip(e, t, m){
   const r = stageEl.getBoundingClientRect();
   place(e.clientX - r.left, e.clientY - r.top, t, m);
@@ -2273,7 +2273,6 @@ let POP = null, POPVP = null;
 function attachViewport(svg, vp, opts){
   opts = opts || {};
   const V = { k:1, tx:0, ty:0, rot:0 };
-  const doc = svg.ownerDocument;
   const host = opts.host || svg.parentNode;
 
   function metrics(){
@@ -2339,12 +2338,12 @@ function attachViewport(svg, vp, opts){
 
   /* drag + pinch */
   const pts = new Map();
-  let last = null, pinch = null, moved = false;
+  let last = null, pinch = null, _moved = false;
   svg.addEventListener('pointerdown', e => {
     if (e.target.closest('.node')) return;
     svg.setPointerCapture(e.pointerId);
     pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
-    moved = false;
+    _moved = false;
     if (pts.size === 1) { last = { x:e.clientX, y:e.clientY }; host.classList.add('grabbing'); }
     else if (pts.size === 2) { const a = [...pts.values()]; pinch = { d:Math.hypot(a[0].x-a[1].x, a[0].y-a[1].y) }; }
   });
@@ -2356,12 +2355,12 @@ function attachViewport(svg, vp, opts){
       const a = [...pts.values()];
       const d = Math.hypot(a[0].x-a[1].x, a[0].y-a[1].y);
       if (pinch.d > 0) zoomAt((a[0].x+a[1].x)/2, (a[0].y+a[1].y)/2, d / pinch.d, true);
-      pinch.d = d; moved = true;
+      pinch.d = d; _moved = true;
     } else if (last){
       V.tx += (e.clientX - last.x) / m.sc;
       V.ty += (e.clientY - last.y) / m.sc;
       last = { x:e.clientX, y:e.clientY };
-      if (Math.abs(e.movementX) + Math.abs(e.movementY) > 1) moved = true;
+      if (Math.abs(e.movementX) + Math.abs(e.movementY) > 1) _moved = true;
       apply(true);
     }
   });
@@ -2973,11 +2972,6 @@ document.querySelectorAll('.subtab').forEach(b =>
 const _runQuery2 = runQuery;
 runQuery = function(v){
   const q = (v || '').trim().toLowerCase();
-  let expanded = q;
-  if (q){
-    const hit = THESAURUS.find(t => t.pref.toLowerCase().includes(q) || t.alt.some(a => a.toLowerCase().includes(q)));
-    if (hit && hit.node && byKey[hit.node]) expanded = q;
-  }
   _runQuery2(v);
   if (q){
     const syn = THESAURUS.filter(t => t.alt.some(a => a.toLowerCase().includes(q)) || t.pref.toLowerCase().includes(q));
@@ -3758,7 +3752,7 @@ const REASON = (function reason(){
   return { types, inferredTypes, extra, clashes, observed, notes };
 })();
 
-const allTypesOf = id => [...new Set([...(REASON.types[id]||[]), ...(REASON.inferredTypes[id]||[])])];
+const _allTypesOf = id => [...new Set([...(REASON.types[id]||[]), ...(REASON.inferredTypes[id]||[])])];
 const assertionsOf = id => [
   ...DECLARED.filter(e => e.from === id).map(e => ({ ...e, kind:'asserted' })),
   ...EDGES.filter(e => e.from === id && !e.declared).map(e => ({ ...e, kind:'inverse' })),
@@ -3813,7 +3807,7 @@ const glyphFor = cls => {
   const o = ONTOLOGY.find(x => x.id === cls);
   return `<svg class="g" viewBox="0 0 15 15" aria-hidden="true"><path d="${shapePath(o ? o.shape : 'circle', 7.5, 7.5, 5)}"></path></svg>`;
 };
-const iri = e => `<span class="entity-head"></span>`;
+const _iri = e => `<span class="entity-head"></span>`;
 
 function owlTree(){
   const box = document.getElementById('owlTree');
@@ -5520,7 +5514,8 @@ const GDS_PRIORITIES = [
   ['Fund for outcomes, procure for growth','Reformed funding models through the Spending Review; Procurement Act 2023.'],
   ['Commit to transparency and drive accountability','Spend controls, published performance, and open reporting.']
 ];
-const SDR_FINDINGS = ['Institutionalised fragmentation','Persistent legacy estate','Cyber and resilience risk','Siloed data','Under-digitisation','Inconsistent digital leadership'];
+/* The six SDR findings, as listed in the repair below; kept as the reference list. */
+const _SDR_FINDINGS = ['Institutionalised fragmentation','Persistent legacy estate','Cyber and resilience risk','Siloed data','Under-digitisation','Inconsistent digital leadership'];
 
 function makeAlignCollection(){
   const strands=[], enrich={}, themes=[

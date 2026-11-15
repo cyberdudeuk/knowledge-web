@@ -4,6 +4,26 @@ All notable changes to the artefact. Mirrors Section 13 (Release history) of
 `docs/programme-authority.html`, which remains the source of truth. Defects
 found during verification are named, never quietly fixed.
 
+## v3.9 — 2026-11-15
+
+**D-LINT-01** — linters now fail the check on any finding, part of applying the
+secure development standard to every project. Until now the only check on the
+scripts was `node --check`, which finds syntax errors and nothing else.
+ESLint checks the build and verification scripts; `scripts/lint-page.mjs`
+checks the built page's eighteen scripts joined as the browser runs them.
+The deliberate wrapper and override chains (`docs/DOCTRINE.md`), silent empty
+catches and the window-set `refreshHome` are allowed, each with its reason in
+the file.
+
+Defect found and fixed: D-LINT-01. Eight findings, all dead code or needless
+syntax: an unused thesaurus lookup in chunk 44 whose result was never read,
+unused variables in chunks 40, 42, 48 and 62, and a needless escape in the
+build. Nothing the page does changed. `scripts/lint.test.mjs` keeps the lint in
+`npm run check` and proves it fails on a planted duplicate key.
+
+Verified: build + lint + degraded + verify + KISIL pass, 6 collections, both
+themes, no horizontal overflow at 390px.
+
 ## v3.8 — 2026-08-03
 
 **BL-WEB-29** — occlusion mitigation in the stratified view. Same-layer
