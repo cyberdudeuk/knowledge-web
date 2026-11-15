@@ -360,7 +360,7 @@ document.getElementById('dlRun').addEventListener('click', () => {
     EDGES.some(e => e.from === key(r) && e.prop === P && ancestorsOf(CLSOF(e.to)).includes(B)));
   document.getElementById('owlUsage').innerHTML =
     `<h4>Query result \u00b7 ${hits.length}</h4>
-     <div class="ax"><b>${A}</b> and <i>${P}</i> <b>some</b> <em>${B}</em></div>` +
+     <div class="ax"><b>${esc(A)}</b> and <i>${esc(P)}</i> <b>some</b> <em>${esc(B)}</em></div>` +
     (hits.map(r => `<button class="owl-jump" data-node="${key(r)}">${esc(r.nd.t)}<span class="s">${esc(r.s.label)}</span></button>`).join('')
       || '<p style="font-size:12px;color:var(--faint);font-style:italic">Nothing satisfies that expression.</p>');
   document.getElementById('owlUsage').querySelectorAll('[data-node]').forEach(b =>

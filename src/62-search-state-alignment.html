@@ -148,14 +148,16 @@ function writeState(){
 function readState(){
   const raw = (location.hash || '').replace('#/','');
   const [page, qs] = raw.split('?');
-  const q = {}; (qs||'').split('&').filter(Boolean).forEach(kv => { const [k,v] = kv.split('='); q[k] = v; });
+  /* CodeQL #11/#12: keys come from the URL, so q has no prototype and only known keys are kept. */
+  const q = Object.create(null), KNOWN = ['c','n','s','t','x','owl'];
+  (qs||'').split('&').filter(Boolean).forEach(kv => { const [k,v] = kv.split('='); if (KNOWN.includes(k)) q[k] = v; });
   stateLock = true;
-  if (q.c && COLLECTIONS[q.c] && q.c !== CURRENT) loadCollection(q.c);
+  if (q.c && Object.hasOwn(COLLECTIONS, q.c) && q.c !== CURRENT) loadCollection(q.c);
   go(page || 'home');
   if (q.n){ const [s,j] = q.n.split('.'); if (byKey[s + ':' + j]) selectNode(s, +j); }
   else if (q.s && STRANDS.some(x => x.id === q.s)) selectStrand(q.s);
   else if (q.t && THEMES.some(x => x.id === q.t)) selectTheme(q.t);
-  if (q.x && STRAT_BY[q.x]){ STRATA.by = q.x; const sel = document.getElementById('stBy'); if (sel) sel.value = q.x; toggleStrata(true); }
+  if (q.x && Object.hasOwn(STRAT_BY, q.x)){ STRATA.by = q.x; const sel = document.getElementById('stBy'); if (sel) sel.value = q.x; toggleStrata(true); }
   if (q.owl === '1') toggleOwl(true);
   stateLock = false;
 }
