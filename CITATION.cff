@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: If you use The Knowledge Web, please cite it as below.
+type: software
+title: "The Knowledge Web"
+authors:
+  - given-names: Emanuel
+    family-names: Silva
+    orcid: "https://orcid.org/0009-0000-5880-7219"
+license: Apache-2.0
+version: 3.8.0
+repository-code: https://github.com/cyberdudeuk/knowledge-web
+abstract: "A navigable, ontology-backed map of a body of work on UK government data standards, governance and knowledge management, delivered as one self-contained HTML file that works offline."
+keywords:
+  - knowledge-graph
+  - ontology
+  - offline-first
+  - accessibility
+  - uk-government
