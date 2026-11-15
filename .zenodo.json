@@ -1,0 +1,28 @@
+{
+  "upload_type": "software",
+  "title": "The Knowledge Web",
+  "creators": [
+    {
+      "name": "Silva, Emanuel",
+      "orcid": "0009-0000-5880-7219"
+    }
+  ],
+  "description": "A navigable, ontology-backed map of a body of work on UK government data standards, governance and knowledge management, delivered as one self-contained HTML file that works offline.",
+  "keywords": [
+    "knowledge-graph",
+    "ontology",
+    "offline-first",
+    "accessibility",
+    "uk-government"
+  ],
+  "notes": "Prototype or personal project, not an official GOV.UK service or endorsed standard unless its README says otherwise. Status at release: Prototype.",
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/cyberdudeuk/knowledge-web",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ],
+  "version": "3.8.0",
+  "license": "apache-2.0"
+}
