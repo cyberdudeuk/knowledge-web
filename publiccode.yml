@@ -1,0 +1,40 @@
+# publiccode.yml: machine-readable description for public sector software catalogues.
+# Standard: https://yml.publiccode.tools  Drafted from the launchpad card and CITATION.cff; checked by the official
+# parser (publiccode-parser-go). Version, release date and licence must agree with CITATION.cff.
+# No email address is given: contact is by the contact form only.
+publiccodeYmlVersion: '0'
+name: The Knowledge Web
+url: https://github.com/cyberdudeuk/knowledge-web
+landingURL: https://cyberdudeuk.github.io/knowledge-web/dist/the-web.html
+softwareVersion: 3.8.0
+platforms:
+- web
+categories:
+- knowledge-management
+developmentStatus: development
+softwareType: standalone/web
+description:
+  en:
+    shortDescription: A navigable, ontology-backed map of UK government data standards, governance and knowledge
+      management, in one offline file.
+    longDescription: 'A navigable, ontology-backed map of a body of work on UK government data standards, governance
+      and knowledge management, delivered as one self-contained file that works offline. It is for: People mapping
+      or navigating a large body of knowledge. Status, as the project states it: Prototype. Not official government
+      guidance or policy unless the project says otherwise.'
+    documentation: https://cyberdudeuk.github.io/knowledge-web/dist/the-web.html
+    features:
+    - Six collections drawn as navigable webs
+    - Ontology layer with a reasoner that shows entailments
+    - Taxonomy, thesaurus, glossary and data dictionary
+    - Every collection declares its gaps
+    - Text view with the same content as the picture
+legal:
+  license: Apache-2.0
+maintenance:
+  type: community
+  contacts:
+  - name: The Knowledge Web maintainers (contact form only)
+localisation:
+  localisationReady: false
+  availableLanguages:
+  - en
