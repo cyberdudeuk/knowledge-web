@@ -15,7 +15,7 @@ const NEGATIVE = [
   ['a register row points at a missing node', '"hive-nav", "named", 37]', '"hive-navX", "named", 37]', 'points at a node that exists'],
   ['a personal title is stored', '["ASWgRxcMsEiaJNLDuw6jT7", null,', '["ASWgRxcMsEiaJNLDuw6jT7", "x",', 'No personal artefact'],
   ['a new artefact is given a node by guess', '"DAM Return and DAM Desk", "2026-10-27", null, "new"', '"DAM Return and DAM Desk", "2026-10-27", "dam", "new"', 'given no node by guess'],
-  ['the footer uses the team inbox', 'href="mailto:emanuel.silva@dsit.gov.uk"', 'href="mailto:GDSDataManagement@dsit.gov.uk"', 'own work address'],
+  ['an email address replaces the contact form', 'id="contactForm" href="https://github.com/cyberdudeuk/knowledge-web/issues/new/choose"', 'id="contactForm" href="mailto:' + ['someone', 'example.org'].join('@') + '"', 'Contact is the contact form'],
   ['The Web is linked to the GitHub gap again', "  ['web-v38','web-repo','released from'", "  ['web','G-git','open','S','x'],\n  ['web-v38','web-repo','released from'", 'linked to the “not yet on GitHub” gap'],
 ];
 
