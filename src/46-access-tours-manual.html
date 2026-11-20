@@ -29,9 +29,9 @@ function toggleAttr(btn, attr, onVal, offVal, onLabel, offLabel, announce){
   if (onLabel) btn.textContent = now ? onLabel : offLabel;
   say(announce + ' ' + (now ? 'off' : 'on'));
 }
-const THEME_CYCLE = ['dark', 'light', 'ocdo'];
-const THEME_NEXT_LABEL = { dark: 'Light', light: 'OCDO skin', ocdo: 'Dark' };
-const THEME_SAY = { dark: 'Dark theme on.', light: 'Light theme on.', ocdo: 'OCDO skin on.' };
+const THEME_CYCLE = ['dark', 'light', 'gdd'];
+const THEME_NEXT_LABEL = { dark: 'Light', light: 'Directorate skin', gdd: 'Dark' };
+const THEME_SAY = { dark: 'Dark theme on.', light: 'Light theme on.', gdd: 'Government Data Directorate skin on.' };
 document.getElementById('cTheme').addEventListener('click', e => {
   const now = document.body.dataset.theme;
   const next = THEME_CYCLE[(THEME_CYCLE.indexOf(now) + 1) % THEME_CYCLE.length];
@@ -257,7 +257,7 @@ document.getElementById('manBody').innerHTML = `
 <ul>
   <li>Never tested by a real screen-reader user, or a real keyboard-only user — automation checks reachability and naming, not whether the experience actually makes sense to a person using one. This is standing risk R-01.</li>
   <li>The ontology and taxonomy were authored by the tool that built this, not agreed by a vocabulary owner — risk R-04.</li>
-  <li>The OCDO skin (a third theme, added after the automated contrast check was written) has only been spot-checked by hand, not covered by the automated pass yet.</li>
+  <li>The Government Data Directorate skin (a third theme, added after the automated contrast check was written) has only been spot-checked by hand, not covered by the automated pass yet.</li>
 </ul>
 <p><b>To report a barrier:</b> open a GitHub issue against this repository using the bug report template, and say explicitly that it's an accessibility barrier — nothing here should need you to already know the internals to report it.</p>
 

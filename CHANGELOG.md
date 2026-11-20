@@ -4,6 +4,21 @@ All notable changes to the artefact. Mirrors Section 13 (Release history) of
 `docs/programme-authority.html`, which remains the source of truth. Defects
 found during verification are named, never quietly fixed.
 
+## Unreleased — 2026-11-20
+
+**D-PRIV-01**: the Knowledge Map (`kmap/knowledge-map.html`, published on the site) showed a personal work email address as a link and a copy button, and named the owner's team. This broke the owner's rules that contact is by contact form only and that the team is never named.
+
+- The footer now gives the contact form (the repository's issue chooser) and no email address. The copy-address button and its script are removed.
+- The team name is removed from the identity line and from one note.
+- The map's self-check now fails if any `mailto:` link, email address or team name appears, or if the contact form is missing. Its negative test puts an email address back in place of the form and is refused.
+
+**D-NAME-01**: "OCDO" is corrected to the Government Data Directorate.
+
+- The Web's third theme is now the Government Data Directorate skin (internal key `gdd`), on its button, its announcement and in the manual. The applications list uses the same name.
+- In the Knowledge Map, prose that names the organisation is corrected, keeping rename history accurate. Literal identifiers stay as they are, because changing them would point at things that do not exist: file names, artefact titles, chat titles and memory paths.
+
+Verified: build, lint, verify (6 collections), degraded mode and the vocabulary check pass. The map's 44 self-checks pass in both themes, with no overflow at 390px, and all five negative tests are refused.
+
 ## v3.10 — 2026-11-15
 
 **D-SEC-01** — code scanning findings fixed, part of applying the secure
