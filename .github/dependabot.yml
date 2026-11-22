@@ -6,6 +6,11 @@ updates:
     schedule: {interval: weekly}
     cooldown: {default-days: 7}
     open-pull-requests-limit: 10
+    # @eslint/js declares a peer of the same eslint major. Bumped one at a time (#18, #20)
+    # npm ci failed with ERESOLVE; #21 moved them together. This group keeps them together.
+    groups:
+      eslint:
+        patterns: ["eslint", "@eslint/js"]
   - package-ecosystem: github-actions
     directory: /
     schedule: {interval: weekly}
