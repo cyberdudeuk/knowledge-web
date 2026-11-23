@@ -16,3 +16,7 @@ keywords:
   - offline-first
   - accessibility
   - uk-government
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.24243456
+    description: "Concept DOI on Zenodo: resolves to the latest archived release"
